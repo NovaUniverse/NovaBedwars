@@ -8,57 +8,58 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.inventory.InventoryClickEvent;
 
 public class PreprocessItemBuyEvent extends Event implements Cancellable {
-    private final HandlerList HANDLERS_LIST = new HandlerList();
-    private Result buy = Result.DEFAULT;
+	private final HandlerList HANDLERS_LIST = new HandlerList();
+	private Result buy = Result.DEFAULT;
 
-    private final Items item;
-    private final Player player;
-    private final int slot;
-    private final InventoryClickEvent clickEvent;
-    public PreprocessItemBuyEvent(Items item, Player player, int slot, InventoryClickEvent e) {
-        this.item = item;
-        this.player = player;
-        this.slot = slot;
-        this.clickEvent = e;
-    }
+	private final Items item;
+	private final Player player;
+	private final int slot;
+	private final InventoryClickEvent clickEvent;
 
-    @Override
-    public HandlerList getHandlers() {
-        return HANDLERS_LIST;
-    }
+	public PreprocessItemBuyEvent(Items item, Player player, int slot, InventoryClickEvent e) {
+		this.item = item;
+		this.player = player;
+		this.slot = slot;
+		this.clickEvent = e;
+	}
 
-    public Player getPlayer() {
-        return player;
-    }
+	@Override
+	public HandlerList getHandlers() {
+		return HANDLERS_LIST;
+	}
 
-    public int getSlot() {
-        return slot;
-    }
+	public Player getPlayer() {
+		return player;
+	}
 
-    public Items getItem() {
-        return item;
-    }
+	public int getSlot() {
+		return slot;
+	}
 
-    @Override
-    public boolean isCancelled() {
-        return this.buy() == Result.DENY;
-    }
+	public Items getItem() {
+		return item;
+	}
 
-    public Result buy() {
-        return buy;
-    }
+	@Override
+	public boolean isCancelled() {
+		return this.buy() == Result.DENY;
+	}
 
-    public void setBuy(Result buy) {
-        this.buy = buy;
-    }
+	public Result buy() {
+		return buy;
+	}
 
-    public InventoryClickEvent getEvent() {
-        return clickEvent;
-    }
+	public void setBuy(Result buy) {
+		this.buy = buy;
+	}
 
-    @Override
-    public void setCancelled(boolean b) {
-        this.setBuy(b ? Result.DENY : (this.buy() == Result.DENY ? Result.DEFAULT : this.buy()));
-        clickEvent.setCancelled(true);
-    }
+	public InventoryClickEvent getEvent() {
+		return clickEvent;
+	}
+
+	@Override
+	public void setCancelled(boolean b) {
+		this.setBuy(b ? Result.DENY : (this.buy() == Result.DENY ? Result.DEFAULT : this.buy()));
+		clickEvent.setCancelled(true);
+	}
 }

@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Bedwars extends MapGame {
-
     public static int WEAPON_SLOT_DEFAULT = 0;
     public static int TRACKER_SLOT_DEFAULT = 8;
 
@@ -27,8 +26,10 @@ public class Bedwars extends MapGame {
     private boolean ended;
 
     private BedwarsConfig config;
+    
     private int timeToUpgrade;
     private Task timer;
+    
     public List<BaseData> bases;
 
     public Bedwars() {
