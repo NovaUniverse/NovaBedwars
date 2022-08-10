@@ -4,6 +4,8 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.*;
 
+import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
+
 public class ItemShop extends BedwarsNPCS {
 	public ItemShop(Location location) {
 		super(location);
@@ -19,7 +21,7 @@ public class ItemShop extends BedwarsNPCS {
 		stand.setMarker(true);
 		stand.setCustomName(ChatColor.YELLOW + "" + ChatColor.BOLD + "ITEM SHOP");
 		villager.setNoDamageTicks(Integer.MAX_VALUE);
-		noAI(villager);
+		VersionIndependentUtils.get().setAI(villager, false);
 		lookAtPlayerRunnable(villager);
 	}
 }

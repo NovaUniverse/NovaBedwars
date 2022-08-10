@@ -6,6 +6,8 @@ import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Villager;
 
+import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
+
 public class UpgradeShop extends BedwarsNPCS {
 	public UpgradeShop(Location location) {
 		super(location);
@@ -22,7 +24,7 @@ public class UpgradeShop extends BedwarsNPCS {
 		stand.setMarker(true);
 		stand.setCustomName(ChatColor.YELLOW + "" + ChatColor.BOLD + "TEAM UPGRADES");
 		villager.setNoDamageTicks(Integer.MAX_VALUE);
-		noAI(villager);
+		VersionIndependentUtils.get().setAI(villager, false);
 		lookAtPlayerRunnable(villager);
 	}
 }
