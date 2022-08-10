@@ -1,6 +1,6 @@
 name: NovaBedwars
 version: '${project.version}'
-main: net.brunogamer.bedwars.NovaBedwars
+main: net.novauniverse.bedwars.NovaBedwars
 
 depend: [NovaCore, NovaCoreGameEngine, HolographicDisplays]
 softdepend: [NovaGamesTarget]

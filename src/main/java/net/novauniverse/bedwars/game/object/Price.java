@@ -1,6 +1,5 @@
 package net.novauniverse.bedwars.game.object;
 
-import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependentMaterial;
 import org.bukkit.Material;
 
 public class Price {

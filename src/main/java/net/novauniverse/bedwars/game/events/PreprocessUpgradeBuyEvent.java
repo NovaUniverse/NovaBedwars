@@ -1,15 +1,11 @@
 package net.novauniverse.bedwars.game.events;
 
-import net.novauniverse.bedwars.game.enums.Items;
 import net.novauniverse.bedwars.game.enums.Upgrades;
-import net.zeeraa.novacore.spigot.teams.TeamManager;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
-import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
 
 public class PreprocessUpgradeBuyEvent extends Event implements Cancellable {
     private final HandlerList HANDLERS_LIST = new HandlerList();
