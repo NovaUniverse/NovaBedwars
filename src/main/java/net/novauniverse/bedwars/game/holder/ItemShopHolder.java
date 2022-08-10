@@ -1,9 +1,9 @@
 package net.novauniverse.bedwars.game.holder;
 
 import net.novauniverse.bedwars.game.enums.ItemCategory;
-import net.zeeraa.novacore.spigot.module.modules.gui.holders.GUIHolder;
+import net.zeeraa.novacore.spigot.module.modules.gui.holders.GUIReadOnlyHolder;
 
-public class ItemShopHolder extends GUIHolder {
+public class ItemShopHolder extends GUIReadOnlyHolder {
 	private ItemCategory category;
 
 	public ItemShopHolder(ItemCategory category) {
