@@ -2,9 +2,6 @@ package net.novauniverse.bedwars;
 
 import net.novauniverse.bedwars.game.holder.ItemShopHolder;
 import net.novauniverse.bedwars.game.holder.UpgradeShopHolder;
-import net.zeeraa.novacore.spigot.module.modules.gui.GUIAction;
-import net.zeeraa.novacore.spigot.module.modules.gui.GUIManager;
-import net.zeeraa.novacore.spigot.module.modules.gui.holders.GUIHolder;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
