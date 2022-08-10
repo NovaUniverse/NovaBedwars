@@ -1,9 +1,7 @@
 package net.novauniverse.bedwars.game.entity;
 
 import net.novauniverse.bedwars.NovaBedwars;
-import net.minecraft.server.v1_8_R3.NBTTagCompound;
 import org.bukkit.Location;
-import org.bukkit.craftbukkit.v1_8_R3.entity.CraftEntity;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -18,17 +16,6 @@ public abstract class BedwarsNPCS {
 	}
 
 	public abstract void spawn();
-
-	public void noAI(Entity bukkitEntity) {
-		net.minecraft.server.v1_8_R3.Entity nmsEntity = ((CraftEntity) bukkitEntity).getHandle();
-		NBTTagCompound tag = nmsEntity.getNBTTag();
-		if (tag == null) {
-			tag = new NBTTagCompound();
-		}
-		nmsEntity.c(tag);
-		tag.setInt("NoAI", 1);
-		nmsEntity.f(tag);
-	}
 
 	public void lookAtPlayerRunnable(Entity entity) {
 		BukkitRunnable runnable = new BukkitRunnable() {
