@@ -1,11 +1,13 @@
 package net.novauniverse.bedwars.game.object.base;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.bukkit.Location;
+
 import net.novauniverse.bedwars.game.object.Trap;
 import net.zeeraa.novacore.spigot.teams.Team;
 import net.zeeraa.novacore.spigot.utils.XYZLocation;
-import org.bukkit.Location;
-
-import java.util.ArrayList;
 
 public class BaseData {
 	private Team owner;
@@ -24,7 +26,7 @@ public class BaseData {
 	private XYZLocation itemShopLocation;
 	private XYZLocation upgradeShopLocation;
 
-	private ArrayList<Trap> traps;
+	private List<Trap> traps;
 
 	public BaseData(Team owner, Location spawnLocation, Location bedLocation, XYZLocation itemShopLocation, XYZLocation upgradeShopLocation) {
 		this.owner = owner;
@@ -32,6 +34,7 @@ public class BaseData {
 		this.bedLocation = bedLocation;
 		this.itemShopLocation = itemShopLocation;
 		this.upgradeShopLocation = upgradeShopLocation;
+		this.traps = new ArrayList<Trap>();
 	}
 
 	public Team getOwner() {
@@ -122,12 +125,15 @@ public class BaseData {
 		this.upgradeShopLocation = upgradeShopLocation;
 	}
 
-	public void setTraps(ArrayList<Trap> traps) {
+	public void setTraps(List<Trap> traps) {
 		this.traps = traps;
 	}
 
 	public void addTrap(Trap trap) {
 		this.traps.add(trap);
 	}
-
+	
+	public List<Trap> getTraps() {
+		return traps;
+	}
 }
