@@ -1,11 +1,13 @@
 package net.novauniverse.bedwars.game.object.base;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.bukkit.Location;
+
 import net.novauniverse.bedwars.game.object.Trap;
 import net.zeeraa.novacore.spigot.teams.Team;
 import net.zeeraa.novacore.spigot.utils.XYZLocation;
-import org.bukkit.Location;
-
-import java.util.ArrayList;
 
 public class BaseData {
 	private Team owner;
@@ -21,17 +23,18 @@ public class BaseData {
 	private Location spawnLocation;
 	private Location bedLocation;
 
-	private XYZLocation itemShopLocation;
-	private XYZLocation upgradeShopLocation;
+	private Location itemShopLocation;
+	private Location upgradeShopLocation;
 
-	private ArrayList<Trap> traps;
+	private List<Trap> traps;
 
-	public BaseData(Team owner, Location spawnLocation, Location bedLocation, XYZLocation itemShopLocation, XYZLocation upgradeShopLocation) {
+	public BaseData(Team owner, Location spawnLocation, Location bedLocation, Location itemShopLocation, Location upgradeShopLocation) {
 		this.owner = owner;
 		this.spawnLocation = spawnLocation;
 		this.bedLocation = bedLocation;
 		this.itemShopLocation = itemShopLocation;
 		this.upgradeShopLocation = upgradeShopLocation;
+		this.traps = new ArrayList<Trap>();
 	}
 
 	public Team getOwner() {
@@ -70,11 +73,11 @@ public class BaseData {
 		return bedLocation;
 	}
 
-	public XYZLocation getItemShopLocation() {
+	public Location getItemShopLocation() {
 		return itemShopLocation;
 	}
-
-	public XYZLocation getUpgradeShopLocation() {
+	
+	public Location getUpgradeShopLocation() {
 		return upgradeShopLocation;
 	}
 
@@ -106,28 +109,15 @@ public class BaseData {
 		this.hasBed = bed;
 	}
 
-	public void setSpawnLocation(Location location) {
-		this.spawnLocation = location;
-	}
-
-	public void setBedLocation(Location location) {
-		this.bedLocation = location;
-	}
-
-	public void setItemShopLocation(XYZLocation itemShopLocation) {
-		this.itemShopLocation = itemShopLocation;
-	}
-
-	public void setUpgradeShopLocation(XYZLocation upgradeShopLocation) {
-		this.upgradeShopLocation = upgradeShopLocation;
-	}
-
-	public void setTraps(ArrayList<Trap> traps) {
+	public void setTraps(List<Trap> traps) {
 		this.traps = traps;
 	}
 
 	public void addTrap(Trap trap) {
 		this.traps.add(trap);
 	}
-
+	
+	public List<Trap> getTraps() {
+		return traps;
+	}
 }

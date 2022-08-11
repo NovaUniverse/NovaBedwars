@@ -3,6 +3,8 @@ package net.novauniverse.bedwars.game;
 import net.novauniverse.bedwars.NovaBedwars;
 import net.novauniverse.bedwars.game.config.BedwarsConfig;
 import net.novauniverse.bedwars.game.config.ConfiguredBaseData;
+import net.novauniverse.bedwars.game.entity.BedwarsNPC;
+import net.novauniverse.bedwars.game.entity.NPCType;
 import net.novauniverse.bedwars.game.object.base.BaseData;
 import net.zeeraa.novacore.commons.log.Log;
 import net.zeeraa.novacore.commons.tasks.Task;
@@ -15,11 +17,14 @@ import net.zeeraa.novacore.spigot.tasks.SimpleTask;
 import net.zeeraa.novacore.spigot.teams.Team;
 import net.zeeraa.novacore.spigot.teams.TeamManager;
 import net.zeeraa.novacore.spigot.utils.PlayerUtils;
+import net.zeeraa.novacore.spigot.utils.RandomFireworkEffect;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Firework;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -27,7 +32,9 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.inventory.meta.FireworkMeta;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,13 +53,14 @@ public class Bedwars extends MapGame implements Listener {
 	private Task beginTask;
 
 	private List<Location> allowBreak;
-
-	public List<BaseData> bases;
+	private List<BedwarsNPC> npcs;
+	private List<BaseData> bases;
 
 	public Bedwars() {
 		super(NovaBedwars.getInstance());
 		bases = new ArrayList<>();
 		allowBreak = new ArrayList<>();
+		npcs = new ArrayList<>();
 
 		beginTimer = 10;
 		beginTimerFinished = false;
@@ -81,7 +89,7 @@ public class Bedwars extends MapGame implements Listener {
 
 	@Override
 	public String getName() {
-		return "mcf_bedwars";
+		return "nova_bedwars";
 	}
 
 	@Override
@@ -147,13 +155,24 @@ public class Bedwars extends MapGame implements Listener {
 		List<ConfiguredBaseData> cfgBase = new ArrayList<>(config.getBases());
 		TeamManager.getTeamManager().getTeams().forEach(team -> {
 			if (cfgBase.size() > 0) {
-				ConfiguredBaseData b = cfgBase.remove(0);
-				BaseData base = b.toBaseData(getWorld(), team);
+				ConfiguredBaseData configuredBase = cfgBase.remove(0);
+				BaseData base = configuredBase.toBaseData(getWorld(), team);
 				bases.add(base);
+				
+				BedwarsNPC itemShopNPC = new BedwarsNPC(base.getItemShopLocation(), NPCType.ITEMS);
+				BedwarsNPC upgradesShopNPC = new BedwarsNPC(base.getItemShopLocation(), NPCType.UPGRADES);
+				
+				itemShopNPC.spawn();
+				upgradesShopNPC.spawn();
+				
+				npcs.add(itemShopNPC);
+				npcs.add(upgradesShopNPC);
 			} else {
 				Log.error("Bedwars", "Not enough configured bases for team " + team.getDisplayName());
 			}
 		});
+
+		Bukkit.getServer().getOnlinePlayers().forEach(p -> tpToSpectator(p));
 
 		Bukkit.getServer().getOnlinePlayers().stream().filter(p -> players.contains(p.getUniqueId())).forEach(player -> {
 			tpToBase(player);
@@ -165,10 +184,44 @@ public class Bedwars extends MapGame implements Listener {
 	}
 
 	@Override
+	public void tpToSpectator(Player player) {
+		PlayerUtils.clearPlayerInventory(player);
+		PlayerUtils.resetMaxHealth(player);
+		PlayerUtils.resetPlayerXP(player);
+		player.setGameMode(GameMode.SPECTATOR);
+		player.teleport(getActiveMap().getSpectatorLocation());
+	}
+
+	@Override
 	public void onEnd(GameEndReason reason) {
 		if (ended || !started) {
 			return;
 		}
+
+		getActiveMap().getStarterLocations().forEach(location -> {
+			Firework fw = (Firework) location.getWorld().spawnEntity(location, EntityType.FIREWORK);
+			FireworkMeta fwm = fw.getFireworkMeta();
+
+			fwm.setPower(2);
+			fwm.addEffect(RandomFireworkEffect.randomFireworkEffect());
+
+			if (random.nextBoolean()) {
+				fwm.addEffect(RandomFireworkEffect.randomFireworkEffect());
+			}
+
+			fw.setFireworkMeta(fwm);
+		});
+
+		Bukkit.getServer().getOnlinePlayers().forEach(player -> {
+			VersionIndependentUtils.get().resetEntityMaxHealth(player);
+			player.setFoodLevel(20);
+			PlayerUtils.clearPlayerInventory(player);
+			PlayerUtils.resetPlayerXP(player);
+			player.setGameMode(GameMode.SPECTATOR);
+			if (!NovaBedwars.getInstance().isDisableDefaultEndSound()) {
+				VersionIndependentUtils.get().playSound(player, player.getLocation(), VersionIndependentSound.WITHER_DEATH, 1F, 1F);
+			}
+		});
 
 		Task.tryStopTask(beginTask);
 
@@ -183,7 +236,10 @@ public class Bedwars extends MapGame implements Listener {
 			BaseData base = bases.stream().filter(b -> b.getOwner().equals(team)).findFirst().orElse(null);
 			if (base != null) {
 				player.setGameMode(GameMode.SURVIVAL);
-				PlayerUtils.resetMaxHealth(player);
+				player.setHealth(player.getMaxHealth());
+				player.setSaturation(20);
+				player.setFoodLevel(20);
+				PlayerUtils.clearPotionEffects(player);
 				player.teleport(base.getBedLocation());
 			}
 		}
@@ -218,6 +274,24 @@ public class Bedwars extends MapGame implements Listener {
 			}
 		}
 	}
+	
+	@EventHandler(priority = EventPriority.NORMAL)
+	public void onPlayerInteractAtEntity(PlayerInteractAtEntityEvent e) {
+		npcs.stream().filter(n -> n.getVillager().getUniqueId().equals(e.getRightClicked().getUniqueId())).findFirst().ifPresent(clickedNPC -> {
+			switch (clickedNPC.getType()) {
+			case ITEMS:
+			// TODO: Open item shop ui
+				break;
+				
+			case UPGRADES:
+				// TODO: Open upgrades shop ui
+				break;
+
+			default:
+				break;
+			}
+		});
+	}
 
 	@EventHandler(priority = EventPriority.NORMAL)
 	public void onBlockBreak(BlockBreakEvent e) {
@@ -228,8 +302,7 @@ public class Bedwars extends MapGame implements Listener {
 				}
 
 				boolean allow = false;
-				// TODO: Some better way to check if its a bed
-				if (e.getBlock().getType().name().toLowerCase().contains("bed")) {
+				if (VersionIndependentUtils.get().isBed(e.getBlock())) {
 					allow = true;
 				} else if (allowBreak.contains(e.getBlock().getLocation())) {
 					allow = true;
