@@ -24,6 +24,9 @@ public class BedwarsNPC {
 	private Villager villager;
 	private Hologram hologram;
 
+	public static String ITEM_SHOP_NAME = ChatColor.YELLOW + "" + ChatColor.BOLD + "Item Shop";
+	public static String TEAM_UPGRADE_SHOP_NAME = ChatColor.AQUA + "" + ChatColor.BOLD + "Team Upgrades";
+
 	private boolean spawned;
 
 	private Task task;
@@ -63,10 +66,10 @@ public class BedwarsNPC {
 	public String getName() {
 		switch (type) {
 		case ITEMS:
-			return ChatColor.YELLOW + "" + ChatColor.BOLD + "Items";
+			return ITEM_SHOP_NAME;
 
 		case UPGRADES:
-			return ChatColor.AQUA + "" + ChatColor.BOLD + "Team Upgrades";
+			return TEAM_UPGRADE_SHOP_NAME;
 
 		default:
 			return "[INVALID ENUM TYPE]";
