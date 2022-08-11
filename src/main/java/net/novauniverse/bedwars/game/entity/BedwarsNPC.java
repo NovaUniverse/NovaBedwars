@@ -5,6 +5,7 @@ import net.zeeraa.novacore.commons.tasks.Task;
 import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
 import net.zeeraa.novacore.spigot.tasks.SimpleTask;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -32,12 +33,7 @@ public class BedwarsNPC {
 		this.type = type;
 		this.spawned = false;
 
-		this.task = new SimpleTask(NovaBedwars.getInstance(), new Runnable() {
-			@Override
-			public void run() {
-				lookAtPlayer();
-			}
-		}, 1L);
+		this.task = new SimpleTask(NovaBedwars.getInstance(), this::lookAtPlayer, 1L);
 	}
 
 	public void spawn() {
@@ -67,10 +63,10 @@ public class BedwarsNPC {
 	public String getName() {
 		switch (type) {
 		case ITEMS:
-			return "Items";
+			return ChatColor.YELLOW + "" + ChatColor.BOLD + "Items";
 
 		case UPGRADES:
-			return "Team upgrades";
+			return ChatColor.AQUA + "" + ChatColor.BOLD + "Team Upgrades";
 
 		default:
 			return "[INVALID ENUM TYPE]";
