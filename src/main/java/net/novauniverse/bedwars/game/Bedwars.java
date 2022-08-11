@@ -85,7 +85,7 @@ public class Bedwars extends MapGame implements Listener {
 
 	@Override
 	public String getName() {
-		return "mcf_bedwars";
+		return "nova_bedwars";
 	}
 
 	@Override
