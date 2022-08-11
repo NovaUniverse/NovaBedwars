@@ -228,8 +228,7 @@ public class Bedwars extends MapGame implements Listener {
 				}
 
 				boolean allow = false;
-				// TODO: Some better way to check if its a bed
-				if (e.getBlock().getType().name().toLowerCase().contains("bed")) {
+				if (VersionIndependentUtils.get().isBed(e.getBlock())) {
 					allow = true;
 				} else if (allowBreak.contains(e.getBlock().getLocation())) {
 					allow = true;
