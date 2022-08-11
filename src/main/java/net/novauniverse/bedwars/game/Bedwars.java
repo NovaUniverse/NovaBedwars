@@ -158,7 +158,7 @@ public class Bedwars extends MapGame implements Listener {
 				Log.error("Bedwars", "Not enough configured bases for team " + team.getDisplayName());
 			}
 		});
-		
+
 		Bukkit.getServer().getOnlinePlayers().forEach(p -> tpToSpectator(p));
 
 		Bukkit.getServer().getOnlinePlayers().stream().filter(p -> players.contains(p.getUniqueId())).forEach(player -> {
@@ -178,13 +178,13 @@ public class Bedwars extends MapGame implements Listener {
 		player.setGameMode(GameMode.SPECTATOR);
 		player.teleport(getActiveMap().getSpectatorLocation());
 	}
-	
+
 	@Override
 	public void onEnd(GameEndReason reason) {
 		if (ended || !started) {
 			return;
 		}
-		
+
 		getActiveMap().getStarterLocations().forEach(location -> {
 			Firework fw = (Firework) location.getWorld().spawnEntity(location, EntityType.FIREWORK);
 			FireworkMeta fwm = fw.getFireworkMeta();
@@ -223,7 +223,10 @@ public class Bedwars extends MapGame implements Listener {
 			BaseData base = bases.stream().filter(b -> b.getOwner().equals(team)).findFirst().orElse(null);
 			if (base != null) {
 				player.setGameMode(GameMode.SURVIVAL);
-				PlayerUtils.resetMaxHealth(player);
+				player.setHealth(player.getMaxHealth());
+				player.setSaturation(20);
+				player.setFoodLevel(20);
+				PlayerUtils.clearPotionEffects(player);
 				player.teleport(base.getBedLocation());
 			}
 		}
