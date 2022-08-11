@@ -23,12 +23,12 @@ public class BaseData {
 	private Location spawnLocation;
 	private Location bedLocation;
 
-	private XYZLocation itemShopLocation;
-	private XYZLocation upgradeShopLocation;
+	private Location itemShopLocation;
+	private Location upgradeShopLocation;
 
 	private List<Trap> traps;
 
-	public BaseData(Team owner, Location spawnLocation, Location bedLocation, XYZLocation itemShopLocation, XYZLocation upgradeShopLocation) {
+	public BaseData(Team owner, Location spawnLocation, Location bedLocation, Location itemShopLocation, Location upgradeShopLocation) {
 		this.owner = owner;
 		this.spawnLocation = spawnLocation;
 		this.bedLocation = bedLocation;
@@ -73,11 +73,11 @@ public class BaseData {
 		return bedLocation;
 	}
 
-	public XYZLocation getItemShopLocation() {
+	public Location getItemShopLocation() {
 		return itemShopLocation;
 	}
-
-	public XYZLocation getUpgradeShopLocation() {
+	
+	public Location getUpgradeShopLocation() {
 		return upgradeShopLocation;
 	}
 
@@ -107,22 +107,6 @@ public class BaseData {
 
 	public void setBed(boolean bed) {
 		this.hasBed = bed;
-	}
-
-	public void setSpawnLocation(Location location) {
-		this.spawnLocation = location;
-	}
-
-	public void setBedLocation(Location location) {
-		this.bedLocation = location;
-	}
-
-	public void setItemShopLocation(XYZLocation itemShopLocation) {
-		this.itemShopLocation = itemShopLocation;
-	}
-
-	public void setUpgradeShopLocation(XYZLocation upgradeShopLocation) {
-		this.upgradeShopLocation = upgradeShopLocation;
 	}
 
 	public void setTraps(List<Trap> traps) {
