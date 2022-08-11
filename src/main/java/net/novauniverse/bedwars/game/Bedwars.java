@@ -15,11 +15,14 @@ import net.zeeraa.novacore.spigot.tasks.SimpleTask;
 import net.zeeraa.novacore.spigot.teams.Team;
 import net.zeeraa.novacore.spigot.teams.TeamManager;
 import net.zeeraa.novacore.spigot.utils.PlayerUtils;
+import net.zeeraa.novacore.spigot.utils.RandomFireworkEffect;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Firework;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -28,6 +31,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.inventory.meta.FireworkMeta;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -181,7 +185,30 @@ public class Bedwars extends MapGame implements Listener {
 			return;
 		}
 		
-		
+		getActiveMap().getStarterLocations().forEach(location -> {
+			Firework fw = (Firework) location.getWorld().spawnEntity(location, EntityType.FIREWORK);
+			FireworkMeta fwm = fw.getFireworkMeta();
+
+			fwm.setPower(2);
+			fwm.addEffect(RandomFireworkEffect.randomFireworkEffect());
+
+			if (random.nextBoolean()) {
+				fwm.addEffect(RandomFireworkEffect.randomFireworkEffect());
+			}
+
+			fw.setFireworkMeta(fwm);
+		});
+
+		Bukkit.getServer().getOnlinePlayers().forEach(player -> {
+			VersionIndependentUtils.get().resetEntityMaxHealth(player);
+			player.setFoodLevel(20);
+			PlayerUtils.clearPlayerInventory(player);
+			PlayerUtils.resetPlayerXP(player);
+			player.setGameMode(GameMode.SPECTATOR);
+			if (!NovaBedwars.getInstance().isDisableDefaultEndSound()) {
+				VersionIndependentUtils.get().playSound(player, player.getLocation(), VersionIndependentSound.WITHER_DEATH, 1F, 1F);
+			}
+		});
 
 		Task.tryStopTask(beginTask);
 
