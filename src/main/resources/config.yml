@@ -3,3 +3,5 @@ disable_default_end_sound: false
 combat_tagging: true
 
 disable_novacore_gamelobby: false
+
+hypixel_api_key: ""
