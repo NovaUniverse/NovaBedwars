@@ -2,8 +2,7 @@ package net.novauniverse.bedwars;
 
 import net.novauniverse.bedwars.game.Bedwars;
 import net.novauniverse.bedwars.game.config.BedwarsConfig;
-import net.novauniverse.bedwars.game.holder.ItemShopHolder;
-import net.novauniverse.bedwars.game.holder.UpgradeShopHolder;
+import net.novauniverse.bedwars.utils.HypixelAPI;
 import net.zeeraa.novacore.commons.log.Log;
 import net.zeeraa.novacore.commons.utils.JSONFileUtils;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.GameManager;
@@ -16,6 +15,8 @@ import net.zeeraa.novacore.spigot.module.modules.compass.CompassTracker;
 
 import java.io.File;
 import java.io.IOException;
+
+import javax.annotation.Nullable;
 
 import org.apache.commons.io.FileUtils;
 import org.bukkit.Bukkit;
@@ -34,6 +35,8 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 	private Bedwars game;
 	private boolean disableDefaultEndSound;
 
+	private HypixelAPI hypixelAPI;
+
 	public static NovaBedwars getInstance() {
 		return instance;
 	}
@@ -50,14 +53,30 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 		return game;
 	}
 
+	@Nullable
+	public HypixelAPI getHypixelAPI() {
+		return hypixelAPI;
+	}
+
+	public boolean hasHypixelAPI() {
+		return hypixelAPI != null;
+	}
+
 	@Override
 	public void onEnable() {
 		NovaBedwars.instance = this;
 		saveDefaultConfig();
 
+		hypixelAPI = null;
+
 		disableDefaultEndSound = getConfig().getBoolean("disable_default_end_sound");
 		boolean combatTagging = getConfig().getBoolean("combat_tagging");
 		boolean disableNovaCoreGameLobby = getConfig().getBoolean("disable_novacore_gamelobby");
+
+		String hypixelAPIKey = getConfig().getString("hypixel_api_key");
+		if (hypixelAPIKey.length() > 0) {
+			hypixelAPI = new HypixelAPI(hypixelAPIKey);
+		}
 
 		File mapFolder = new File(this.getDataFolder().getPath() + File.separator + "Maps");
 		File worldFolder = new File(this.getDataFolder().getPath() + File.separator + "Worlds");
@@ -124,11 +143,5 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 	public void onDisable() {
 		Bukkit.getScheduler().cancelTasks(this);
 		HandlerList.unregisterAll((Plugin) this);
-	}
-
-	@EventHandler
-	public void ItemClick(InventoryClickEvent e) {
-		if (e.getClickedInventory().getHolder() instanceof ItemShopHolder || e.getClickedInventory().getHolder() instanceof UpgradeShopHolder) {
-		}
 	}
 }
