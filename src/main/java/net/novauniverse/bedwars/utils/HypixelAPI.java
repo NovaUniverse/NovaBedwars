@@ -6,9 +6,12 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import javax.annotation.Nullable;
 
+import net.novauniverse.bedwars.game.enums.Items;
 import org.bukkit.entity.Player;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -17,7 +20,7 @@ public class HypixelAPI {
 	public static final String BASE_URL = "https://api.hypixel.net"; // Do not end with /
 	public static int FETCH_TIMEOUT = 10 * 1000; // Default: 10 seconds
 
-	private String apiKey;
+	private final String apiKey;
 
 	public HypixelAPI(String apiKey) {
 		this.apiKey = apiKey;
@@ -54,16 +57,18 @@ public class HypixelAPI {
 		responseStream.close();
 		connection.disconnect();
 
-		JSONObject responseJson = new JSONObject(response.toString());
-		return responseJson;
+		return new JSONObject(response.toString());
 	}
 
 	@Nullable
-	public static final String getBedwarsPreferences(JSONObject json) {
+	public static String getBedwarsPreferences(JSONObject json) {
 		try {
 			return json.getJSONObject("player").getJSONObject("stats").getJSONObject("Bedwars").getString("favourites_2");
 		} catch (JSONException e) {
 			return null;
 		}
+	}
+	public static ArrayList<String> bedwarsPreferencesAsList(JSONObject object) {
+		return new ArrayList<>(Arrays.asList(getBedwarsPreferences(object).split(",")));
 	}
 }

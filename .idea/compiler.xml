@@ -10,7 +10,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="Nova Bedwars" target="1.8" />
+      <module name="Nova Bedwars" target="9" />
     </bytecodeTargetLevel>
   </component>
 </project>

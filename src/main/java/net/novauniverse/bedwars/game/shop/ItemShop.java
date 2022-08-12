@@ -12,6 +12,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.material.Dye;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -29,8 +30,12 @@ public class ItemShop extends ShopMold {
             inventory.setItem(i,bg);
         }
         inventory.setItem(category.getSlot(), category.asSelectedItem());
+        ItemStack redbg = new ItemBuilder(VersionIndependentUtils.get().getColoredItem(DyeColor.RED, ColoredBlockType.GLASS_PANE)).setName("PLACEHOLDER").build();
         placeRemainingOnes(inventory, bg);
-        for (int i = 19; i < 230; i++) {
+        for (int i = 19; i <= 25; i++) {
+            for (int j = 0; j <= 2; j++) {
+                inventory.setItem(i + (j * 9), redbg);
+            }
         }
     }
 
