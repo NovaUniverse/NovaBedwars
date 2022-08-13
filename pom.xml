@@ -41,6 +41,14 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.3.1</version>
+				<configuration>
+					<outputDirectory>C:\Users\T-Gamer\Downloads\NovaUniverse game sdk\plugins</outputDirectory>
+				</configuration>
+			</plugin>
 		</plugins>
 		<resources>
 			<resource>
@@ -61,7 +69,10 @@
 			<id>novauniverse2</id>
 			<url>https://nexus2.novauniverse.net/repository/novauniverse-group/</url>
 		</repository>
-
+		<repository>
+			<id>spigotmc-repo</id>
+			<url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
+		</repository>
 		<repository>
 			<id>codemc-repo</id>
 			<url>https://repo.codemc.io/repository/maven-public/</url>
@@ -71,7 +82,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.spigotmc</groupId>
-			<artifactId>spigot</artifactId>
+			<artifactId>spigot-api</artifactId>
 			<version>1.8.8-R0.1-SNAPSHOT</version>
 			<scope>provided</scope>
 		</dependency>

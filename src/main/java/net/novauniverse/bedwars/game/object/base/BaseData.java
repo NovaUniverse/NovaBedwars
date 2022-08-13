@@ -7,7 +7,6 @@ import org.bukkit.Location;
 
 import net.novauniverse.bedwars.game.object.Trap;
 import net.zeeraa.novacore.spigot.teams.Team;
-import net.zeeraa.novacore.spigot.utils.XYZLocation;
 
 public class BaseData {
 	private Team owner;
@@ -76,7 +75,7 @@ public class BaseData {
 	public Location getItemShopLocation() {
 		return itemShopLocation;
 	}
-	
+
 	public Location getUpgradeShopLocation() {
 		return upgradeShopLocation;
 	}
@@ -116,7 +115,7 @@ public class BaseData {
 	public void addTrap(Trap trap) {
 		this.traps.add(trap);
 	}
-	
+
 	public List<Trap> getTraps() {
 		return traps;
 	}

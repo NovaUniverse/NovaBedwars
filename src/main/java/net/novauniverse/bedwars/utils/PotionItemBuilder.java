@@ -7,7 +7,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionEffect;
 
-public class PotionItemBuilder extends ItemBuilder {
+public class 	PotionItemBuilder extends ItemBuilder {
 
 	public PotionItemBuilder(Material material) {
 		super(material);
