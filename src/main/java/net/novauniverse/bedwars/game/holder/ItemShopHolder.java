@@ -12,6 +12,5 @@ public class ItemShopHolder extends GUIReadOnlyHolder {
 
 	public ItemCategory getCategory() {
 		return category;
-
 	}
 }

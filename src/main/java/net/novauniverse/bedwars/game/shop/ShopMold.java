@@ -6,7 +6,6 @@ import org.bukkit.entity.Player;
 import java.io.IOException;
 
 public abstract class ShopMold {
-
     abstract void display(ItemCategory category, Player player) throws IOException;
-
 }
+
