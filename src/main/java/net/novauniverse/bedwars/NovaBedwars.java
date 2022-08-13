@@ -156,3 +156,5 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 		HandlerList.unregisterAll((Plugin) this);
 	}
 }
+
+// UwU, Daddy
