@@ -3,6 +3,8 @@ package net.novauniverse.bedwars;
 import net.novauniverse.bedwars.game.Bedwars;
 import net.novauniverse.bedwars.game.config.BedwarsConfig;
 import net.novauniverse.bedwars.utils.HypixelAPI;
+import net.novauniverse.bedwars.utils.preferences.api.PreferenceAPI;
+import net.novauniverse.bedwars.utils.preferences.api.PreferenceAPISettings;
 import net.zeeraa.novacore.commons.log.Log;
 import net.zeeraa.novacore.commons.utils.JSONFileUtils;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.GameManager;
@@ -20,10 +22,8 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.io.FileUtils;
 import org.bukkit.Bukkit;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.json.JSONException;
@@ -36,6 +36,7 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 	private boolean disableDefaultEndSound;
 
 	private HypixelAPI hypixelAPI;
+	private PreferenceAPI preferenceAPI;
 
 	public static NovaBedwars getInstance() {
 		return instance;
@@ -61,6 +62,14 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 	public boolean hasHypixelAPI() {
 		return hypixelAPI != null;
 	}
+	
+	public PreferenceAPI getPreferenceAPI() {
+		return preferenceAPI;
+	}
+	
+	public boolean hasPreferenceAPI() {
+		return preferenceAPI != null;
+	}
 
 	@Override
 	public void onEnable() {
@@ -68,7 +77,8 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 		saveDefaultConfig();
 
 		hypixelAPI = null;
-
+		preferenceAPI = null;
+		
 		disableDefaultEndSound = getConfig().getBoolean("disable_default_end_sound");
 		boolean combatTagging = getConfig().getBoolean("combat_tagging");
 		boolean disableNovaCoreGameLobby = getConfig().getBoolean("disable_novacore_gamelobby");
@@ -76,6 +86,16 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 		String hypixelAPIKey = getConfig().getString("hypixel_api_key");
 		if (hypixelAPIKey.length() > 0) {
 			hypixelAPI = new HypixelAPI(hypixelAPIKey);
+		}
+		
+		boolean preferenceApiEnabled = getConfig().getBoolean("preference_api_enabled");
+		String preferenceApiUrl = getConfig().getString("preference_api_url");
+		String preferenceApiKey = getConfig().getString("preference_api_key");
+		
+		PreferenceAPISettings apiConfig = new PreferenceAPISettings(preferenceApiEnabled, preferenceApiUrl, preferenceApiKey);
+		
+		if(apiConfig.isEnabled()) {
+			preferenceAPI = new PreferenceAPI(apiConfig);
 		}
 
 		File mapFolder = new File(this.getDataFolder().getPath() + File.separator + "Maps");

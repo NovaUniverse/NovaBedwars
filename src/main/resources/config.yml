@@ -5,3 +5,9 @@ combat_tagging: true
 disable_novacore_gamelobby: false
 
 hypixel_api_key: ""
+
+preference_api_enabled: false
+
+preference_api_url: "https://bedwarspreferences.novauniverse.net/"
+
+preference_api_key: "00000000-0000-0000-0000-000000000000"
