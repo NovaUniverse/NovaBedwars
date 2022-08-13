@@ -7,7 +7,6 @@ import org.bukkit.Location;
 
 import net.novauniverse.bedwars.game.object.Trap;
 import net.zeeraa.novacore.spigot.teams.Team;
-import net.zeeraa.novacore.spigot.utils.XYZLocation;
 
 public class BaseData {
 	private Team owner;

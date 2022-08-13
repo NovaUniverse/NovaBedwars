@@ -8,10 +8,10 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import javax.annotation.Nullable;
 
-import net.novauniverse.bedwars.game.enums.Items;
 import org.bukkit.entity.Player;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -36,12 +36,12 @@ public class HypixelAPI {
 		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 		connection.setRequestProperty("accept", "application/json");
 		connection.setRequestProperty("User-Agent", "NovaUniverseS");
-		
+
 		connection.setConnectTimeout(FETCH_TIMEOUT);
 		connection.setReadTimeout(FETCH_TIMEOUT);
-		
+
 		connection.connect();
-		
+
 		InputStream responseStream = connection.getInputStream();
 
 		InputStreamReader isr = new InputStreamReader(responseStream);
@@ -68,7 +68,8 @@ public class HypixelAPI {
 			return null;
 		}
 	}
-	public static ArrayList<String> bedwarsPreferencesAsList(JSONObject object) {
+
+	public static List<String> bedwarsPreferencesAsList(JSONObject object) {
 		return new ArrayList<>(Arrays.asList(getBedwarsPreferences(object).split(",")));
 	}
 }
