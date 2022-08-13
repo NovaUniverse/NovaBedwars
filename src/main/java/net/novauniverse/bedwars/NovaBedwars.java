@@ -2,6 +2,8 @@ package net.novauniverse.bedwars;
 
 import net.novauniverse.bedwars.game.Bedwars;
 import net.novauniverse.bedwars.game.config.BedwarsConfig;
+import net.novauniverse.bedwars.game.enums.ItemCategory;
+import net.novauniverse.bedwars.game.shop.ItemShop;
 import net.novauniverse.bedwars.utils.HypixelAPI;
 import net.novauniverse.bedwars.utils.preferences.api.PreferenceAPI;
 import net.novauniverse.bedwars.utils.preferences.api.PreferenceAPISettings;
@@ -24,6 +26,8 @@ import org.apache.commons.io.FileUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.json.JSONException;
@@ -48,6 +52,14 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 
 	public void setDisableDefaultEndSound(boolean disableDefaultEndSound) {
 		this.disableDefaultEndSound = disableDefaultEndSound;
+	}
+
+	@EventHandler
+	public void onCrouch(PlayerToggleSneakEvent e) throws IOException {
+		if (e.isSneaking()) {
+			ItemShop shop = new ItemShop();
+			shop.display(ItemCategory.QUICK_BUY, e.getPlayer());
+		}
 	}
 
 	public Bedwars getGame() {
@@ -165,3 +177,5 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 		HandlerList.unregisterAll((Plugin) this);
 	}
 }
+
+// UwU, Daddy
