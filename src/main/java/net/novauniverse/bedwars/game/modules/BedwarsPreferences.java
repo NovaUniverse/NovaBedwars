@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import javax.annotation.Nullable;
-
 import org.json.JSONArray;
 
 import net.novauniverse.bedwars.game.enums.Items;
@@ -13,9 +11,9 @@ import net.zeeraa.novacore.commons.log.Log;
 
 public class BedwarsPreferences {
 	private UUID uuid;
-	private List<@Nullable Items> items;
+	private List<Items> items;
 
-	public BedwarsPreferences(UUID uuid, List<@Nullable Items> items) {
+	public BedwarsPreferences(UUID uuid, List<Items> items) {
 		this.uuid = uuid;
 		this.items = items;
 	}
@@ -24,7 +22,7 @@ public class BedwarsPreferences {
 		return uuid;
 	}
 
-	public List<@Nullable Items> getItems() {
+	public List<Items> getItems() {
 		return items;
 	}
 
@@ -38,8 +36,8 @@ public class BedwarsPreferences {
 		return json;
 	}
 
-	public static List<@Nullable Items> parseItems(JSONArray jsonArray) {
-		List<@Nullable Items> items = new ArrayList<>();
+	public static List<Items> parseItems(JSONArray jsonArray) {
+		List<Items> items = new ArrayList<>();
 
 		for (int i = 0; i < jsonArray.length(); i++) {
 			String itemName = jsonArray.getString(i);
