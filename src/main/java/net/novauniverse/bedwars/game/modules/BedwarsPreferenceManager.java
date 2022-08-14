@@ -107,12 +107,12 @@ public class BedwarsPreferenceManager extends NovaModule implements Listener {
 										items.add(item);
 									}
 								}
-
-								preferences.put(player.getUniqueId(), new BedwarsPreferences(player.getUniqueId(), items));
-								if (callback != null) {
-									callback.onResult(true, null);
-								}
 							});
+							
+							preferences.put(player.getUniqueId(), new BedwarsPreferences(player.getUniqueId(), items));
+							if (callback != null) {
+								callback.onResult(true, null);
+							}
 						}
 					});
 				} catch (Exception e) {
