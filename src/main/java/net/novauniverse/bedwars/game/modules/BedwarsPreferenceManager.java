@@ -19,6 +19,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import net.novauniverse.bedwars.NovaBedwars;
 import net.novauniverse.bedwars.game.enums.Items;
@@ -87,31 +88,37 @@ public class BedwarsPreferenceManager extends NovaModule implements Listener {
 			@Override
 			public void run() {
 				try {
-					final List<String> hypixelData = HypixelAPI.bedwarsPreferencesAsList(NovaBedwars.getInstance().getHypixelAPI().getProfile(player));
+					JSONObject data = NovaBedwars.getInstance().getHypixelAPI().getProfile(player);
+					final List<String> hypixelData = HypixelAPI.bedwarsPreferencesAsList(data);
 
 					AsyncManager.runSync(new Runnable() {
 						@Override
 						public void run() {
-							final List<Items> items = new ArrayList<>();
+							if (hypixelData == null) {
 
-							hypixelData.forEach(h -> {
-								if (h == "null") {
-									items.add(null);
-								} else {
-									Items item = Arrays.stream(Items.values()).filter(i -> i.getHypixelCounterpart() != null).filter(i -> i.getHypixelCounterpart().equalsIgnoreCase(h)).findFirst().orElse(null);
-									if (item == null) {
-										Log.trace("BedwarsPreferenceManager", "Could not map hypixel item " + h + " to NovaBedwars item");
+							} else {
+
+								final List<Items> items = new ArrayList<>();
+
+								hypixelData.forEach(h -> {
+									if (h == "null") {
 										items.add(null);
 									} else {
-										Log.trace("BedwarsPreferenceManager", "Mapped hypixel item " + h + " to " + item.name());
-										items.add(item);
+										Items item = Arrays.stream(Items.values()).filter(i -> i.getHypixelCounterpart() != null).filter(i -> i.getHypixelCounterpart().equalsIgnoreCase(h)).findFirst().orElse(null);
+										if (item == null) {
+											Log.trace("BedwarsPreferenceManager", "Could not map hypixel item " + h + " to NovaBedwars item");
+											items.add(null);
+										} else {
+											Log.trace("BedwarsPreferenceManager", "Mapped hypixel item " + h + " to " + item.name());
+											items.add(item);
+										}
 									}
-								}
-							});
+								});
 
-							preferences.put(player.getUniqueId(), new BedwarsPreferences(player.getUniqueId(), items));
-							if (callback != null) {
-								callback.onResult(true, null);
+								preferences.put(player.getUniqueId(), new BedwarsPreferences(player.getUniqueId(), items));
+								if (callback != null) {
+									callback.onResult(true, null);
+								}
 							}
 						}
 					});
@@ -153,14 +160,14 @@ public class BedwarsPreferenceManager extends NovaModule implements Listener {
 			public void run() {
 				try {
 					final boolean result = NovaBedwars.getInstance().getPreferenceAPI().updatePreferences(preferences.getUuid(), preferences.toJSON());
-					
-					if(result) {
-						Log.debug("BedwarsPreferenceManager", "Preferences updated for " + preferences.getUuid());	
+
+					if (result) {
+						Log.debug("BedwarsPreferenceManager", "Preferences updated for " + preferences.getUuid());
 					} else {
 						Log.warn("BedwarsPreferenceManager", "Failed to update preferences for " + preferences.getUuid());
 					}
-					
-					if (callback != null) {	
+
+					if (callback != null) {
 						AsyncManager.runSync(new Runnable() {
 							@Override
 							public void run() {
@@ -182,7 +189,7 @@ public class BedwarsPreferenceManager extends NovaModule implements Listener {
 				}
 			}
 		});
-		
+
 		return true;
 	}
 

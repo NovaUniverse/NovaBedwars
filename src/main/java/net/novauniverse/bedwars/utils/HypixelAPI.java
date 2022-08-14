@@ -63,6 +63,10 @@ public class HypixelAPI {
 	@Nullable
 	public static String getBedwarsPreferences(JSONObject json) {
 		try {
+			if (json.isNull("player")) {
+				return null;
+			}
+
 			return json.getJSONObject("player").getJSONObject("stats").getJSONObject("Bedwars").getString("favourites_2");
 		} catch (JSONException e) {
 			return null;
@@ -70,6 +74,12 @@ public class HypixelAPI {
 	}
 
 	public static List<String> bedwarsPreferencesAsList(JSONObject object) {
-		return new ArrayList<>(Arrays.asList(getBedwarsPreferences(object).split(",")));
+		String bedwarsPreferences = getBedwarsPreferences(object);
+
+		if (bedwarsPreferences == null) {
+			return null;
+		}
+
+		return new ArrayList<>(Arrays.asList(bedwarsPreferences.split(",")));
 	}
 }
