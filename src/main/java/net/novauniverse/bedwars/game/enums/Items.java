@@ -15,6 +15,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 public enum Items {
@@ -198,7 +199,7 @@ public enum Items {
             item.setItemMeta(meta);
             return item;
     }
-    private ArrayList<String> addLore(Price price) {
+    private List<String> addLore(Price price) {
         ChatColor color = null;
         if (price.getMaterial() == Material.EMERALD) {
             color = ChatColor.GREEN;
@@ -211,7 +212,7 @@ public enum Items {
         if (price.getPrice() >= 2) {
             stringified += "s";
         }
-        ArrayList<String> lore = new ArrayList<>();
+        List<String> lore = new ArrayList<>();
         lore.add("");
         lore.add(ChatColor.BOLD + "" +color + "" + price.getPrice() + " " + stringified);
         return lore;
@@ -234,9 +235,8 @@ public enum Items {
             return ChatColor.RED + "POTION EFFECT COULD NOT BE FOUND";
         }
     }
-    public String intToRoman(int num)
-    {
-        System.out.println("Integer: " + num);
+    public String intToRoman(int num) {
+        //System.out.println("Integer: " + num);
         int[] values = {1000,900,500,400,100,90,50,40,10,9,5,4,1};
         String[] romanLetters = {"M","CM","D","CD","C","XC","L","XL","X","IX","V","IV","I"};
         StringBuilder roman = new StringBuilder();
