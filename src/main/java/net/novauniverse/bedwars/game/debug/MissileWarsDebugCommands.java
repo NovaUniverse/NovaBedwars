@@ -6,7 +6,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.permissions.PermissionDefault;
 
 import net.novauniverse.bedwars.game.modules.BedwarsPreferenceManager;
-import net.novauniverse.bedwars.game.modules.PreferenceAPIRequestCallback;
 import net.zeeraa.novacore.spigot.command.AllowedSenders;
 import net.zeeraa.novacore.spigot.debug.DebugCommandRegistrator;
 import net.zeeraa.novacore.spigot.debug.DebugTrigger;
