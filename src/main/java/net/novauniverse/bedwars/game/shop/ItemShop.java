@@ -21,6 +21,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ItemShop extends ShopMold {
     @Override
@@ -55,8 +56,12 @@ public class ItemShop extends ShopMold {
             ItemStack defaultSword = new ItemBuilder(VersionIndependentMaterial.GOLDEN_SWORD).setName(ChatColor.GRAY + "Swords").setAmount(1).build();
             inventory.setItem(19, defaultSword);
             inventory.setItem(20, blackbg);
-            ArrayList<Items> swordList = new ArrayList<>(Arrays.stream(Items.values()).filter(items1 -> items1.asShopItem().getType().name().contains("SWORD") || items1.asShopItem().getType() == Material.STICK).toList());
-            ArrayList<Items> bowList = new ArrayList<>(Arrays.stream(Items.values()).filter(items1 -> items1.asShopItem().getType() == Material.BOW).toList());
+            //ArrayList<Items> swordList = new ArrayList<>(Arrays.stream(Items.values()).filter(items1 -> items1.asShopItem().getType().name().contains("SWORD") || items1.asShopItem().getType() == Material.STICK));
+            //ArrayList<Items> bowList = new ArrayList<>(Arrays.stream(Items.values()).filter(items1 -> items1.asShopItem().getType() == Material.BOW));
+            
+            List<Items> swordList = new ArrayList<>(Arrays.stream(Items.values()).filter(i -> i.asShopItem().getType().name().contains("SWORD") || i.asShopItem().getType() == Material.STICK).collect(Collectors.toList()));
+            List<Items> bowList = new ArrayList<>(Arrays.stream(Items.values()).filter(i -> i.asShopItem().getType() == Material.BOW).collect(Collectors.toList()));
+            
             for (int i = 21; i <= 26; i++) {
                 try {
                     inventory.setItem(i, swordList.get(i - 21).asShopItem());
