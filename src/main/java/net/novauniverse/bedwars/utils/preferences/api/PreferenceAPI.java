@@ -6,10 +6,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
+
+import javax.annotation.Nullable;
 
 import org.bukkit.entity.Player;
 import org.json.JSONArray;
@@ -25,15 +26,20 @@ public class PreferenceAPI {
 		this.settings = settings;
 	}
 
-	public PreferenceAPISettings getSettings() { // look i get kinda bothered when theres no getters
-		return settings;
-	}
+	// look i get kinda bothered when theres no getters
+	// The settings should never get accessed by anything but this class since it
+	// contains api keys
+	/*
+	 * public PreferenceAPISettings getSettings() { return settings; }
+	 */
+
+	@Nullable
 	public JSONArray getPreferences(Player player) throws IOException, JSONException {
 		return this.getPreferences(player.getUniqueId());
 	}
 
+	@Nullable
 	public JSONArray getPreferences(UUID uuid) throws IOException, JSONException {
-		JSONArray array = new JSONArray();
 		URL url = new URL(settings.getUrl() + "/" + uuid.toString());
 
 		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -44,6 +50,12 @@ public class PreferenceAPI {
 		connection.setReadTimeout(FETCH_TIMEOUT);
 
 		connection.connect();
+
+		int code = connection.getResponseCode();
+		if (code == 404) {
+			connection.disconnect();
+			return null;
+		}
 
 		InputStream responseStream = connection.getInputStream();
 
