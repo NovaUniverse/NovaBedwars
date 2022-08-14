@@ -64,4 +64,12 @@ public class BedwarsPreferences {
 	public static BedwarsPreferences empty(UUID uuid) {
 		return new BedwarsPreferences(uuid, new ArrayList<>());
 	}
+	
+	public static BedwarsPreferences defaultPreferences(UUID uuid) {
+		List<Items> defaults = new ArrayList<>();
+		
+		// Add stuff here
+		
+		return new BedwarsPreferences(uuid, defaults);
+	}
 }

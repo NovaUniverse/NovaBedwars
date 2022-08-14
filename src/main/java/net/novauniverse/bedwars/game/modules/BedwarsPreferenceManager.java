@@ -166,8 +166,9 @@ public class BedwarsPreferenceManager extends NovaModule implements Listener {
 
 	@EventHandler(priority = EventPriority.NORMAL)
 	public void onPlayerJoin(PlayerJoinEvent e) {
+		final Player player = e.getPlayer();
+		preferences.put(player.getUniqueId(), BedwarsPreferences.defaultPreferences(player.getUniqueId()));
 		if (NovaBedwars.getInstance().hasPreferenceAPI()) {
-			final Player player = e.getPlayer();
 			Log.debug("BedwarsPreferenceManager", "Fetching item shop preferences for " + player.getName());
 			AsyncManager.runAsync(() -> {
 				try {
