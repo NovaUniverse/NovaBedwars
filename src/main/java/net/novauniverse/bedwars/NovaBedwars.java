@@ -2,6 +2,7 @@ package net.novauniverse.bedwars;
 
 import net.novauniverse.bedwars.game.Bedwars;
 import net.novauniverse.bedwars.game.config.BedwarsConfig;
+import net.novauniverse.bedwars.game.debug.MissileWarsDebugCommands;
 import net.novauniverse.bedwars.game.enums.ItemCategory;
 import net.novauniverse.bedwars.game.shop.ItemShop;
 import net.novauniverse.bedwars.utils.HypixelAPI;
@@ -27,7 +28,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -145,6 +145,8 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 			return;
 		}
 
+		ModuleManager.scanForModules(this, "net.novauniverse.bedwars.game.modules");
+		
 		ModuleManager.enable(GameManager.class);
 		ModuleManager.enable(CompassTracker.class);
 		if (!disableNovaCoreGameLobby) {
@@ -170,6 +172,8 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 
 		Log.info(getName(), "Loading maps from " + mapFolder.getPath());
 		GameManager.getInstance().readMapsFromFolder(mapFolder, worldFolder);
+		
+		MissileWarsDebugCommands.register();
 	}
 
 	@Override

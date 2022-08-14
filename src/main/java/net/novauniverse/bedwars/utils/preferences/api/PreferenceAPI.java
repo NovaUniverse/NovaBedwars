@@ -6,15 +6,18 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
+
+import javax.annotation.Nullable;
 
 import org.bukkit.entity.Player;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import net.zeeraa.novacore.commons.log.Log;
 
 public class PreferenceAPI {
 	public static int FETCH_TIMEOUT = 10 * 1000; // Default: 10 seconds
@@ -25,25 +28,36 @@ public class PreferenceAPI {
 		this.settings = settings;
 	}
 
-	public PreferenceAPISettings getSettings() { // look i get kinda bothered when theres no getters
-		return settings;
-	}
+	// look i get kinda bothered when theres no getters
+	// The settings should never get accessed by anything but this class since it
+	// contains api keys
+	/*
+	 * public PreferenceAPISettings getSettings() { return settings; }
+	 */
+
+	@Nullable
 	public JSONArray getPreferences(Player player) throws IOException, JSONException {
 		return this.getPreferences(player.getUniqueId());
 	}
 
+	@Nullable
 	public JSONArray getPreferences(UUID uuid) throws IOException, JSONException {
-		JSONArray array = new JSONArray();
 		URL url = new URL(settings.getUrl() + "/" + uuid.toString());
 
 		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 		connection.setRequestProperty("accept", "application/json");
-		connection.setRequestProperty("User-Agent", "NovaUniverseS");
+		connection.setRequestProperty("User-Agent", "NovaUniverse Bedwars");
 
 		connection.setConnectTimeout(FETCH_TIMEOUT);
 		connection.setReadTimeout(FETCH_TIMEOUT);
 
 		connection.connect();
+
+		int code = connection.getResponseCode();
+		if (code == 404) {
+			connection.disconnect();
+			return null;
+		}
 
 		InputStream responseStream = connection.getInputStream();
 
@@ -74,11 +88,13 @@ public class PreferenceAPI {
 
 		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 		connection.setRequestMethod("POST");
+		connection.setRequestProperty("authorization", settings.getKey());
 		connection.setRequestProperty("Content-Type", "application/json");
 		connection.setRequestProperty("accept", "application/json");
-		connection.setRequestProperty("User-Agent", "NovaUniverseS");
+		connection.setRequestProperty("User-Agent", "NovaUniverse Bedwars");
 
 		connection.setDoOutput(true);
+		connection.setDoInput(true);
 
 		connection.setConnectTimeout(FETCH_TIMEOUT);
 		connection.setReadTimeout(FETCH_TIMEOUT);
@@ -91,6 +107,8 @@ public class PreferenceAPI {
 		os.close();
 
 		int code = connection.getResponseCode();
+
+		Log.trace("PreferenceAPI#updatePreferences", "HTTP response: " + code);
 
 		connection.disconnect();
 
