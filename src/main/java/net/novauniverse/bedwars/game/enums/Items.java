@@ -13,6 +13,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,8 +63,8 @@ public enum Items {
     private ArmorType armorType = ArmorType.NO_ARMOR;
     private int amount = 0;
     private final ItemCategory category;
-    private Material material;
-    private ItemStack itemStack;
+    private final Material material;
+    private final ItemStack itemStack;
     private final Price price;
     private final String hypixelCounterpart;
     private final ItemStack shopItem;
@@ -135,6 +136,7 @@ public enum Items {
 
     }
 
+    @Nullable
     public static Items toItemEnum(ItemStack item) {
 
         for (Items items: Items.values()) {
@@ -144,7 +146,7 @@ public enum Items {
         }
         return null;
     }
-
+    @Nullable
     public ColoredBlockType getColoredBlockType() {
         return coloredBlockType;
     }

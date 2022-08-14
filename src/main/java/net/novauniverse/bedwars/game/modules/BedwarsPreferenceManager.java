@@ -1,12 +1,7 @@
 package net.novauniverse.bedwars.game.modules;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import javax.annotation.Nullable;
 
@@ -37,10 +32,10 @@ public class BedwarsPreferenceManager extends NovaModule implements Listener {
 
 	private static BedwarsPreferenceManager instance;
 
-	private Map<UUID, BedwarsPreferences> preferences;
-	private List<HypixelAPIRequestCooldown> cooldown;
+	private final Map<UUID, BedwarsPreferences> preferences;
+	private final List<HypixelAPIRequestCooldown> cooldown;
 
-	private Task cooldownTask;
+	private final Task cooldownTask;
 
 	public static BedwarsPreferenceManager getInstance() {
 		return instance;
@@ -52,12 +47,9 @@ public class BedwarsPreferenceManager extends NovaModule implements Listener {
 
 		this.cooldown = new ArrayList<>();
 		this.preferences = new HashMap<>();
-		this.cooldownTask = new SimpleTask(NovaBedwars.getInstance(), new Runnable() {
-			@Override
-			public void run() {
-				cooldown.forEach(c -> c.decrement());
-				cooldown.removeIf(c -> c.hasExpired());
-			}
+		this.cooldownTask = new SimpleTask(NovaBedwars.getInstance(), () -> {
+			cooldown.forEach(HypixelAPIRequestCooldown::decrement);
+			cooldown.removeIf(HypixelAPIRequestCooldown::hasExpired);
 		}, 20L);
 	}
 
@@ -74,7 +66,7 @@ public class BedwarsPreferenceManager extends NovaModule implements Listener {
 	}
 
 	public boolean isHypixelRequestCooldownActive(Player player) {
-		return cooldown.stream().filter(c -> c.getName().equalsIgnoreCase(player.getName())).findFirst().isPresent();
+		return cooldown.stream().anyMatch(c -> c.getName().equalsIgnoreCase(player.getName()));
 	}
 
 	public boolean tryImportHypixelPreferences(final Player player, @Nullable final PreferenceAPIRequestCallback callback) {
@@ -84,54 +76,43 @@ public class BedwarsPreferenceManager extends NovaModule implements Listener {
 
 		cooldown.add(new HypixelAPIRequestCooldown(player.getName(), BedwarsPreferenceManager.DEFAULT_HYPIXEL_COOLDOWN_TIME));
 
-		AsyncManager.runAsync(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					JSONObject data = NovaBedwars.getInstance().getHypixelAPI().getProfile(player);
-					final List<String> hypixelData = HypixelAPI.bedwarsPreferencesAsList(data);
+		AsyncManager.runAsync(() -> {
+			try {
+				JSONObject data = NovaBedwars.getInstance().getHypixelAPI().getProfile(player);
+				final List<String> hypixelData = HypixelAPI.bedwarsPreferencesAsList(data);
 
-					AsyncManager.runSync(new Runnable() {
-						@Override
-						public void run() {
-							if (hypixelData == null) {
+				AsyncManager.runSync(() -> {
+					if (hypixelData == null) {
 
+					} else {
+
+						final List<Items> items = new ArrayList<>();
+
+						hypixelData.forEach(h -> {
+							if (Objects.equals(h, "null")) {
+								items.add(null);
 							} else {
-
-								final List<Items> items = new ArrayList<>();
-
-								hypixelData.forEach(h -> {
-									if (h == "null") {
-										items.add(null);
-									} else {
-										Items item = Arrays.stream(Items.values()).filter(i -> i.getHypixelCounterpart() != null).filter(i -> i.getHypixelCounterpart().equalsIgnoreCase(h)).findFirst().orElse(null);
-										if (item == null) {
-											Log.trace("BedwarsPreferenceManager", "Could not map hypixel item " + h + " to NovaBedwars item");
-											items.add(null);
-										} else {
-											Log.trace("BedwarsPreferenceManager", "Mapped hypixel item " + h + " to " + item.name());
-											items.add(item);
-										}
-									}
-								});
-
-								preferences.put(player.getUniqueId(), new BedwarsPreferences(player.getUniqueId(), items));
-								if (callback != null) {
-									callback.onResult(true, null);
+								Items item = Arrays.stream(Items.values()).filter(i -> i.getHypixelCounterpart() != null).filter(i -> i.getHypixelCounterpart().equalsIgnoreCase(h)).findFirst().orElse(null);
+								if (item == null) {
+									Log.trace("BedwarsPreferenceManager", "Could not map hypixel item " + h + " to NovaBedwars item");
+									items.add(null);
+								} else {
+									Log.trace("BedwarsPreferenceManager", "Mapped hypixel item " + h + " to " + item.name());
+									items.add(item);
 								}
 							}
-						}
-					});
-				} catch (Exception e) {
-					Log.warn("BedwarsPreferenceManager", "Failed to fetch/parse hypixel preference data. " + e.getClass().getName() + " " + e.getMessage());
-					if (callback != null) {
-						AsyncManager.runSync(new Runnable() {
-							@Override
-							public void run() {
-								callback.onResult(false, e);
-							}
 						});
+
+						preferences.put(player.getUniqueId(), new BedwarsPreferences(player.getUniqueId(), items));
+						if (callback != null) {
+							callback.onResult(true, null);
+						}
 					}
+				});
+			} catch (Exception e) {
+				Log.warn("BedwarsPreferenceManager", "Failed to fetch/parse hypixel preference data. " + e.getClass().getName() + " " + e.getMessage());
+				if (callback != null) {
+					AsyncManager.runSync(() -> callback.onResult(false, e));
 				}
 			}
 		});
@@ -155,38 +136,25 @@ public class BedwarsPreferenceManager extends NovaModule implements Listener {
 			return false;
 		}
 
-		AsyncManager.runAsync(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					final boolean result = NovaBedwars.getInstance().getPreferenceAPI().updatePreferences(preferences.getUuid(), preferences.toJSON());
+		AsyncManager.runAsync(() -> {
+			try {
+				final boolean result = NovaBedwars.getInstance().getPreferenceAPI().updatePreferences(preferences.getUuid(), preferences.toJSON());
 
-					if (result) {
-						Log.debug("BedwarsPreferenceManager", "Preferences updated for " + preferences.getUuid());
-					} else {
-						Log.warn("BedwarsPreferenceManager", "Failed to update preferences for " + preferences.getUuid());
-					}
-
-					if (callback != null) {
-						AsyncManager.runSync(new Runnable() {
-							@Override
-							public void run() {
-								callback.onResult(result, null);
-							}
-						});
-					}
-				} catch (final IOException e) {
-					Log.warn("BedwarsPreferenceManager", "Failed to update preferences for " + preferences.getUuid() + ". " + e.getClass().getName() + " " + e.getMessage());
-					if (callback != null) {
-						AsyncManager.runSync(new Runnable() {
-							@Override
-							public void run() {
-								callback.onResult(false, e);
-							}
-						});
-					}
-
+				if (result) {
+					Log.debug("BedwarsPreferenceManager", "Preferences updated for " + preferences.getUuid());
+				} else {
+					Log.warn("BedwarsPreferenceManager", "Failed to update preferences for " + preferences.getUuid());
 				}
+
+				if (callback != null) {
+					AsyncManager.runSync(() -> callback.onResult(result, null));
+				}
+			} catch (final IOException e) {
+				Log.warn("BedwarsPreferenceManager", "Failed to update preferences for " + preferences.getUuid() + ". " + e.getClass().getName() + " " + e.getMessage());
+				if (callback != null) {
+					AsyncManager.runSync(() -> callback.onResult(false, e));
+				}
+
 			}
 		});
 
@@ -198,28 +166,21 @@ public class BedwarsPreferenceManager extends NovaModule implements Listener {
 		if (NovaBedwars.getInstance().hasPreferenceAPI()) {
 			final Player player = e.getPlayer();
 			Log.debug("BedwarsPreferenceManager", "Fetching item shop preferences for " + player.getName());
-			AsyncManager.runAsync(new Runnable() {
-
-				@Override
-				public void run() {
-					try {
-						final JSONArray json = NovaBedwars.getInstance().getPreferenceAPI().getPreferences(player);
-						if (json != null) {
-							AsyncManager.runSync(new Runnable() {
-								@Override
-								public void run() {
-									BedwarsPreferences playerPreferences = BedwarsPreferences.fromJSON(player.getUniqueId(), json);
-									preferences.put(player.getUniqueId(), playerPreferences);
-									Log.debug("BedwarsPreferenceManager", "Preferences fetched for " + player.getName());
-								}
-							});
-						} else {
-							Log.debug("BedwarsPreferenceManager", player.getName() + " has no bedwars item shop preferences");
-						}
-					} catch (JSONException | IOException e) {
-						Log.warn("BedwarsPreferenceManager", "Failed to fetch preferences for " + player.getName() + ". " + e.getClass().getName() + " " + e.getMessage());
-						player.sendMessage(ChatColor.RED + "Could not sync your item shop preferences");
+			AsyncManager.runAsync(() -> {
+				try {
+					final JSONArray json = NovaBedwars.getInstance().getPreferenceAPI().getPreferences(player);
+					if (json != null) {
+						AsyncManager.runSync(() -> {
+							BedwarsPreferences playerPreferences = BedwarsPreferences.fromJSON(player.getUniqueId(), json);
+							preferences.put(player.getUniqueId(), playerPreferences);
+							Log.debug("BedwarsPreferenceManager", "Preferences fetched for " + player.getName());
+						});
+					} else {
+						Log.debug("BedwarsPreferenceManager", player.getName() + " has no bedwars item shop preferences");
 					}
+				} catch (JSONException | IOException e1) {
+					Log.warn("BedwarsPreferenceManager", "Failed to fetch preferences for " + player.getName() + ". " + e1.getClass().getName() + " " + e1.getMessage());
+					player.sendMessage(ChatColor.RED + "Could not sync your item shop preferences");
 				}
 			});
 		}

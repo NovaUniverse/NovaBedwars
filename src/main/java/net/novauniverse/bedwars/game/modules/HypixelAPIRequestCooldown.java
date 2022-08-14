@@ -1,7 +1,7 @@
 package net.novauniverse.bedwars.game.modules;
 
 public class HypixelAPIRequestCooldown {
-	private String name;
+	private final String name;
 	private int cooldown;
 	
 	public HypixelAPIRequestCooldown(String name, int cooldown) {

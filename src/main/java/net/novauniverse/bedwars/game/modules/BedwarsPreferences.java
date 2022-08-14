@@ -10,7 +10,7 @@ import net.novauniverse.bedwars.game.enums.Items;
 import net.zeeraa.novacore.commons.log.Log;
 
 public class BedwarsPreferences {
-	private UUID uuid;
+	private final UUID uuid;
 	private List<Items> items;
 
 	public BedwarsPreferences(UUID uuid, List<Items> items) {

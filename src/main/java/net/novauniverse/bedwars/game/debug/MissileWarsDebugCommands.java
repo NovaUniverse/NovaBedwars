@@ -17,38 +17,30 @@ public class MissileWarsDebugCommands {
 			@Override
 			public void onExecute(CommandSender sender, String commandLabel, String[] args) {
 				Player player = (Player) sender;
-				if (!BedwarsPreferenceManager.getInstance().tryImportHypixelPreferences(player, new PreferenceAPIRequestCallback() {
-					@Override
-					public void onResult(boolean success, Exception exception) {
-						if (!success) {
-							if (exception != null) {
-								sender.sendMessage(ChatColor.DARK_RED + "Failure>" + ChatColor.WHITE + " Fetch retured false. Exception: " + exception.getClass().getName() + " " + exception.getMessage());
-								exception.printStackTrace();
-							} else {
-								sender.sendMessage(ChatColor.DARK_RED + "Failure>" + ChatColor.WHITE + " Fetch retured false. No exception");
-							}
-							return;
+				if (!BedwarsPreferenceManager.getInstance().tryImportHypixelPreferences(player, (success, exception) -> {
+					if (!success) {
+						if (exception != null) {
+							sender.sendMessage(ChatColor.DARK_RED + "Failure>" + ChatColor.WHITE + " Fetch retured false. Exception: " + exception.getClass().getName() + " " + exception.getMessage());
+							exception.printStackTrace();
 						} else {
-							sender.sendMessage(ChatColor.GREEN + "OK>" + ChatColor.WHITE + " Import success");
+							sender.sendMessage(ChatColor.DARK_RED + "Failure>" + ChatColor.WHITE + " Fetch retured false. No exception");
+						}
+					} else {
+						sender.sendMessage(ChatColor.GREEN + "OK>" + ChatColor.WHITE + " Import success");
 
-							if (!BedwarsPreferenceManager.getInstance().savePreferences(player, new PreferenceAPIRequestCallback() {
-								@Override
-								public void onResult(boolean success, Exception exception) {
-									if (!success) {
-										if (exception != null) {
-											sender.sendMessage(ChatColor.DARK_RED + "Failure>" + ChatColor.WHITE + " Save retured false. Exception: " + exception.getClass().getName() + " " + exception.getMessage());
-											exception.printStackTrace();
-										} else {
-											sender.sendMessage(ChatColor.DARK_RED + "Failure>" + ChatColor.WHITE + " Save retured false. No exception");
-										}
-										return;
-									} else {
-										sender.sendMessage(ChatColor.GREEN + "OK>" + ChatColor.WHITE + " Export success");
-									}
+						if (!BedwarsPreferenceManager.getInstance().savePreferences(player, (success1, exception1) -> {
+							if (!success1) {
+								if (exception1 != null) {
+									sender.sendMessage(ChatColor.DARK_RED + "Failure>" + ChatColor.WHITE + " Save retured false. Exception: " + exception1.getClass().getName() + " " + exception1.getMessage());
+									exception1.printStackTrace();
+								} else {
+									sender.sendMessage(ChatColor.DARK_RED + "Failure>" + ChatColor.WHITE + " Save retured false. No exception");
 								}
-							})) {
-								sender.sendMessage(ChatColor.DARK_RED + "Failure>" + ChatColor.WHITE + " Save method returned false");
+							} else {
+								sender.sendMessage(ChatColor.GREEN + "OK>" + ChatColor.WHITE + " Export success");
 							}
+						})) {
+							sender.sendMessage(ChatColor.DARK_RED + "Failure>" + ChatColor.WHITE + " Save method returned false");
 						}
 					}
 				})) {
