@@ -44,7 +44,7 @@ public class PreferenceAPI {
 
 		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 		connection.setRequestProperty("accept", "application/json");
-		connection.setRequestProperty("User-Agent", "NovaUniverseS");
+		connection.setRequestProperty("User-Agent", "NovaUniverse Bedwars");
 
 		connection.setConnectTimeout(FETCH_TIMEOUT);
 		connection.setReadTimeout(FETCH_TIMEOUT);
@@ -88,7 +88,7 @@ public class PreferenceAPI {
 		connection.setRequestMethod("POST");
 		connection.setRequestProperty("Content-Type", "application/json");
 		connection.setRequestProperty("accept", "application/json");
-		connection.setRequestProperty("User-Agent", "NovaUniverseS");
+		connection.setRequestProperty("User-Agent", "NovaUniverse Bedwars");
 
 		connection.setDoOutput(true);
 

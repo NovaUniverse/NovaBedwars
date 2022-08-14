@@ -31,7 +31,7 @@ public class MissileWarsDebugCommands {
 						} else {
 							sender.sendMessage(ChatColor.GREEN + "OK>" + ChatColor.WHITE + " Import success");
 
-							if (BedwarsPreferenceManager.getInstance().savePreferences(player, new PreferenceAPIRequestCallback() {
+							if (!BedwarsPreferenceManager.getInstance().savePreferences(player, new PreferenceAPIRequestCallback() {
 								@Override
 								public void onResult(boolean success, Exception exception) {
 									if (!success) {

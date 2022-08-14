@@ -35,7 +35,7 @@ public class HypixelAPI {
 
 		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 		connection.setRequestProperty("accept", "application/json");
-		connection.setRequestProperty("User-Agent", "NovaUniverseS");
+		connection.setRequestProperty("User-Agent", "NovaUniverse");
 
 		connection.setConnectTimeout(FETCH_TIMEOUT);
 		connection.setReadTimeout(FETCH_TIMEOUT);
