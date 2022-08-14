@@ -9,7 +9,6 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
-import org.bukkit.material.Dye;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
@@ -43,8 +42,10 @@ public enum ItemCategory {
 	public ItemStack asSelectedItem() {
 		ItemStack item = new ItemStack(VersionIndependentUtils.get().getColoredItem(DyeColor.LIME, ColoredBlockType.GLASS_PANE));
 		ItemMeta meta = item.getItemMeta();
+
 		meta.setDisplayName(ChatColor.GREEN + iconName);
 		item.setItemMeta(meta);
+		item.setAmount(1);
 		return item;
 	}
 	public int getSlot() {

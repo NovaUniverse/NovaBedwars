@@ -24,6 +24,7 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.io.FileUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -58,7 +59,7 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 	public void onCrouch(PlayerToggleSneakEvent e) throws IOException {
 		if (e.isSneaking()) {
 			ItemShop shop = new ItemShop();
-			shop.display(ItemCategory.QUICK_BUY, e.getPlayer());
+			shop.display(ItemCategory.COMBAT, e.getPlayer());
 		}
 	}
 

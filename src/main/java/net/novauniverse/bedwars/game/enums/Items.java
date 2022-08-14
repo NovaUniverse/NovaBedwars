@@ -28,7 +28,7 @@ public enum Items {
     STONE_SWORD(Material.STONE_SWORD, 1, ItemCategory.COMBAT, new Price(Material.IRON_INGOT, 10), "stone_sword"),
     IRON_SWORD(Material.IRON_SWORD, 1, ItemCategory.COMBAT, new Price(Material.GOLD_INGOT, 7), "iron_sword"),
     DIAMOND_SWORD(Material.DIAMOND_SWORD, 1, ItemCategory.COMBAT, new Price(Material.EMERALD, 4), "diamond_sword"),
-    KB_STICK(new ItemBuilder(Material.STICK).addEnchant(Enchantment.KNOCKBACK, 1).build(), ItemCategory.COMBAT, new Price(Material.GOLD_INGOT, 5), "stick_(knockback_i)"),
+    KB_STICK(new ItemBuilder(Material.STICK).addEnchant(Enchantment.KNOCKBACK, 1).setAmount(1).build(), ItemCategory.COMBAT, new Price(Material.GOLD_INGOT, 5), "stick_(knockback_i)"),
     GOLD_ARMOR(ArmorType.GOLD, ItemCategory.COMBAT, new Price(Material.IRON_INGOT, 10), null),
     CHAINMAIL_ARMOR(ArmorType.CHAINMAIL, ItemCategory.COMBAT, new Price(Material.IRON_INGOT, 40), "chainmail_boots"),
     IRON_ARMOR(ArmorType.IRON, ItemCategory.COMBAT, new Price(Material.GOLD_INGOT, 12),"iron_boots"),
@@ -62,10 +62,11 @@ public enum Items {
     private ArmorType armorType = ArmorType.NO_ARMOR;
     private int amount = 0;
     private final ItemCategory category;
-    private Material material = null;
+    private Material material;
     private ItemStack itemStack;
     private final Price price;
     private final String hypixelCounterpart;
+    private final ItemStack shopItem;
     private int tier = 0;
     Items(Material material, ColoredBlockType colorMaterial, int amount, ItemCategory category, Price price, String hypixelCounterpart) {
         this.coloredBlockType = colorMaterial;
@@ -75,6 +76,7 @@ public enum Items {
         this.itemStack = new ItemStack(material, amount);
         this.price = price;
         this.hypixelCounterpart = hypixelCounterpart;
+        this.shopItem = toShopItem();
     }
     Items(VersionIndependentMaterial material, int amount, ItemCategory category, Price price, String hypixelCounterpart) {
         this(material.toBukkitVersion(),amount,category, price, hypixelCounterpart);
@@ -86,6 +88,8 @@ public enum Items {
         this.itemStack = new ItemStack(material, amount);
         this.price = price;
         this.hypixelCounterpart = hypixelCounterpart;
+        this.shopItem = toShopItem();
+
     }
     Items(ItemStack itemStack, ItemCategory category, Price price, String hypixelCounterpart) {
         this.material = itemStack.getType();
@@ -94,12 +98,17 @@ public enum Items {
         this.itemStack = itemStack;
         this.price = price;
         this.hypixelCounterpart = hypixelCounterpart;
+        this.shopItem = toShopItem();
+
     }
     Items(ArmorType type, ItemCategory category, Price price, String hypixelCounterpart) {
         this.armorType = type;
         this.category = category;
         this.price = price;
         this.hypixelCounterpart = hypixelCounterpart;
+        this.material = Material.valueOf(getArmorType() + "_BOOTS");
+        this.itemStack = new ItemStack(material, 1);
+        this.shopItem = toShopItem();
     }
     Items(VersionIndependentMaterial material, int amount, ItemCategory category, Price price, String hypixelCounterpart, int tier) {
         this(material.toBukkitVersion(),amount,category, price, hypixelCounterpart, tier);
@@ -112,6 +121,7 @@ public enum Items {
         this.price = price;
         this.hypixelCounterpart = hypixelCounterpart;
         this.tier = tier;
+        this.shopItem = toShopItem();
     }
     Items(ItemStack itemStack, ItemCategory category, Price price, String hypixelCounterpart, int tier) {
         this.material = itemStack.getType();
@@ -121,7 +131,20 @@ public enum Items {
         this.price = price;
         this.hypixelCounterpart = hypixelCounterpart;
         this.tier = tier;
+        this.shopItem = toShopItem();
+
     }
+
+    public static Items toItemEnum(ItemStack item) {
+
+        for (Items items: Items.values()) {
+            if (item.equals(items.asShopItem())) {
+                return items;
+            }
+        }
+        return null;
+    }
+
     public ColoredBlockType getColoredBlockType() {
         return coloredBlockType;
     }
@@ -160,8 +183,11 @@ public enum Items {
     public boolean isTiered() {
         return tier != 0;
     }
-    public ItemStack toShopItem() {
-        if (getArmorType() == ArmorType.NO_ARMOR) {
+
+    public ItemStack asShopItem() {
+        return shopItem;
+    }
+    private ItemStack toShopItem() {
             ItemStack item = getItemStack();
             if (getCategory() == ItemCategory.POTIONS) {
                 PotionMeta meta = (PotionMeta) item.getItemMeta();
@@ -172,15 +198,6 @@ public enum Items {
             meta.setLore(addLore(getPrice()));
             item.setItemMeta(meta);
             return item;
-        } else {
-            Material material = Material.valueOf(getArmorType() + "_BOOTS");
-            ItemStack item = new ItemStack(material);
-            ItemMeta meta = item.getItemMeta();
-            meta.setDisplayName(getArmorType().getShopName());
-            meta.setLore(addLore(getPrice()));
-            item.setItemMeta(meta);
-            return item;
-        }
     }
     private ArrayList<String> addLore(Price price) {
         ChatColor color = null;
@@ -196,7 +213,8 @@ public enum Items {
             stringified += "s";
         }
         ArrayList<String> lore = new ArrayList<>();
-        lore.add(color + "" + price.getPrice() + " " + stringified);
+        lore.add("");
+        lore.add(ChatColor.BOLD + "" +color + "" + price.getPrice() + " " + stringified);
         return lore;
     }
     private String convertToSeconds(int duration) {

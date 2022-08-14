@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 import org.bukkit.entity.Player;
@@ -18,17 +19,21 @@ import org.json.JSONObject;
 public class PreferenceAPI {
 	public static int FETCH_TIMEOUT = 10 * 1000; // Default: 10 seconds
 
-	private PreferenceAPISettings settings;
+	private final PreferenceAPISettings settings;
 
 	public PreferenceAPI(PreferenceAPISettings settings) {
 		this.settings = settings;
 	}
 
+	public PreferenceAPISettings getSettings() { // look i get kinda bothered when theres no getters
+		return settings;
+	}
 	public JSONArray getPreferences(Player player) throws IOException, JSONException {
 		return this.getPreferences(player.getUniqueId());
 	}
 
 	public JSONArray getPreferences(UUID uuid) throws IOException, JSONException {
+		JSONArray array = new JSONArray();
 		URL url = new URL(settings.getUrl() + "/" + uuid.toString());
 
 		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -81,7 +86,7 @@ public class PreferenceAPI {
 		String data = json.toString();
 
 		OutputStream os = connection.getOutputStream();
-		byte[] input = data.getBytes("utf-8");
+		byte[] input = data.getBytes(StandardCharsets.UTF_8);
 		os.write(input, 0, input.length);
 		os.close();
 

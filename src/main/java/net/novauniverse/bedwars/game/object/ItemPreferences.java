@@ -1,5 +1,6 @@
 package net.novauniverse.bedwars.game.object;
 
+import net.novauniverse.bedwars.NovaBedwars;
 import net.novauniverse.bedwars.game.enums.Items;
 import net.novauniverse.bedwars.utils.HypixelAPI;
 import org.bukkit.entity.Player;
@@ -16,7 +17,7 @@ public class ItemPreferences {
     public ItemPreferences(Player player) throws IOException {
         arrayList = new ArrayList<>();
         this.player = player;
-        HypixelAPI.bedwarsPreferencesAsList(new HypixelAPI(API_KEY).getProfile(player)).forEach(s -> {
+        HypixelAPI.bedwarsPreferencesAsList(NovaBedwars.getInstance().getHypixelAPI().getProfile(player)).forEach(s -> {
             if (s.equalsIgnoreCase("null")) {
                 arrayList.add(null);
             } else {
@@ -41,7 +42,7 @@ public class ItemPreferences {
     }
     public ArrayList<ItemStack> asItemStackArray() {
         ArrayList<ItemStack> arrayList2 = new ArrayList<>();
-        arrayList.forEach(items -> arrayList2.add(items.toShopItem()));
+        arrayList.forEach(items -> arrayList2.add(items.asShopItem()));
         return arrayList2;
     }
 }
