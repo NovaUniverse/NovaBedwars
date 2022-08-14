@@ -107,6 +107,10 @@ public class PreferenceAPI {
 		os.close();
 
 		int code = connection.getResponseCode();
+		
+		if(code != 200) {
+			Log.warn("PreferenceAPI#updatePreferences", "Non ok http response code: " + code);
+		}
 
 		Log.trace("PreferenceAPI#updatePreferences", "HTTP response: " + code);
 
