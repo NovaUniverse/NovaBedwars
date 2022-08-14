@@ -17,6 +17,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import net.zeeraa.novacore.commons.log.Log;
+
 public class PreferenceAPI {
 	public static int FETCH_TIMEOUT = 10 * 1000; // Default: 10 seconds
 
@@ -86,11 +88,13 @@ public class PreferenceAPI {
 
 		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 		connection.setRequestMethod("POST");
+		connection.setRequestProperty("authorization", settings.getKey());
 		connection.setRequestProperty("Content-Type", "application/json");
 		connection.setRequestProperty("accept", "application/json");
 		connection.setRequestProperty("User-Agent", "NovaUniverse Bedwars");
 
 		connection.setDoOutput(true);
+		connection.setDoInput(true);
 
 		connection.setConnectTimeout(FETCH_TIMEOUT);
 		connection.setReadTimeout(FETCH_TIMEOUT);
@@ -103,6 +107,8 @@ public class PreferenceAPI {
 		os.close();
 
 		int code = connection.getResponseCode();
+
+		Log.trace("PreferenceAPI#updatePreferences", "HTTP response: " + code);
 
 		connection.disconnect();
 

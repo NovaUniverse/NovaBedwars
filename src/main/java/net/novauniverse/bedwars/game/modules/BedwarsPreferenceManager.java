@@ -152,13 +152,19 @@ public class BedwarsPreferenceManager extends NovaModule implements Listener {
 			@Override
 			public void run() {
 				try {
-					NovaBedwars.getInstance().getPreferenceAPI().updatePreferences(preferences.getUuid(), preferences.toJSON());
-					Log.debug("BedwarsPreferenceManager", "Preferences updated for " + preferences.getUuid());
-					if (callback != null) {
+					final boolean result = NovaBedwars.getInstance().getPreferenceAPI().updatePreferences(preferences.getUuid(), preferences.toJSON());
+					
+					if(result) {
+						Log.debug("BedwarsPreferenceManager", "Preferences updated for " + preferences.getUuid());	
+					} else {
+						Log.warn("BedwarsPreferenceManager", "Failed to update preferences for " + preferences.getUuid());
+					}
+					
+					if (callback != null) {	
 						AsyncManager.runSync(new Runnable() {
 							@Override
 							public void run() {
-								callback.onResult(true, null);
+								callback.onResult(result, null);
 							}
 						});
 					}
