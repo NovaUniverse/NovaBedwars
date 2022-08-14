@@ -59,7 +59,7 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 	public void onCrouch(PlayerToggleSneakEvent e) throws IOException {
 		if (e.isSneaking()) {
 			ItemShop shop = new ItemShop();
-			shop.display(ItemCategory.COMBAT, e.getPlayer());
+			shop.display(ItemCategory.QUICK_BUY, e.getPlayer());
 		}
 	}
 

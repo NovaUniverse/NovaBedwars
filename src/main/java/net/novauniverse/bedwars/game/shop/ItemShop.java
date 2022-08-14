@@ -1,10 +1,14 @@
 package net.novauniverse.bedwars.game.shop;
 
+import net.novauniverse.bedwars.NovaBedwars;
 import net.novauniverse.bedwars.game.entity.BedwarsNPC;
 import net.novauniverse.bedwars.game.enums.ItemCategory;
 import net.novauniverse.bedwars.game.enums.Items;
 import net.novauniverse.bedwars.game.holder.ItemShopHolder;
+import net.novauniverse.bedwars.game.modules.BedwarsPreferenceManager;
+import net.novauniverse.bedwars.game.modules.BedwarsPreferences;
 import net.novauniverse.bedwars.game.object.ItemPreferences;
+import net.novauniverse.bedwars.utils.HypixelAPI;
 import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
 import net.zeeraa.novacore.spigot.abstraction.enums.ColoredBlockType;
 import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependentMaterial;
@@ -17,8 +21,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-import java.io.*;
-import java.util.ArrayList;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,8 +31,8 @@ public class ItemShop extends ShopMold {
     public void display(ItemCategory category, Player player) throws IOException {
         ItemShopHolder holder = new ItemShopHolder(category);
         Inventory inventory = Bukkit.getServer().createInventory(holder, 9 * 6, BedwarsNPC.ITEM_SHOP_NAME);
-        ItemStack bg = new ItemBuilder(VersionIndependentUtils.get().getColoredItem(DyeColor.GRAY, ColoredBlockType.GLASS_PANE)).setName("").setAmount(1).build();
-        ItemStack blackbg = new ItemBuilder(VersionIndependentUtils.get().getColoredItem(DyeColor.BLACK, ColoredBlockType.GLASS_PANE)).setName("").setAmount(1).build();
+        ItemStack bg = new ItemBuilder(VersionIndependentUtils.get().getColoredItem(DyeColor.GRAY, ColoredBlockType.GLASS_PANE)).setName(" ").setAmount(1).build();
+        ItemStack blackbg = new ItemBuilder(VersionIndependentUtils.get().getColoredItem(DyeColor.BLACK, ColoredBlockType.GLASS_PANE)).setName(" ").setAmount(1).build();
         for (int i = 0; i < inventory.getSize(); i++) {
             inventory.setItem(i, bg);
         }
@@ -42,25 +45,46 @@ public class ItemShop extends ShopMold {
         }
         ItemStack emptySlot = new ItemBuilder(VersionIndependentUtils.getInstance().getColoredItem(DyeColor.RED, ColoredBlockType.GLASS_PANE)).setName(ChatColor.RED + "Empty Slot").setAmount(1).build();
         if (category == ItemCategory.QUICK_BUY) {
-            ItemPreferences preferences = new ItemPreferences(player);
-
-            preferences.itemsArray().forEach(items -> {
-                if (items == null) {
-                    inventory.addItem(emptySlot);
+            if (!BedwarsPreferenceManager.getInstance().tryImportHypixelPreferences(player, (success, exception) -> {
+                if (!success) {
+                    if (exception != null) {
+                        player.sendMessage(ChatColor.DARK_RED + "Failure>" + ChatColor.WHITE + " Fetch retured false. Exception: " + exception.getClass().getName() + " " + exception.getMessage());
+                        exception.printStackTrace();
+                    } else {
+                        player.sendMessage(ChatColor.DARK_RED + "Failure>" + ChatColor.WHITE + " Fetch retured false. No exception");
+                    }
                 } else {
-                    inventory.addItem(items.asShopItem());
+                    player.sendMessage(ChatColor.GREEN + "OK>" + ChatColor.WHITE + " Import success");
+
+                    if (!BedwarsPreferenceManager.getInstance().savePreferences(player, (success1, exception1) -> {
+                        if (!success1) {
+                            if (exception1 != null) {
+                                player.sendMessage(ChatColor.DARK_RED + "Failure>" + ChatColor.WHITE + " Save retured false. Exception: " + exception1.getClass().getName() + " " + exception1.getMessage());
+                                exception1.printStackTrace();
+                            } else {
+                                player.sendMessage(ChatColor.DARK_RED + "Failure>" + ChatColor.WHITE + " Save retured false. No exception");
+                            }
+                        } else {
+                            player.sendMessage(ChatColor.GREEN + "OK>" + ChatColor.WHITE + " Export success");
+                        }
+                    })) {
+                        player.sendMessage(ChatColor.DARK_RED + "Failure>" + ChatColor.WHITE + " Save method returned false");
+                    }
                 }
-            });
+            })) {
+                player.sendMessage(ChatColor.DARK_RED + "Failure>" + ChatColor.WHITE + " Fetch method returned false");
+            }
+            BedwarsPreferences preferences = new BedwarsPreferences(player.getUniqueId(), BedwarsPreferences.parseItems(NovaBedwars.getInstance().getPreferenceAPI().getPreferences(player)));
+            preferences.getItems().forEach(items -> inventory.addItem(items.asShopItem()));
+
         } else if (category == ItemCategory.COMBAT) {
             ItemStack defaultBow = new ItemBuilder(Material.BOW).setName(ChatColor.GOLD + "Bows").setAmount(1).build();
             ItemStack defaultSword = new ItemBuilder(VersionIndependentMaterial.GOLDEN_SWORD).setName(ChatColor.GRAY + "Swords").setAmount(1).build();
             inventory.setItem(19, defaultSword);
             inventory.setItem(20, blackbg);
-            //ArrayList<Items> swordList = new ArrayList<>(Arrays.stream(Items.values()).filter(items1 -> items1.asShopItem().getType().name().contains("SWORD") || items1.asShopItem().getType() == Material.STICK));
-            //ArrayList<Items> bowList = new ArrayList<>(Arrays.stream(Items.values()).filter(items1 -> items1.asShopItem().getType() == Material.BOW));
-            
-            List<Items> swordList = new ArrayList<>(Arrays.stream(Items.values()).filter(i -> i.asShopItem().getType().name().contains("SWORD") || i.asShopItem().getType() == Material.STICK).collect(Collectors.toList()));
-            List<Items> bowList = new ArrayList<>(Arrays.stream(Items.values()).filter(i -> i.asShopItem().getType() == Material.BOW).collect(Collectors.toList()));
+
+            List<Items> swordList = Arrays.stream(Items.values()).filter(i -> i.asShopItem().getType().name().contains("SWORD") || i.asShopItem().getType() == Material.STICK).collect(Collectors.toList());
+            List<Items> bowList = Arrays.stream(Items.values()).filter(i -> i.asShopItem().getType() == Material.BOW).collect(Collectors.toList());
             
             for (int i = 21; i <= 26; i++) {
                 try {
@@ -81,6 +105,7 @@ public class ItemShop extends ShopMold {
             }
             inventory.setItem(37, defaultBow);
             inventory.setItem(38, blackbg);
+
         } else {
             Arrays.stream(Items.values()).forEach(items -> {
                 if (items.getCategory() == category) {

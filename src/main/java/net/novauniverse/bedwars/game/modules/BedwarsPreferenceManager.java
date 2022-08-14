@@ -90,18 +90,21 @@ public class BedwarsPreferenceManager extends NovaModule implements Listener {
 
 						hypixelData.forEach(h -> {
 							if (Objects.equals(h, "null")) {
-								items.add(null);
+								items.add(Items.NO_ITEM);
 							} else {
 								Items item = Arrays.stream(Items.values()).filter(i -> i.getHypixelCounterpart() != null).filter(i -> i.getHypixelCounterpart().equalsIgnoreCase(h)).findFirst().orElse(null);
 								if (item == null) {
 									Log.trace("BedwarsPreferenceManager", "Could not map hypixel item " + h + " to NovaBedwars item");
-									items.add(null);
+									items.add(Items.NO_ITEM);
 								} else {
 									Log.trace("BedwarsPreferenceManager", "Mapped hypixel item " + h + " to " + item.name());
 									items.add(item);
 								}
 							}
 						});
+						while (items.size() < 21) {
+							items.add(Items.NO_ITEM);
+						}
 
 						preferences.put(player.getUniqueId(), new BedwarsPreferences(player.getUniqueId(), items));
 						if (callback != null) {

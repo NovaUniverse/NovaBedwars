@@ -2,10 +2,12 @@ package net.novauniverse.bedwars.game.enums;
 
 import net.novauniverse.bedwars.game.object.Price;
 import net.novauniverse.bedwars.utils.PotionItemBuilder;
+import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
 import net.zeeraa.novacore.spigot.abstraction.enums.ColoredBlockType;
 import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependentMaterial;
 import net.zeeraa.novacore.spigot.utils.ItemBuilder;
 import org.bukkit.ChatColor;
+import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
@@ -57,7 +59,10 @@ public enum Items {
     TNT(Material.TNT, 1, ItemCategory.MISC, new Price(Material.GOLD_INGOT,6), "tnt"),
     ENDER_PEARL(Material.ENDER_PEARL, 1, ItemCategory.MISC, new Price(Material.EMERALD, 4), "ender_pearl"),
     WATER_BUCKET(Material.WATER_BUCKET, 1, ItemCategory.MISC, new Price(Material.GOLD_INGOT, 3), "water_bucket"),
-    SPONGE(Material.SPONGE, 2, ItemCategory.MISC, new Price(Material.GOLD_INGOT,4), "sponge");
+    SPONGE(Material.SPONGE, 2, ItemCategory.MISC, new Price(Material.GOLD_INGOT,4), "sponge"),
+
+    // for quick buy
+    NO_ITEM(VersionIndependentUtils.getInstance().getColoredItem(DyeColor.RED, ColoredBlockType.GLASS_PANE),ItemCategory.QUICK_BUY);
 
     private ColoredBlockType coloredBlockType = null;
     private ArmorType armorType = ArmorType.NO_ARMOR;
@@ -78,6 +83,20 @@ public enum Items {
         this.price = price;
         this.hypixelCounterpart = hypixelCounterpart;
         this.shopItem = toShopItem();
+    }
+    Items(ItemStack item, ItemCategory category) {
+        // NO ITEM ENUM
+        this.category = category;
+        this.material = item.getType();
+        this.itemStack = item;
+        this.price = null;
+        this.hypixelCounterpart = null;
+        ItemStack shopItem = toShopItem();
+        ItemMeta meta = shopItem.getItemMeta();
+        meta.setDisplayName(ChatColor.RED + "No item");
+        shopItem.setItemMeta(meta);
+        this.shopItem = shopItem;
+
     }
     Items(VersionIndependentMaterial material, int amount, ItemCategory category, Price price, String hypixelCounterpart) {
         this(material.toBukkitVersion(),amount,category, price, hypixelCounterpart);
@@ -191,13 +210,16 @@ public enum Items {
     }
     private ItemStack toShopItem() {
             ItemStack item = getItemStack();
+        ItemMeta meta = item.getItemMeta();
             if (getCategory() == ItemCategory.POTIONS) {
-                PotionMeta meta = (PotionMeta) item.getItemMeta();
-                meta.setDisplayName(potionTypeToName(meta.getCustomEffects().get(0)));
+                PotionMeta potmeta = (PotionMeta) item.getItemMeta();
+                potmeta.setMainEffect(potmeta.getCustomEffects().get(0).getType());
+                potmeta.setDisplayName(potionTypeToName(potmeta.getCustomEffects().get(0)));
                 item.setItemMeta(meta);
             }
-            ItemMeta meta = item.getItemMeta();
-            meta.setLore(addLore(getPrice()));
+            if (getPrice() != null) {
+                meta.setLore(addLore(getPrice()));
+            }
             item.setItemMeta(meta);
             return item;
     }
@@ -228,11 +250,11 @@ public enum Items {
             roman = intToRoman(effect.getAmplifier() + 1);
         }
         if (effect.getType() == PotionEffectType.INVISIBILITY) {
-            return "Invisibility " + roman + " Potion" + convertToSeconds(effect.getDuration());
+            return "Invisibility" + roman + " Potion" + convertToSeconds(effect.getDuration());
         } else if (effect.getType() == PotionEffectType.JUMP) {
-            return "Jump Boost " + roman + " Potion " + convertToSeconds(effect.getDuration());
+            return "Jump Boost" + roman + " Potion" + convertToSeconds(effect.getDuration());
         } else if (effect.getType() == PotionEffectType.SPEED) {
-            return "Speed " + roman + " Potion " + convertToSeconds(effect.getDuration());
+            return "Spee " + roman + " Potion" + convertToSeconds(effect.getDuration());
         } else {
             return ChatColor.RED + "POTION EFFECT COULD NOT BE FOUND";
         }
@@ -250,7 +272,7 @@ public enum Items {
                 roman.append(romanLetters[i]);
             }
         }
-        return roman.toString();
+        return " " + roman;
     }
 }
 
