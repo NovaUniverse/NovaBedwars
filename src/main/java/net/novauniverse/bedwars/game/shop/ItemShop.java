@@ -7,8 +7,6 @@ import net.novauniverse.bedwars.game.enums.Items;
 import net.novauniverse.bedwars.game.holder.ItemShopHolder;
 import net.novauniverse.bedwars.game.modules.BedwarsPreferenceManager;
 import net.novauniverse.bedwars.game.modules.BedwarsPreferences;
-import net.novauniverse.bedwars.game.object.ItemPreferences;
-import net.novauniverse.bedwars.utils.HypixelAPI;
 import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
 import net.zeeraa.novacore.spigot.abstraction.enums.ColoredBlockType;
 import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependentMaterial;
@@ -24,7 +22,6 @@ import org.bukkit.inventory.ItemStack;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
