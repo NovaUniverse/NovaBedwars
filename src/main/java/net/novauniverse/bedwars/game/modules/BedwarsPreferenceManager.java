@@ -108,7 +108,7 @@ public class BedwarsPreferenceManager extends NovaModule implements Listener {
 									}
 								}
 							});
-							
+
 							preferences.put(player.getUniqueId(), new BedwarsPreferences(player.getUniqueId(), items));
 							if (callback != null) {
 								callback.onResult(true, null);
@@ -135,6 +135,7 @@ public class BedwarsPreferenceManager extends NovaModule implements Listener {
 	public boolean savePreferences(Player player, @Nullable final PreferenceAPIRequestCallback callback) {
 		UUID uuid = player.getUniqueId();
 		if (!preferences.containsKey(uuid)) {
+			Log.trace("BedwarsPreferenceManager", "Cant save preferences since the player does not have any loaded data");
 			return false;
 		}
 
@@ -143,6 +144,7 @@ public class BedwarsPreferenceManager extends NovaModule implements Listener {
 
 	public boolean savePreferences(final BedwarsPreferences preferences, @Nullable final PreferenceAPIRequestCallback callback) {
 		if (!NovaBedwars.getInstance().hasPreferenceAPI()) {
+			Log.trace("BedwarsPreferenceManager", "Cant save preferences since the preference api is not loaded");
 			return false;
 		}
 
@@ -174,6 +176,7 @@ public class BedwarsPreferenceManager extends NovaModule implements Listener {
 				}
 			}
 		});
+		
 		return true;
 	}
 
