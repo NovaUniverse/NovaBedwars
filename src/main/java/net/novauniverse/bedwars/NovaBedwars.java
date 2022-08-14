@@ -27,7 +27,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -145,6 +144,8 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 			return;
 		}
 
+		ModuleManager.scanForModules(this, "net.novauniverse.bedwars.game.modules");
+		
 		ModuleManager.enable(GameManager.class);
 		ModuleManager.enable(CompassTracker.class);
 		if (!disableNovaCoreGameLobby) {
