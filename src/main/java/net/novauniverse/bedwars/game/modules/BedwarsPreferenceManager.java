@@ -90,12 +90,12 @@ public class BedwarsPreferenceManager extends NovaModule implements Listener {
 
 						hypixelData.forEach(h -> {
 							if (Objects.equals(h, "null")) {
-								items.add(Items.NO_ITEM);
+								items.add(null);
 							} else {
 								Items item = Arrays.stream(Items.values()).filter(i -> i.getHypixelCounterpart() != null).filter(i -> i.getHypixelCounterpart().equalsIgnoreCase(h)).findFirst().orElse(null);
 								if (item == null) {
 									Log.trace("BedwarsPreferenceManager", "Could not map hypixel item " + h + " to NovaBedwars item");
-									items.add(Items.NO_ITEM);
+									items.add(null);
 								} else {
 									Log.trace("BedwarsPreferenceManager", "Mapped hypixel item " + h + " to " + item.name());
 									items.add(item);

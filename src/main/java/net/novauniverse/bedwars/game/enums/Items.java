@@ -62,7 +62,7 @@ public enum Items {
     SPONGE(Material.SPONGE, 2, ItemCategory.MISC, new Price(Material.GOLD_INGOT,4), "sponge"),
 
     // for quick buy
-    NO_ITEM(VersionIndependentUtils.getInstance().getColoredItem(DyeColor.RED, ColoredBlockType.GLASS_PANE),ItemCategory.QUICK_BUY);
+    NO_ITEM(new ItemBuilder(VersionIndependentUtils.getInstance().getColoredItem(DyeColor.RED, ColoredBlockType.GLASS_PANE)).setAmount(1).build(),ItemCategory.QUICK_BUY);
 
     private ColoredBlockType coloredBlockType = null;
     private ArmorType armorType = ArmorType.NO_ARMOR;

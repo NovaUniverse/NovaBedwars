@@ -22,7 +22,9 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -43,7 +45,7 @@ public class ItemShop extends ShopMold {
                 inventory.setItem(i + (j * 9), ItemBuilder.AIR);
             }
         }
-        ItemStack emptySlot = new ItemBuilder(VersionIndependentUtils.getInstance().getColoredItem(DyeColor.RED, ColoredBlockType.GLASS_PANE)).setName(ChatColor.RED + "Empty Slot").setAmount(1).build();
+
         if (category == ItemCategory.QUICK_BUY) {
             if (!BedwarsPreferenceManager.getInstance().tryImportHypixelPreferences(player, (success, exception) -> {
                 if (!success) {
@@ -75,7 +77,13 @@ public class ItemShop extends ShopMold {
                 player.sendMessage(ChatColor.DARK_RED + "Failure>" + ChatColor.WHITE + " Fetch method returned false");
             }
             BedwarsPreferences preferences = new BedwarsPreferences(player.getUniqueId(), BedwarsPreferences.parseItems(NovaBedwars.getInstance().getPreferenceAPI().getPreferences(player)));
-            preferences.getItems().forEach(items -> inventory.addItem(items.asShopItem()));
+            preferences.getItems().forEach(items -> {
+                if (items != null || items.equals(Items.NO_ITEM)) {
+                    inventory.addItem(items.asShopItem());
+                }
+            });
+
+            getEmptySlots(inventory).forEach(integer -> inventory.setItem(integer, Items.NO_ITEM.asShopItem()));
 
         } else if (category == ItemCategory.COMBAT) {
             ItemStack defaultBow = new ItemBuilder(Material.BOW).setName(ChatColor.GOLD + "Bows").setAmount(1).build();
@@ -119,6 +127,15 @@ public class ItemShop extends ShopMold {
         player.openInventory(inventory);
     }
 
+    private ArrayList<Integer> getEmptySlots(Inventory inventory) {
+        ArrayList<Integer> slots = new ArrayList<>();
+        for (int i = 0; i < inventory.getSize() - 1; i++) {
+            if (inventory.getItem(i) == null) {
+                slots.add(i);
+            }
+        }
+        return slots;
+    }
 
     private void placeRemainingOnes(Inventory inventory, ItemStack defaultItem) {
         if (inventory.getItem(0).getItemMeta().equals(defaultItem.getItemMeta())) {
