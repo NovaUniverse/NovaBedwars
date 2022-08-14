@@ -2,6 +2,7 @@ package net.novauniverse.bedwars;
 
 import net.novauniverse.bedwars.game.Bedwars;
 import net.novauniverse.bedwars.game.config.BedwarsConfig;
+import net.novauniverse.bedwars.game.debug.MissileWarsDebugCommands;
 import net.novauniverse.bedwars.game.enums.ItemCategory;
 import net.novauniverse.bedwars.game.shop.ItemShop;
 import net.novauniverse.bedwars.utils.HypixelAPI;
@@ -171,6 +172,8 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 
 		Log.info(getName(), "Loading maps from " + mapFolder.getPath());
 		GameManager.getInstance().readMapsFromFolder(mapFolder, worldFolder);
+		
+		MissileWarsDebugCommands.register();
 	}
 
 	@Override

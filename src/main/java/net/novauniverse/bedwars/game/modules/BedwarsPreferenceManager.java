@@ -132,6 +132,15 @@ public class BedwarsPreferenceManager extends NovaModule implements Listener {
 		return true;
 	}
 
+	public boolean savePreferences(Player player, @Nullable final PreferenceAPIRequestCallback callback) {
+		UUID uuid = player.getUniqueId();
+		if (!preferences.containsKey(uuid)) {
+			return false;
+		}
+
+		return this.savePreferences(preferences.get(uuid), callback);
+	}
+
 	public boolean savePreferences(final BedwarsPreferences preferences, @Nullable final PreferenceAPIRequestCallback callback) {
 		if (!NovaBedwars.getInstance().hasPreferenceAPI()) {
 			return false;
