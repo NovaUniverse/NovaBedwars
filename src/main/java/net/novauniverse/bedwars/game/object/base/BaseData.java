@@ -3,12 +3,15 @@ package net.novauniverse.bedwars.game.object.base;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import org.bukkit.Location;
 
 import net.novauniverse.bedwars.game.object.Trap;
 import net.zeeraa.novacore.spigot.teams.Team;
 
 public class BaseData {
+	@Nullable
 	private Team owner;
 
 	private int protectionLevel = 0;
@@ -36,6 +39,7 @@ public class BaseData {
 		this.traps = new ArrayList<Trap>();
 	}
 
+	@Nullable
 	public Team getOwner() {
 		return owner;
 	}

@@ -2,7 +2,6 @@ package net.novauniverse.bedwars.game;
 
 import net.novauniverse.bedwars.NovaBedwars;
 import net.novauniverse.bedwars.game.config.BedwarsConfig;
-import net.novauniverse.bedwars.game.config.ConfiguredBaseData;
 import net.novauniverse.bedwars.game.entity.BedwarsNPC;
 import net.novauniverse.bedwars.game.entity.NPCType;
 import net.novauniverse.bedwars.game.object.base.BaseData;
@@ -152,25 +151,48 @@ public class Bedwars extends MapGame implements Listener {
 		}
 		this.config = config;
 
-		List<ConfiguredBaseData> cfgBase = new ArrayList<>(config.getBases());
-		TeamManager.getTeamManager().getTeams().forEach(team -> {
-			if (cfgBase.size() > 0) {
-				ConfiguredBaseData configuredBase = cfgBase.remove(0);
-				BaseData base = configuredBase.toBaseData(getWorld(), team);
-				bases.add(base);
-				
-				BedwarsNPC itemShopNPC = new BedwarsNPC(base.getItemShopLocation(), NPCType.ITEMS);
-				BedwarsNPC upgradesShopNPC = new BedwarsNPC(base.getItemShopLocation(), NPCType.UPGRADES);
-				
-				itemShopNPC.spawn();
-				upgradesShopNPC.spawn();
-				
-				npcs.add(itemShopNPC);
-				npcs.add(upgradesShopNPC);
-			} else {
-				Log.error("Bedwars", "Not enough configured bases for team " + team.getDisplayName());
+		/*
+		 * List<ConfiguredBaseData> cfgBase = new ArrayList<>(config.getBases());
+		 * TeamManager.getTeamManager().getTeams().forEach(team -> { if (cfgBase.size()
+		 * > 0) { ConfiguredBaseData configuredBase = cfgBase.remove(0); BaseData base =
+		 * configuredBase.toBaseData(getWorld(), team); bases.add(base);
+		 * 
+		 * BedwarsNPC itemShopNPC = new BedwarsNPC(base.getItemShopLocation(),
+		 * NPCType.ITEMS); BedwarsNPC upgradesShopNPC = new
+		 * BedwarsNPC(base.getItemShopLocation(), NPCType.UPGRADES);
+		 * 
+		 * itemShopNPC.spawn(); upgradesShopNPC.spawn();
+		 * 
+		 * npcs.add(itemShopNPC); npcs.add(upgradesShopNPC); } else {
+		 * Log.error("Bedwars", "Not enough configured bases for team " +
+		 * team.getDisplayName()); } });
+		 */
+
+		List<Team> teamsToSetup = new ArrayList<>(TeamManager.getTeamManager().getTeams());
+		config.getBases().forEach(cfgBase -> {
+			Team team = null;
+			if (teamsToSetup.size() > 0) {
+				team = teamsToSetup.remove(0);
 			}
+
+			BaseData base = cfgBase.toBaseData(getWorld(), team);
+
+			BedwarsNPC itemShopNPC = new BedwarsNPC(base.getItemShopLocation(), NPCType.ITEMS);
+			itemShopNPC.spawn();
+			npcs.add(itemShopNPC);
+
+			if (team != null) {
+				BedwarsNPC upgradesShopNPC = new BedwarsNPC(base.getItemShopLocation(), NPCType.UPGRADES);
+				upgradesShopNPC.spawn();
+				npcs.add(upgradesShopNPC);
+			}
+
+			bases.add(base);
 		});
+
+		if (teamsToSetup.size() > 0) {
+			Log.error("Bedwars", "Not enough bases configured! " + teamsToSetup.size() + " teams does not have a base");
+		}
 
 		Bukkit.getServer().getOnlinePlayers().forEach(p -> tpToSpectator(p));
 
@@ -274,15 +296,15 @@ public class Bedwars extends MapGame implements Listener {
 			}
 		}
 	}
-	
+
 	@EventHandler(priority = EventPriority.NORMAL)
 	public void onPlayerInteractAtEntity(PlayerInteractAtEntityEvent e) {
 		npcs.stream().filter(n -> n.getVillager().getUniqueId().equals(e.getRightClicked().getUniqueId())).findFirst().ifPresent(clickedNPC -> {
 			switch (clickedNPC.getType()) {
 			case ITEMS:
-			// TODO: Open item shop ui
+				// TODO: Open item shop ui
 				break;
-				
+
 			case UPGRADES:
 				// TODO: Open upgrades shop ui
 				break;
