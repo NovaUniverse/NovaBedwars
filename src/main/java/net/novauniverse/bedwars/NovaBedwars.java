@@ -2,8 +2,11 @@ package net.novauniverse.bedwars;
 
 import net.novauniverse.bedwars.game.Bedwars;
 import net.novauniverse.bedwars.game.config.BedwarsConfig;
+import net.novauniverse.bedwars.game.debug.HashMapDebugger;
 import net.novauniverse.bedwars.game.debug.MissileWarsDebugCommands;
+import net.novauniverse.bedwars.game.enums.ArmorType;
 import net.novauniverse.bedwars.game.enums.ItemCategory;
+import net.novauniverse.bedwars.game.object.TieredItem;
 import net.novauniverse.bedwars.game.shop.ItemShop;
 import net.novauniverse.bedwars.utils.HypixelAPI;
 import net.novauniverse.bedwars.utils.preferences.api.PreferenceAPI;
@@ -20,11 +23,13 @@ import net.zeeraa.novacore.spigot.module.modules.compass.CompassTracker;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 
 import javax.annotation.Nullable;
 
 import org.apache.commons.io.FileUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
@@ -43,6 +48,10 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 	private HypixelAPI hypixelAPI;
 	private PreferenceAPI preferenceAPI;
 
+	private HashMap<Player, ArmorType> hasArmor;
+	private HashMap<Player, Integer> pickaxeTier;
+	private HashMap<Player, Integer> axeTier;
+
 	public static NovaBedwars getInstance() {
 		return instance;
 	}
@@ -59,7 +68,7 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 	public void onCrouch(PlayerToggleSneakEvent e) throws IOException {
 		if (e.isSneaking()) {
 			ItemShop shop = new ItemShop();
-			shop.display(ItemCategory.QUICK_BUY, e.getPlayer());
+			shop.display(ItemCategory.BLOCK, e.getPlayer());
 		}
 	}
 
@@ -84,8 +93,35 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 		return preferenceAPI != null;
 	}
 
+	public HashMap<Player, ArmorType> getAllPlayerArmor() {
+		return hasArmor;
+	}
+
+	public ArmorType getPlayerArmor(Player player) {
+		return hasArmor.get(player);
+	}
+
+	public HashMap<Player, Integer> getAllPlayersPickaxeTier() {
+		return pickaxeTier;
+	}
+
+	public int getPlayerPickaxeTier(Player player) {
+		return pickaxeTier.get(player);
+	}
+
+	public HashMap<Player, Integer> getAllPlayersAxeTier() {
+		return axeTier;
+	}
+
+	public int getPlayerAxeTier(Player player) {
+		return axeTier.get(player);
+	}
+
 	@Override
 	public void onEnable() {
+		hasArmor = new HashMap<>();
+		pickaxeTier = new HashMap<>();
+		axeTier = new HashMap<>();
 		NovaBedwars.instance = this;
 		saveDefaultConfig();
 
@@ -174,6 +210,7 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 		GameManager.getInstance().readMapsFromFolder(mapFolder, worldFolder);
 		
 		MissileWarsDebugCommands.register();
+		HashMapDebugger.register();
 	}
 
 	@Override

@@ -1,6 +1,7 @@
 package net.novauniverse.bedwars.game.enums;
 
 import net.novauniverse.bedwars.game.object.Price;
+import net.novauniverse.bedwars.game.object.TieredItem;
 import net.novauniverse.bedwars.utils.PotionItemBuilder;
 import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
 import net.zeeraa.novacore.spigot.abstraction.enums.ColoredBlockType;
@@ -18,6 +19,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -37,16 +39,20 @@ public enum Items {
     IRON_ARMOR(ArmorType.IRON, ItemCategory.COMBAT, new Price(Material.GOLD_INGOT, 12),"iron_boots"),
     DIAMOND_ARMOR(ArmorType.DIAMOND, ItemCategory.COMBAT, new Price(Material.EMERALD, 6),"diamond_boots"),
     SHEARS(Material.SHEARS, 1, ItemCategory.TOOLS, new Price(Material.IRON_INGOT,20),"shears"),
-    WOOD_PICKAXE(new ItemBuilder(VersionIndependentMaterial.WOODEN_PICKAXE).addEnchant(Enchantment.DIG_SPEED,1).setUnbreakable(true).build(), ItemCategory.TOOLS, new Price(Material.IRON_INGOT, 10),"wooden_pickaxe", 1),
-    STONE_PICKAXE(new ItemBuilder(Material.STONE_PICKAXE).addEnchant(Enchantment.DIG_SPEED,1).setUnbreakable(true).build(), ItemCategory.TOOLS, new Price(Material.IRON_INGOT,10),"wooden_pickaxe", 2),
-    IRON_PICKAXE(new ItemBuilder(Material.IRON_PICKAXE).addEnchant(Enchantment.DIG_SPEED,2).setUnbreakable(true).build(), ItemCategory.TOOLS, new Price(Material.IRON_INGOT, 20), "wooden_pickaxe",3),
-    GOLD_PICKAXE(new ItemBuilder(VersionIndependentMaterial.GOLDEN_PICKAXE).addEnchant(Enchantment.DIG_SPEED,3).setUnbreakable(true).build(), ItemCategory.TOOLS, new Price(Material.GOLD_INGOT, 3),"wooden_pickaxe", 4),
-    DIAMOND_PICKAXE(new ItemBuilder(Material.DIAMOND_PICKAXE).addEnchant(Enchantment.DIG_SPEED,3).setUnbreakable(true).build(), ItemCategory.TOOLS, new Price(Material.GOLD_INGOT, 6), "wooden_pickaxe", 5),
-    WOOD_AXE(new ItemBuilder(VersionIndependentMaterial.WOODEN_AXE).addEnchant(Enchantment.DIG_SPEED,1).setUnbreakable(true).build(), ItemCategory.TOOLS, new Price(Material.IRON_INGOT, 10), "wooden_axe",1),
-    STONE_AXE(new ItemBuilder(Material.STONE_AXE).addEnchant(Enchantment.DIG_SPEED,1).setUnbreakable(true).build(), ItemCategory.TOOLS, new Price(Material.IRON_INGOT, 10), "wooden_axe", 2),
-    IRON_AXE(new ItemBuilder(Material.IRON_AXE).addEnchant(Enchantment.DIG_SPEED,2).setUnbreakable(true).build(), ItemCategory.TOOLS, new Price(Material.IRON_INGOT, 20), "wooden_axe", 3),
-    GOLD_AXE(new ItemBuilder(VersionIndependentMaterial.GOLDEN_AXE).addEnchant(Enchantment.DIG_SPEED,3).setUnbreakable(true).build(), ItemCategory.TOOLS, new Price(Material.GOLD_INGOT, 3), "wooden_axe", 4),
-    DIAMOND_AXE(new ItemBuilder(Material.DIAMOND_AXE).addEnchant(Enchantment.DIG_SPEED,3).setUnbreakable(true).build(), ItemCategory.TOOLS, new Price(Material.GOLD_INGOT, 6), "wooden_axe", 5),
+    WOOD_PICKAXE(ItemCategory.TOOLS,"wooden_pickaxe",
+            new TieredItem(new ItemBuilder(VersionIndependentMaterial.WOODEN_PICKAXE).addEnchant(Enchantment.DIG_SPEED, 1).build(), new Price(Material.IRON_INGOT, 10)),
+            new TieredItem(new ItemBuilder(Material.STONE_PICKAXE).addEnchant(Enchantment.DIG_SPEED,1).build(), new Price(Material.IRON_INGOT, 10)),
+            new TieredItem(new ItemBuilder(Material.IRON_PICKAXE).addEnchant(Enchantment.DIG_SPEED, 2).build(), new Price(Material.IRON_INGOT, 20)),
+            new TieredItem(new ItemBuilder(VersionIndependentMaterial.GOLDEN_PICKAXE).addEnchant(Enchantment.DIG_SPEED, 3).build(), new Price(Material.GOLD_INGOT, 3)),
+            new TieredItem(new ItemBuilder(Material.DIAMOND_PICKAXE).addEnchant(Enchantment.DIG_SPEED, 3).build(), new Price(Material.GOLD_INGOT, 6))),
+
+    WOOD_AXE(ItemCategory.TOOLS, "wooden_axe",
+            new TieredItem(new ItemBuilder(VersionIndependentMaterial.WOODEN_AXE).addEnchant(Enchantment.DIG_SPEED,1).build(), new Price(Material.IRON_INGOT, 10)),
+            new TieredItem(new ItemBuilder(Material.STONE_PICKAXE).addEnchant(Enchantment.DIG_SPEED, 1).build(), new Price(Material.IRON_INGOT, 10)),
+            new TieredItem(new ItemBuilder(Material.IRON_AXE).addEnchant(Enchantment.DIG_SPEED, 2).build(), new Price(Material.IRON_INGOT, 20)),
+            new TieredItem(new ItemBuilder(VersionIndependentMaterial.GOLDEN_AXE).addEnchant(Enchantment.DIG_SPEED, 2).build(), new Price(Material.GOLD_INGOT, 3)),
+            new TieredItem(new ItemBuilder(Material.DIAMOND_AXE).addEnchant(Enchantment.DIG_SPEED, 3).build(), new Price(Material.GOLD_INGOT, 3))),
+
     ARROW(Material.ARROW, 8, ItemCategory.COMBAT, new Price(Material.GOLD_INGOT,2), "arrow"),
     BOW(Material.BOW, 1, ItemCategory.COMBAT, new Price(Material.GOLD_INGOT,12), "bow"),
     BOW_POWER_1(new ItemBuilder(Material.BOW).addEnchant(Enchantment.ARROW_DAMAGE, 1).build(),ItemCategory.COMBAT, new Price(Material.GOLD_INGOT, 24), "bow_(power_i)"),
@@ -65,15 +71,15 @@ public enum Items {
     NO_ITEM(new ItemBuilder(VersionIndependentUtils.getInstance().getColoredItem(DyeColor.RED, ColoredBlockType.GLASS_PANE)).setAmount(1).build(),ItemCategory.QUICK_BUY);
 
     private ColoredBlockType coloredBlockType = null;
-    private ArmorType armorType = ArmorType.NO_ARMOR;
+    private final ArmorType armorType;
     private int amount = 0;
+    private final ArrayList<TieredItem> tieredItems;
     private final ItemCategory category;
     private final Material material;
     private final ItemStack itemStack;
     private final Price price;
     private final String hypixelCounterpart;
     private final ItemStack shopItem;
-    private int tier = 0;
     Items(Material material, ColoredBlockType colorMaterial, int amount, ItemCategory category, Price price, String hypixelCounterpart) {
         this.coloredBlockType = colorMaterial;
         this.material = material;
@@ -83,6 +89,8 @@ public enum Items {
         this.price = price;
         this.hypixelCounterpart = hypixelCounterpart;
         this.shopItem = toShopItem();
+        this.tieredItems = null;
+        this.armorType = ArmorType.NO_ARMOR;
     }
     Items(ItemStack item, ItemCategory category) {
         // NO ITEM ENUM
@@ -91,12 +99,13 @@ public enum Items {
         this.itemStack = item;
         this.price = null;
         this.hypixelCounterpart = null;
+        this.armorType = ArmorType.NO_ARMOR;
         ItemStack shopItem = toShopItem();
         ItemMeta meta = shopItem.getItemMeta();
         meta.setDisplayName(ChatColor.RED + "No item");
         shopItem.setItemMeta(meta);
         this.shopItem = shopItem;
-
+        this.tieredItems = null;
     }
     Items(VersionIndependentMaterial material, int amount, ItemCategory category, Price price, String hypixelCounterpart) {
         this(material.toBukkitVersion(),amount,category, price, hypixelCounterpart);
@@ -109,6 +118,8 @@ public enum Items {
         this.price = price;
         this.hypixelCounterpart = hypixelCounterpart;
         this.shopItem = toShopItem();
+        this.tieredItems = null;
+        this.armorType = ArmorType.NO_ARMOR;
 
     }
     Items(ItemStack itemStack, ItemCategory category, Price price, String hypixelCounterpart) {
@@ -119,7 +130,8 @@ public enum Items {
         this.price = price;
         this.hypixelCounterpart = hypixelCounterpart;
         this.shopItem = toShopItem();
-
+        this.tieredItems = null;
+        this.armorType = ArmorType.NO_ARMOR;
     }
     Items(ArmorType type, ItemCategory category, Price price, String hypixelCounterpart) {
         this.armorType = type;
@@ -129,38 +141,38 @@ public enum Items {
         this.material = Material.valueOf(getArmorType() + "_BOOTS");
         this.itemStack = new ItemStack(material, 1);
         this.shopItem = toShopItem();
-    }
-    Items(VersionIndependentMaterial material, int amount, ItemCategory category, Price price, String hypixelCounterpart, int tier) {
-        this(material.toBukkitVersion(),amount,category, price, hypixelCounterpart, tier);
-    }
-    Items(Material material, int amount, ItemCategory category, Price price, String hypixelCounterpart, int tier) {
-        this.material = material;
-        this.amount = amount;
-        this.category = category;
-        this.itemStack = new ItemStack(material, amount);
-        this.price = price;
-        this.hypixelCounterpart = hypixelCounterpart;
-        this.tier = tier;
-        this.shopItem = toShopItem();
-    }
-    Items(ItemStack itemStack, ItemCategory category, Price price, String hypixelCounterpart, int tier) {
-        this.material = itemStack.getType();
-        this.amount = itemStack.getAmount();
-        this.category = category;
-        this.itemStack = itemStack;
-        this.price = price;
-        this.hypixelCounterpart = hypixelCounterpart;
-        this.tier = tier;
-        this.shopItem = toShopItem();
-
+        this.tieredItems = null;
     }
 
+    Items(ItemCategory category, String hypixelCounterpart, TieredItem... tieredItems) {
+        this.tieredItems = new ArrayList<>(Arrays.asList(tieredItems));
+        this.category = category;
+        this.itemStack = this.tieredItems.get(0).getItemStack();
+        this.material = this.tieredItems.get(0).getItemStack().getType();
+        this.price = this.tieredItems.get(0).getPrice();
+        this.hypixelCounterpart = hypixelCounterpart;
+        this.shopItem = toShopItem();
+        this.armorType = ArmorType.NO_ARMOR;
+    }
+
+    public static boolean isItemShopItem(ItemStack item) {
+        for (Items items : Items.values()) {
+            return item.equals(items.asShopItem());
+        }
+        return false;
+    }
     @Nullable
     public static Items toItemEnum(ItemStack item) {
-
         for (Items items: Items.values()) {
-            if (item.equals(items.asShopItem())) {
+            if (item.equals(items.asShopItem()) || item.getItemMeta().equals(items.asShopItem().getItemMeta())) {
                 return items;
+            }
+            if (items.isTiered()) {
+                for (TieredItem tieredItem : items.getTieredItems()) {
+                    if (item.equals(tieredItem.getItemStack()) || item.getItemMeta().equals(tieredItem.asShopItem())) {
+                        return items;
+                    }
+                }
             }
         }
         return null;
@@ -198,16 +210,27 @@ public enum Items {
         return hypixelCounterpart;
     }
 
-    public int getTier() {
-        return tier;
+    public boolean isArmor() {
+        return armorType != ArmorType.NO_ARMOR;
     }
+
+    @Nullable
+    public ArrayList<TieredItem> getTieredItems() {
+        return tieredItems;
+    }
+
     public boolean isTiered() {
-        return tier != 0;
+        return tieredItems != null;
+    }
+
+    public TieredItem getItemTier(int tier) {
+        return tieredItems.get(tier - 1);
     }
 
     public ItemStack asShopItem() {
         return shopItem;
     }
+
     private ItemStack toShopItem() {
             ItemStack item = getItemStack();
         ItemMeta meta = item.getItemMeta();

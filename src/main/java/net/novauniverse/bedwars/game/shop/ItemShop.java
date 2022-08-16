@@ -7,17 +7,25 @@ import net.novauniverse.bedwars.game.enums.Items;
 import net.novauniverse.bedwars.game.holder.ItemShopHolder;
 import net.novauniverse.bedwars.game.modules.BedwarsPreferenceManager;
 import net.novauniverse.bedwars.game.modules.BedwarsPreferences;
+import net.novauniverse.bedwars.game.object.Price;
+import net.novauniverse.bedwars.game.object.TieredItem;
+import net.novauniverse.bedwars.utils.InventoryUtils;
 import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
 import net.zeeraa.novacore.spigot.abstraction.enums.ColoredBlockType;
 import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependentMaterial;
+import net.zeeraa.novacore.spigot.module.modules.gui.GUIAction;
+import net.zeeraa.novacore.spigot.module.modules.gui.callbacks.GUIClickCallbackWithEvent;
 import net.zeeraa.novacore.spigot.utils.ItemBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -81,7 +89,7 @@ public class ItemShop extends ShopMold {
                 }
             });
 
-            getEmptySlots(inventory).forEach(integer -> inventory.setItem(integer, Items.NO_ITEM.asShopItem()));
+            InventoryUtils.slotsWith(inventory, null).forEach(integer -> inventory.setItem(integer, Items.NO_ITEM.asShopItem()));
 
         } else if (category == ItemCategory.COMBAT) {
             ItemStack defaultBow = new ItemBuilder(Material.BOW).setName(ChatColor.GOLD + "Bows").setAmount(1).build();
@@ -122,17 +130,78 @@ public class ItemShop extends ShopMold {
                 }
             });
         }
-        player.openInventory(inventory);
-    }
+        holder.addClickCallback(e -> {
+           if (Items.isItemShopItem(e.getCurrentItem())) {
+               Items item = Items.toItemEnum(e.getCurrentItem());
+              if (Price.canBuy((Player) e.getWhoClicked(), item)) {
+                          if (InventoryUtils.slotsWith(e.getClickedInventory(), null).size() != 0) {
+                              e.getWhoClicked().sendMessage(ChatColor.RED + "Fail: no slots available");
+                              return GUIAction.CANCEL_INTERACTION;
+                          }
+                          if (item.isArmor()) {
+                              if (NovaBedwars.getInstance().getAllPlayerArmor().get((Player) e.getWhoClicked()) == item.getArmorType()) {
+                                  e.getWhoClicked().sendMessage(ChatColor.RED + "Fail: already have armor");
+                                  return GUIAction.CANCEL_INTERACTION;
+                              }
+                              NovaBedwars.getInstance().getAllPlayerArmor().putIfAbsent((Player) e.getWhoClicked(), item.getArmorType());
+                              NovaBedwars.getInstance().getAllPlayerArmor().put((Player) e.getWhoClicked(), item.getArmorType());
+                              e.getWhoClicked().sendMessage(ChatColor.GREEN + "Success: armor bought");
+                              return GUIAction.ALLOW_INTERACTION;
+                          } else if (item.isTiered()) {
 
-    private ArrayList<Integer> getEmptySlots(Inventory inventory) {
-        ArrayList<Integer> slots = new ArrayList<>();
-        for (int i = 0; i < inventory.getSize() - 1; i++) {
-            if (inventory.getItem(i) == null) {
-                slots.add(i);
-            }
-        }
-        return slots;
+                              if (item == Items.WOOD_PICKAXE) {
+
+                                  for (int i = 0; i <= item.getTieredItems().size(); i++)  {
+
+                                      if (i == item.getTieredItems().size()) {
+                                          e.getWhoClicked().sendMessage(ChatColor.RED + "Fail: tier limit reached");
+                                          return GUIAction.CANCEL_INTERACTION;
+                                      }
+
+                                      if (e.getCurrentItem().equals(item.getTieredItems().get(i))) {
+                                          NovaBedwars.getInstance().getAllPlayersPickaxeTier().put((Player) e.getWhoClicked(), i + 1);
+                                          NovaBedwars.getInstance().getAllPlayersPickaxeTier().put((Player) e.getWhoClicked(), i + 1);
+                                          e.getWhoClicked().sendMessage(ChatColor.GREEN + "Success: new pickaxe tier bought");
+                                          return GUIAction.ALLOW_INTERACTION;
+                                      }
+
+                                  }
+                              } else if (item == Items.WOOD_AXE) {
+
+                                  for (int i = 0; i <= item.getTieredItems().size(); i++)  {
+
+                                      if (i == item.getTieredItems().size()) {
+                                          e.getWhoClicked().sendMessage(ChatColor.RED + "Fail: tier limit reached");
+                                          return GUIAction.CANCEL_INTERACTION;
+                                      }
+
+                                      if (e.getCurrentItem().equals(item.getTieredItems().get(i))) {
+                                          NovaBedwars.getInstance().getAllPlayersAxeTier().put((Player) e.getWhoClicked(), i + 1);
+                                          NovaBedwars.getInstance().getAllPlayersAxeTier().putIfAbsent((Player) e.getWhoClicked(), i + 1);
+                                          e.getWhoClicked().sendMessage(ChatColor.GREEN + "Success: new axe tier bought");
+                                          return GUIAction.ALLOW_INTERACTION;
+                                      }
+
+                                  }
+                              }
+                          } else {
+                              e.getWhoClicked().getInventory().addItem(item.getItemStack());
+                              e.getWhoClicked().sendMessage(ChatColor.GREEN + "Success: normal item bought");
+                              return GUIAction.ALLOW_INTERACTION;
+
+                          }
+
+              } else {
+                  e.getWhoClicked().sendMessage(ChatColor.RED + "Fail: not enough materials");
+              }
+
+           } else {
+               e.getWhoClicked().sendMessage(ChatColor.RED + "Fail: not shop item");
+               return GUIAction.CANCEL_INTERACTION;
+           }
+            return GUIAction.NONE;
+        });
+        player.openInventory(inventory);
     }
 
     private void placeRemainingOnes(Inventory inventory, ItemStack defaultItem) {
@@ -155,4 +224,6 @@ public class ItemShop extends ShopMold {
             inventory.setItem(6, ItemCategory.MISC.asItem());
         }
     }
+
+
 }
