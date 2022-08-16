@@ -33,9 +33,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class ItemShop extends ShopMold {
+public class ItemShop {
     @SuppressWarnings("null")
-	@Override
     public void display(ItemCategory category, Player player) throws IOException {
         ItemShopHolder holder = new ItemShopHolder(category);
         Inventory inventory = Bukkit.getServer().createInventory(holder, 9 * 6, BedwarsNPC.ITEM_SHOP_NAME);
