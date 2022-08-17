@@ -105,7 +105,7 @@ public class Price {
 					if (amountLeft == 0) {
 						player.getInventory().setItem(slot, new ItemStack(Material.AIR, 0));
 					} else {
-						player.getInventory().getItem(slot).setAmount(player.getInventory().getItem(slot).getAmount() - itemEnum.getPrice().getValue());
+						player.getInventory().getItem(slot).setAmount(amountLeft * -1);
 					}
 					break;
 				} else {
