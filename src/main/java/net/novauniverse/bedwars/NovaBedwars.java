@@ -6,7 +6,6 @@ import net.novauniverse.bedwars.game.debug.HashMapDebugger;
 import net.novauniverse.bedwars.game.debug.MissileWarsDebugCommands;
 import net.novauniverse.bedwars.game.debug.ShopItemMetasDebugger;
 import net.novauniverse.bedwars.game.enums.ItemCategory;
-import net.novauniverse.bedwars.game.enums.TrapType;
 import net.novauniverse.bedwars.game.shop.ItemShop;
 import net.novauniverse.bedwars.utils.HypixelAPI;
 import net.novauniverse.bedwars.utils.preferences.api.PreferenceAPI;
@@ -23,12 +22,8 @@ import net.zeeraa.novacore.spigot.module.modules.compass.CompassTracker;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-
 import javax.annotation.Nullable;
 
-import net.zeeraa.novacore.spigot.teams.Team;
 import org.apache.commons.io.FileUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
@@ -71,7 +66,6 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 			shop.display(ItemCategory.BLOCK, e.getPlayer());
 		}
 	}
-
 
 	public Bedwars getGame() {
 		return game;

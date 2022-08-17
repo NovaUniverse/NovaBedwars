@@ -1,6 +1,5 @@
 package net.novauniverse.bedwars.game.debug;
 
-import net.novauniverse.bedwars.NovaBedwars;
 import net.novauniverse.bedwars.game.enums.Items;
 import net.zeeraa.novacore.spigot.command.AllowedSenders;
 import net.zeeraa.novacore.spigot.debug.DebugCommandRegistrator;

@@ -1,6 +1,5 @@
 package net.novauniverse.bedwars.game.enums;
 
-import net.novauniverse.bedwars.game.object.TieredItem;
 import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
 import net.zeeraa.novacore.spigot.abstraction.enums.ColoredBlockType;
 import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependentMaterial;

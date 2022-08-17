@@ -1,12 +1,10 @@
 package net.novauniverse.bedwars.game.object.base;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import javax.annotation.Nullable;
 
-import net.novauniverse.bedwars.game.enums.TrapType;
 import org.bukkit.Location;
 
 import net.novauniverse.bedwars.game.object.Trap;

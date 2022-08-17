@@ -5,7 +5,10 @@ import net.novauniverse.bedwars.game.config.BedwarsConfig;
 import net.novauniverse.bedwars.game.entity.BedwarsNPC;
 import net.novauniverse.bedwars.game.entity.NPCType;
 import net.novauniverse.bedwars.game.enums.ArmorType;
+import net.novauniverse.bedwars.game.enums.ItemCategory;
 import net.novauniverse.bedwars.game.object.base.BaseData;
+import net.novauniverse.bedwars.game.shop.ItemShop;
+import net.novauniverse.bedwars.game.shop.UpgradeShop;
 import net.zeeraa.novacore.commons.log.Log;
 import net.zeeraa.novacore.commons.tasks.Task;
 import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
@@ -39,6 +42,7 @@ import org.bukkit.inventory.meta.FireworkMeta;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Bedwars extends MapGame implements Listener {
 	public static int WEAPON_SLOT_DEFAULT = 0;
@@ -53,15 +57,18 @@ public class Bedwars extends MapGame implements Listener {
 	private boolean beginTimerFinished;
 	private Task beginTask;
 
-	private HashMap<Player, ArmorType> hasArmor;
-	private HashMap<Player, Integer> pickaxeTier;
-	private HashMap<Player, Integer> axeTier;
+	private Map<Player, ArmorType> hasArmor;
+	private Map<Player, Integer> pickaxeTier;
+	private Map<Player, Integer> axeTier;
 
 	private List<Location> allowBreak;
 	private List<BedwarsNPC> npcs;
 	private List<BaseData> bases;
 
-	public HashMap<Player, ArmorType> getAllPlayersArmor() {
+	private ItemShop itemShop;
+	private UpgradeShop upgradeShop;
+
+	public Map<Player, ArmorType> getAllPlayersArmor() {
 		return hasArmor;
 	}
 
@@ -69,7 +76,7 @@ public class Bedwars extends MapGame implements Listener {
 		return hasArmor.get(player);
 	}
 
-	public HashMap<Player, Integer> getAllPlayersPickaxeTier() {
+	public Map<Player, Integer> getAllPlayersPickaxeTier() {
 		return pickaxeTier;
 	}
 
@@ -77,14 +84,13 @@ public class Bedwars extends MapGame implements Listener {
 		return pickaxeTier.get(player);
 	}
 
-	public HashMap<Player, Integer> getAllPlayersAxeTier() {
+	public Map<Player, Integer> getAllPlayersAxeTier() {
 		return axeTier;
 	}
 
 	public int getPlayerAxeTier(Player player) {
 		return axeTier.get(player);
 	}
-
 
 	public Bedwars() {
 		super(NovaBedwars.getInstance());
@@ -98,6 +104,9 @@ public class Bedwars extends MapGame implements Listener {
 
 		beginTimer = 10;
 		beginTimerFinished = false;
+
+		itemShop = new ItemShop();
+		upgradeShop = new UpgradeShop();
 
 		beginTask = new SimpleTask(this.getPlugin(), () -> {
 			if (beginTimer > 0) {
@@ -329,20 +338,24 @@ public class Bedwars extends MapGame implements Listener {
 
 	@EventHandler(priority = EventPriority.NORMAL)
 	public void onPlayerInteractAtEntity(PlayerInteractAtEntityEvent e) {
-		npcs.stream().filter(n -> n.getVillager().getUniqueId().equals(e.getRightClicked().getUniqueId())).findFirst().ifPresent(clickedNPC -> {
-			switch (clickedNPC.getType()) {
-			case ITEMS:
-				// TODO: Open item shop ui
-				break;
+		Player player = e.getPlayer();
 
-			case UPGRADES:
-				// TODO: Open upgrades shop ui
-				break;
+		if (e.getPlayer().getGameMode() != GameMode.SPECTATOR) {
+			npcs.stream().filter(n -> n.getVillager().getUniqueId().equals(e.getRightClicked().getUniqueId())).findFirst().ifPresent(clickedNPC -> {
+				switch (clickedNPC.getType()) {
+				case ITEMS:
+					itemShop.display(player);
+					break;
 
-			default:
-				break;
-			}
-		});
+				case UPGRADES:
+					upgradeShop.display(player);
+					break;
+
+				default:
+					break;
+				}
+			});
+		}
 	}
 
 	@EventHandler(priority = EventPriority.NORMAL)

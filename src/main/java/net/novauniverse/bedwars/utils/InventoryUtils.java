@@ -1,10 +1,7 @@
 package net.novauniverse.bedwars.utils;
 
-import net.novauniverse.bedwars.game.enums.ItemCategory;
 import org.bukkit.Material;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
-
 import java.util.ArrayList;
 
 public class InventoryUtils {

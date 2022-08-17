@@ -2,7 +2,6 @@ package net.novauniverse.bedwars.game.modules;
 
 import java.io.IOException;
 import java.util.*;
-
 import javax.annotation.Nullable;
 
 import org.bukkit.ChatColor;
@@ -63,6 +62,13 @@ public class BedwarsPreferenceManager extends NovaModule implements Listener {
 		Task.tryStopTask(cooldownTask);
 		preferences.clear();
 		cooldown.clear();
+	}
+	
+	public BedwarsPreferences getPlayerPreferences(Player player) {
+		if(preferences.containsKey(player.getUniqueId())) {
+			return preferences.get(player.getUniqueId());
+		}
+		return BedwarsPreferences.defaultPreferences(player.getUniqueId());
 	}
 
 	public boolean isHypixelRequestCooldownActive(Player player) {
