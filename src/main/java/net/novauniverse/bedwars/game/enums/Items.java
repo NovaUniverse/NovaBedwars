@@ -14,7 +14,6 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
-import org.bukkit.material.MaterialData;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.Nullable;
@@ -266,11 +265,11 @@ public enum Items {
             color = ChatColor.GOLD;
         }
         String stringified = price.getMaterial().name().toLowerCase(Locale.ROOT).replace('_', ' ');
-        if (price.getPrice() >= 2) {
+        if (price.getValue() >= 2) {
             stringified += "s";
         }
         List<String> lore = new ArrayList<>();
-        lore.add(color + "" + ChatColor.BOLD + "" + price.getPrice() + " " + stringified);
+        lore.add(color + "" + ChatColor.BOLD + "" + price.getValue() + " " + stringified);
         return lore;
     }
     private String convertToSeconds(int duration) {

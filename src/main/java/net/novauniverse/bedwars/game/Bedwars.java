@@ -4,6 +4,7 @@ import net.novauniverse.bedwars.NovaBedwars;
 import net.novauniverse.bedwars.game.config.BedwarsConfig;
 import net.novauniverse.bedwars.game.entity.BedwarsNPC;
 import net.novauniverse.bedwars.game.entity.NPCType;
+import net.novauniverse.bedwars.game.enums.ArmorType;
 import net.novauniverse.bedwars.game.object.base.BaseData;
 import net.zeeraa.novacore.commons.log.Log;
 import net.zeeraa.novacore.commons.tasks.Task;
@@ -36,6 +37,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.meta.FireworkMeta;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class Bedwars extends MapGame implements Listener {
@@ -51,15 +53,48 @@ public class Bedwars extends MapGame implements Listener {
 	private boolean beginTimerFinished;
 	private Task beginTask;
 
+	private HashMap<Player, ArmorType> hasArmor;
+	private HashMap<Player, Integer> pickaxeTier;
+	private HashMap<Player, Integer> axeTier;
+
 	private List<Location> allowBreak;
 	private List<BedwarsNPC> npcs;
 	private List<BaseData> bases;
+
+	public HashMap<Player, ArmorType> getAllPlayersArmor() {
+		return hasArmor;
+	}
+
+	public ArmorType getPlayerArmor(Player player) {
+		return hasArmor.get(player);
+	}
+
+	public HashMap<Player, Integer> getAllPlayersPickaxeTier() {
+		return pickaxeTier;
+	}
+
+	public int getPlayerPickaxeTier(Player player) {
+		return pickaxeTier.get(player);
+	}
+
+	public HashMap<Player, Integer> getAllPlayersAxeTier() {
+		return axeTier;
+	}
+
+	public int getPlayerAxeTier(Player player) {
+		return axeTier.get(player);
+	}
+
 
 	public Bedwars() {
 		super(NovaBedwars.getInstance());
 		bases = new ArrayList<>();
 		allowBreak = new ArrayList<>();
 		npcs = new ArrayList<>();
+
+		hasArmor = new HashMap<>();
+		pickaxeTier = new HashMap<>();
+		axeTier = new HashMap<>();
 
 		beginTimer = 10;
 		beginTimerFinished = false;

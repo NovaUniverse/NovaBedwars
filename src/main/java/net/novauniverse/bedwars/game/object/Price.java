@@ -26,12 +26,12 @@ public class Price {
 		return material;
 	}
 
-	public int getPrice() {
+	public int getValue() {
 		return price;
 	}
 
 	public static boolean canBuy(Player player, Items item) {
-		int amountLeft = item.getPrice().getPrice();
+		int amountLeft = item.getPrice().getValue();
 		ArrayList<Integer> slots = InventoryUtils.slotsWith(player.getInventory(), item.getPrice().getMaterial());
 		for (Integer slot : slots) {
 			amountLeft -= player.getInventory().getItem(slot).getAmount();
@@ -42,17 +42,21 @@ public class Price {
 	public static void buyItem(Items itemEnum, PlayerInventory inventory, ItemStack item, Player player) {
 		boolean bought = true;
 		if (InventoryUtils.slotsWith(inventory, null).size() == 0) {
-			Bukkit.broadcastMessage(ChatColor.RED + "Fail: no slots available");
+			player.sendMessage(ChatColor.RED + "Fail: no slots available");
 			bought = false;
 		}
 		if (itemEnum.isArmor()) {
-			if (NovaBedwars.getInstance().getAllPlayersArmor().get(player) == itemEnum.getArmorType()) {
-				Bukkit.broadcastMessage(ChatColor.RED + "Fail: already have armor");
+			if (NovaBedwars.getInstance().getGame().getAllPlayersArmor().get(player) == itemEnum.getArmorType()) {
+				player.sendMessage(ChatColor.RED + "Fail: already have armor");
 				bought = false;
 			}
-			NovaBedwars.getInstance().getAllPlayersArmor().putIfAbsent(player, itemEnum.getArmorType());
-			NovaBedwars.getInstance().getAllPlayersArmor().put(player, itemEnum.getArmorType());
-			Bukkit.broadcastMessage(ChatColor.GREEN + "Success: armor bought");
+			if (NovaBedwars.getInstance().getGame().getAllPlayersArmor().get(player).getTier() < itemEnum.getArmorType().getTier()) {
+				player.sendMessage(ChatColor.RED + "Fail: already have better tier");
+				bought = false;
+			}
+			NovaBedwars.getInstance().getGame().getAllPlayersArmor().putIfAbsent(player, itemEnum.getArmorType());
+			NovaBedwars.getInstance().getGame().getAllPlayersArmor().put(player, itemEnum.getArmorType());
+			player.sendMessage(ChatColor.GREEN + "Success: armor bought");
 		} else if (itemEnum.isTiered()) {
 
 			if (itemEnum == Items.WOOD_PICKAXE) {
@@ -60,14 +64,14 @@ public class Price {
 				for (int i = 0; i <= itemEnum.getTieredItems().size(); i++)  {
 
 					if (i == itemEnum.getTieredItems().size()) {
-						Bukkit.broadcastMessage(ChatColor.RED + "Fail: tier limit reached");
+						player.sendMessage(ChatColor.RED + "Fail: tier limit reached");
 						bought = false;
 					}
 
 					if (item.equals(itemEnum.getTieredItems().get(i))) {
-						NovaBedwars.getInstance().getAllPlayersPickaxeTier().putIfAbsent(player, i + 1);
-						NovaBedwars.getInstance().getAllPlayersPickaxeTier().putIfAbsent(player, i + 1);
-						Bukkit.broadcastMessage(ChatColor.GREEN + "Success: new pickaxe tier bought");
+						NovaBedwars.getInstance().getGame().getAllPlayersPickaxeTier().putIfAbsent(player, i + 1);
+						NovaBedwars.getInstance().getGame().getAllPlayersPickaxeTier().putIfAbsent(player, i + 1);
+						player.sendMessage(ChatColor.GREEN + "Success: new pickaxe tier bought");
 					}
 
 				}
@@ -76,23 +80,38 @@ public class Price {
 				for (int i = 0; i <= itemEnum.getTieredItems().size(); i++)  {
 
 					if (i == itemEnum.getTieredItems().size()) {
-						Bukkit.broadcastMessage(ChatColor.RED + "Fail: tier limit reached");
+						player.sendMessage(ChatColor.RED + "Fail: tier limit reached");
 						bought = false;
 					}
 
 					if (item.equals(itemEnum.getTieredItems().get(i))) {
-						NovaBedwars.getInstance().getAllPlayersAxeTier().put(player, i + 1);
-						NovaBedwars.getInstance().getAllPlayersAxeTier().putIfAbsent(player, i + 1);
-						Bukkit.broadcastMessage(ChatColor.GREEN + "Success: new axe tier bought");
+						NovaBedwars.getInstance().getGame().getAllPlayersAxeTier().put(player, i + 1);
+						NovaBedwars.getInstance().getGame().getAllPlayersAxeTier().putIfAbsent(player, i + 1);
+						player.sendMessage(ChatColor.GREEN + "Success: new axe tier bought");
 					}
 
 				}
 			}
 		} else {
 			inventory.addItem(itemEnum.getItemStack());
-			Bukkit.broadcastMessage(ChatColor.GREEN + "Success: normal item bought");
+			player.sendMessage(ChatColor.GREEN + "Success: normal item bought");
 		}
 		if (bought) {
+			int amountLeft = itemEnum.getPrice().getValue();
+			ArrayList<Integer> slots = InventoryUtils.slotsWith(player.getInventory(), itemEnum.getPrice().getMaterial());
+			for (Integer slot : slots) {
+				amountLeft -= player.getInventory().getItem(slot).getAmount();
+				if (amountLeft <= 0) {
+					if (amountLeft == 0) {
+						player.getInventory().setItem(slot, new ItemStack(Material.AIR, 0));
+					} else {
+						player.getInventory().getItem(slot).setAmount(player.getInventory().getItem(slot).getAmount() - itemEnum.getPrice().getValue());
+					}
+					break;
+				} else {
+					player.getInventory().setItem(slot, new ItemStack(Material.AIR, 0));
+				}
+			}
 			Bukkit.getPluginManager().callEvent(new ItemBuyEvent(itemEnum, player));
 		}
 	}

@@ -32,9 +32,9 @@ public class HashMapDebugger {
 
             @Override
             public void onExecute(CommandSender commandSender, String s, String[] strings) {
-                NovaBedwars.getInstance().getAllPlayersArmor().forEach((player, armortype) -> commandSender.sendMessage(player.getName() + " : " + armortype));
-                NovaBedwars.getInstance().getAllPlayersPickaxeTier().forEach((player, integer) -> commandSender.sendMessage(player.getName() + " : " + integer));
-                NovaBedwars.getInstance().getAllPlayersAxeTier().forEach((player, integer) -> commandSender.sendMessage(player.getName() + " : " + integer));
+                NovaBedwars.getInstance().getGame().getAllPlayersArmor().forEach((player, armortype) -> commandSender.sendMessage(player.getName() + " : " + armortype));
+                NovaBedwars.getInstance().getGame().getAllPlayersPickaxeTier().forEach((player, integer) -> commandSender.sendMessage(player.getName() + " : " + integer));
+                NovaBedwars.getInstance().getGame().getAllPlayersAxeTier().forEach((player, integer) -> commandSender.sendMessage(player.getName() + " : " + integer));
             }
         });
     }
