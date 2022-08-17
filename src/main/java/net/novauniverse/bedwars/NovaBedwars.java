@@ -5,8 +5,12 @@ import net.novauniverse.bedwars.game.config.BedwarsConfig;
 import net.novauniverse.bedwars.game.debug.HashMapDebugger;
 import net.novauniverse.bedwars.game.debug.MissileWarsDebugCommands;
 import net.novauniverse.bedwars.game.debug.ShopItemMetasDebugger;
+import net.novauniverse.bedwars.game.debug.UUIDGetter;
 import net.novauniverse.bedwars.game.enums.ItemCategory;
+import net.novauniverse.bedwars.game.modules.BedwarsPreferenceManager;
+import net.novauniverse.bedwars.game.modules.PreferenceAPIRequestCallback;
 import net.novauniverse.bedwars.game.shop.ItemShop;
+import net.novauniverse.bedwars.utils.APIUtils;
 import net.novauniverse.bedwars.utils.HypixelAPI;
 import net.novauniverse.bedwars.utils.preferences.api.PreferenceAPI;
 import net.novauniverse.bedwars.utils.preferences.api.PreferenceAPISettings;
@@ -26,9 +30,12 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.io.FileUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -44,9 +51,6 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 	private HypixelAPI hypixelAPI;
 	private PreferenceAPI preferenceAPI;
 
-
-
-
 	public static NovaBedwars getInstance() {
 		return instance;
 	}
@@ -60,12 +64,18 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 	}
 
 	@EventHandler
-	public void onCrouch(PlayerToggleSneakEvent e) throws IOException {
+	public void onCrouch(PlayerToggleSneakEvent e) {
 		if (e.isSneaking()) {
 			ItemShop shop = new ItemShop();
-			shop.display(ItemCategory.BLOCK, e.getPlayer());
+			shop.display(ItemCategory.QUICK_BUY, e.getPlayer());
 		}
 	}
+	@EventHandler
+	public void onJoin(PlayerJoinEvent e) {
+		Player player = e.getPlayer();
+		APIUtils.attemptImportHypixelPreferences(player);
+	}
+
 
 	public Bedwars getGame() {
 		return game;
@@ -88,8 +98,12 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 		return preferenceAPI != null;
 	}
 
+
+
 	@Override
 	public void onEnable() {
+
+		Bukkit.getOnlinePlayers().forEach(APIUtils::attemptImportHypixelPreferences);
 
 		NovaBedwars.instance = this;
 		saveDefaultConfig();
@@ -181,6 +195,7 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 		MissileWarsDebugCommands.register();
 		HashMapDebugger.register();
 		ShopItemMetasDebugger.register();
+		UUIDGetter.register();
 	}
 
 	@Override

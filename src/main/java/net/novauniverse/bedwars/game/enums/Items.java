@@ -244,9 +244,7 @@ public enum Items {
             ItemStack item = getItemStack().clone();
         ItemMeta meta = item.getItemMeta();
             if (getCategory() == ItemCategory.POTIONS) {
-                PotionMeta potmeta = (PotionMeta) item.getItemMeta();
-                potmeta.setMainEffect(potmeta.getCustomEffects().get(0).getType());
-                potmeta.setDisplayName(potionTypeToName(potmeta.getCustomEffects().get(0)));
+                meta.setDisplayName(potionTypeToName(((PotionMeta) meta).getCustomEffects().get(0)));
                 item.setItemMeta(meta);
             }
             if (getPrice() != null) {
@@ -285,7 +283,7 @@ public enum Items {
         } else if (effect.getType() == PotionEffectType.JUMP) {
             return "Jump Boost" + roman + " Potion" + convertToSeconds(effect.getDuration());
         } else if (effect.getType() == PotionEffectType.SPEED) {
-            return "Spee " + roman + " Potion" + convertToSeconds(effect.getDuration());
+            return "Speed" + roman + " Potion" + convertToSeconds(effect.getDuration());
         } else {
             return ChatColor.RED + "POTION EFFECT COULD NOT BE FOUND";
         }

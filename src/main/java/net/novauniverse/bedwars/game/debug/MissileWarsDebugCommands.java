@@ -1,5 +1,7 @@
 package net.novauniverse.bedwars.game.debug;
 
+import net.novauniverse.bedwars.NovaBedwars;
+import net.novauniverse.bedwars.utils.APIUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -16,35 +18,7 @@ public class MissileWarsDebugCommands {
 			@Override
 			public void onExecute(CommandSender sender, String commandLabel, String[] args) {
 				Player player = (Player) sender;
-				if (!BedwarsPreferenceManager.getInstance().tryImportHypixelPreferences(player, (success, exception) -> {
-					if (!success) {
-						if (exception != null) {
-							sender.sendMessage(ChatColor.DARK_RED + "Failure>" + ChatColor.WHITE + " Fetch retured false. Exception: " + exception.getClass().getName() + " " + exception.getMessage());
-							exception.printStackTrace();
-						} else {
-							sender.sendMessage(ChatColor.DARK_RED + "Failure>" + ChatColor.WHITE + " Fetch retured false. No exception");
-						}
-					} else {
-						sender.sendMessage(ChatColor.GREEN + "OK>" + ChatColor.WHITE + " Import success");
-
-						if (!BedwarsPreferenceManager.getInstance().savePreferences(player, (success1, exception1) -> {
-							if (!success1) {
-								if (exception1 != null) {
-									sender.sendMessage(ChatColor.DARK_RED + "Failure>" + ChatColor.WHITE + " Save retured false. Exception: " + exception1.getClass().getName() + " " + exception1.getMessage());
-									exception1.printStackTrace();
-								} else {
-									sender.sendMessage(ChatColor.DARK_RED + "Failure>" + ChatColor.WHITE + " Save retured false. No exception");
-								}
-							} else {
-								sender.sendMessage(ChatColor.GREEN + "OK>" + ChatColor.WHITE + " Export success");
-							}
-						})) {
-							sender.sendMessage(ChatColor.DARK_RED + "Failure>" + ChatColor.WHITE + " Save method returned false");
-						}
-					}
-				})) {
-					sender.sendMessage(ChatColor.DARK_RED + "Failure>" + ChatColor.WHITE + " Fetch method returned false");
-				}
+				APIUtils.attemptImportHypixelPreferences(player);
 			}
 
 			@Override

@@ -31,7 +31,10 @@ public class Price {
 	}
 
 	public static boolean canBuy(Player player, Items item) {
-		int amountLeft = item.getPrice().getValue();
+		if (item.getPrice() == null) {
+			return false;
+		}
+ 		int amountLeft = item.getPrice().getValue();
 		ArrayList<Integer> slots = InventoryUtils.slotsWith(player.getInventory(), item.getPrice().getMaterial());
 		for (Integer slot : slots) {
 			amountLeft -= player.getInventory().getItem(slot).getAmount();

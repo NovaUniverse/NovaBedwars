@@ -37,7 +37,7 @@ public class 	PotionItemBuilder extends ItemBuilder {
 		if (item.getType() == Material.POTION) {
 			PotionMeta meta = (PotionMeta) this.meta;
 			meta.addCustomEffect(effect, true);
-
+			meta.setMainEffect(effect.getType());
 		}
 		return this;
 	}
