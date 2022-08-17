@@ -14,6 +14,7 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.material.MaterialData;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.Nullable;
@@ -55,8 +56,9 @@ public enum Items {
 
     ARROW(Material.ARROW, 8, ItemCategory.COMBAT, new Price(Material.GOLD_INGOT,2), "arrow"),
     BOW(Material.BOW, 1, ItemCategory.COMBAT, new Price(Material.GOLD_INGOT,12), "bow"),
+
     BOW_POWER_1(new ItemBuilder(Material.BOW).addEnchant(Enchantment.ARROW_DAMAGE, 1).build(),ItemCategory.COMBAT, new Price(Material.GOLD_INGOT, 24), "bow_(power_i)"),
-    BOW_PUNCH_1_POWER_1(new ItemBuilder(Material.BOW).addEnchant(Enchantment.DAMAGE_ALL, 1).addEnchant(Enchantment.ARROW_KNOCKBACK, 1).build(), ItemCategory.COMBAT, new Price(Material.EMERALD,6), "bow_(power_i__punch_i)"),
+    BOW_PUNCH_1_POWER_1(new ItemBuilder(Material.BOW).addEnchant(Enchantment.ARROW_DAMAGE, 1).addEnchant(Enchantment.ARROW_KNOCKBACK, 1).build(), ItemCategory.COMBAT, new Price(Material.EMERALD,6), "bow_(power_i__punch_i)"),
     INVISIBLE(new PotionItemBuilder(Material.POTION).setPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY,30 * 20,0, false, false)).build(), ItemCategory.POTIONS, new Price(Material.EMERALD,2), "invisibility_potion_(30_seconds)"),
     JUMP_BOOST(new PotionItemBuilder(Material.POTION).setPotionEffect(new PotionEffect(PotionEffectType.JUMP,45 * 20,4, false, false)).build(), ItemCategory.POTIONS, new Price(Material.EMERALD,1), "jump_v_potion_(45_seconds)"),
     SPEED(new PotionItemBuilder(Material.POTION).setPotionEffect(new PotionEffect(PotionEffectType.SPEED,45 * 20,1, false, false)).build(), ItemCategory.POTIONS,new Price(Material.EMERALD, 1), "speed_ii_potion_(45_seconds)"),
@@ -156,26 +158,34 @@ public enum Items {
     }
 
     public static boolean isItemShopItem(ItemStack item) {
+        boolean check = false;
         for (Items items : Items.values()) {
-            return item.equals(items.asShopItem());
+            if (item.toString().equalsIgnoreCase(items.asShopItem().toString())) {
+                check = item.toString().equalsIgnoreCase(items.asShopItem().toString());
+                break;
+            }
         }
-        return false;
+        return check;
     }
     @Nullable
     public static Items toItemEnum(ItemStack item) {
+        Items ite = null;
         for (Items items: Items.values()) {
-            if (item.equals(items.asShopItem()) || item.getItemMeta().equals(items.asShopItem().getItemMeta())) {
-                return items;
+            if (item.toString().equalsIgnoreCase(items.asShopItem().toString())) {
+
+                ite = items;
+                break;
             }
             if (items.isTiered()) {
                 for (TieredItem tieredItem : items.getTieredItems()) {
-                    if (item.equals(tieredItem.getItemStack()) || item.getItemMeta().equals(tieredItem.asShopItem())) {
-                        return items;
+                    if (item.toString().equalsIgnoreCase(tieredItem.getItemStack().toString())) {
+                        ite = items;
+                        break;
                     }
                 }
             }
         }
-        return null;
+        return ite;
     }
     @Nullable
     public ColoredBlockType getColoredBlockType() {
@@ -232,7 +242,7 @@ public enum Items {
     }
 
     private ItemStack toShopItem() {
-            ItemStack item = getItemStack();
+            ItemStack item = getItemStack().clone();
         ItemMeta meta = item.getItemMeta();
             if (getCategory() == ItemCategory.POTIONS) {
                 PotionMeta potmeta = (PotionMeta) item.getItemMeta();
@@ -260,8 +270,7 @@ public enum Items {
             stringified += "s";
         }
         List<String> lore = new ArrayList<>();
-        lore.add("");
-        lore.add(ChatColor.BOLD + "" +color + "" + price.getPrice() + " " + stringified);
+        lore.add(color + "" + ChatColor.BOLD + "" + price.getPrice() + " " + stringified);
         return lore;
     }
     private String convertToSeconds(int duration) {

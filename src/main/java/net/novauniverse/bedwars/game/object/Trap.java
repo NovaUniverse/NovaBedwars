@@ -1,15 +1,13 @@
 package net.novauniverse.bedwars.game.object;
 
-import net.novauniverse.bedwars.game.enums.TrapType;
-
 public class Trap {
-	private final TrapType trapType;
+	private final net.novauniverse.bedwars.game.enums.Trap trapType;
 
-	public Trap(TrapType type) {
+	public Trap(net.novauniverse.bedwars.game.enums.Trap type) {
 		trapType = type;
 	}
 
-	public TrapType getTrapType() {
+	public net.novauniverse.bedwars.game.enums.Trap getTrapType() {
 		return trapType;
 	}
 }

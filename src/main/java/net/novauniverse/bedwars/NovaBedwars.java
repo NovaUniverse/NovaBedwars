@@ -4,9 +4,10 @@ import net.novauniverse.bedwars.game.Bedwars;
 import net.novauniverse.bedwars.game.config.BedwarsConfig;
 import net.novauniverse.bedwars.game.debug.HashMapDebugger;
 import net.novauniverse.bedwars.game.debug.MissileWarsDebugCommands;
+import net.novauniverse.bedwars.game.debug.ShopItemMetasDebugger;
 import net.novauniverse.bedwars.game.enums.ArmorType;
 import net.novauniverse.bedwars.game.enums.ItemCategory;
-import net.novauniverse.bedwars.game.object.TieredItem;
+import net.novauniverse.bedwars.game.enums.Trap;
 import net.novauniverse.bedwars.game.shop.ItemShop;
 import net.novauniverse.bedwars.utils.HypixelAPI;
 import net.novauniverse.bedwars.utils.preferences.api.PreferenceAPI;
@@ -23,10 +24,12 @@ import net.zeeraa.novacore.spigot.module.modules.compass.CompassTracker;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import javax.annotation.Nullable;
 
+import net.zeeraa.novacore.spigot.teams.Team;
 import org.apache.commons.io.FileUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -51,6 +54,12 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 	private HashMap<Player, ArmorType> hasArmor;
 	private HashMap<Player, Integer> pickaxeTier;
 	private HashMap<Player, Integer> axeTier;
+	private HashMap<Team, Integer> teamProtection;
+	private HashMap<Team, Integer> teamHaste;
+	private HashMap<Team, Integer> teamForge;
+	private HashMap<Team, Boolean> teamsharpness;
+	private HashMap<Team, Boolean> teamHealPool;
+	private HashMap<Team, ArrayList<Trap>> teamTraps;
 
 	public static NovaBedwars getInstance() {
 		return instance;
@@ -71,6 +80,7 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 			shop.display(ItemCategory.BLOCK, e.getPlayer());
 		}
 	}
+
 
 	public Bedwars getGame() {
 		return game;
@@ -93,7 +103,7 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 		return preferenceAPI != null;
 	}
 
-	public HashMap<Player, ArmorType> getAllPlayerArmor() {
+	public HashMap<Player, ArmorType> getAllPlayersArmor() {
 		return hasArmor;
 	}
 
@@ -117,11 +127,64 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 		return axeTier.get(player);
 	}
 
+	public HashMap<Team, Integer> getAllTeamsProtectionLevel() {
+		return teamProtection;
+	}
+
+	public int getTeamProtectionLevel(Team team) {
+		return teamProtection.get(team);
+	}
+
+	public HashMap<Team, Integer> getAllTeamsHasteLevel() {
+		return teamHaste;
+	}
+
+	public int getTeamHasteLevel(Team team) {
+		return teamHaste.get(team);
+	}
+
+	public HashMap<Team, Integer> getAllTeamsForgeLevel() {
+		return teamForge;
+	}
+
+	public int getTeamForgeLevel(Team team) {
+		return teamForge.get(team);
+	}
+
+	public HashMap<Team, Boolean> getAllTeamsHasSharpness() {
+		return teamsharpness;
+	}
+
+	public boolean getTeamHasSharpness(Team team) {
+		return teamsharpness.get(team);
+	}
+
+	public HashMap<Team, Boolean> getAllTeamsHasHealPool() {
+		return teamHealPool;
+	}
+
+	public boolean getTeamHasHealPool(Team team) {
+		return teamHealPool.get(team);
+	}
+
+	public HashMap<Team, ArrayList<Trap>> getAllTeamsTraps() {
+		return teamTraps;
+	}
+	public ArrayList<Trap> getTeamTraps(Team team) {
+		return teamTraps.get(team);
+	}
+
 	@Override
 	public void onEnable() {
 		hasArmor = new HashMap<>();
 		pickaxeTier = new HashMap<>();
 		axeTier = new HashMap<>();
+		teamProtection = new HashMap<>();
+		teamHaste = new HashMap<>();
+		teamForge = new HashMap<>();
+		teamsharpness = new HashMap<>();
+		teamHealPool = new HashMap<>();
+		teamTraps = new HashMap<>();
 		NovaBedwars.instance = this;
 		saveDefaultConfig();
 
@@ -211,6 +274,7 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 		
 		MissileWarsDebugCommands.register();
 		HashMapDebugger.register();
+		ShopItemMetasDebugger.register();
 	}
 
 	@Override

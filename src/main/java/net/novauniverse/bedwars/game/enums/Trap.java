@@ -1,5 +1,5 @@
 package net.novauniverse.bedwars.game.enums;
 
-public enum TrapType {
+public enum Trap {
 	BLINDNESS, CONTER_OFFENSIVE, ALARM, MINING_FATIGUE;
 }

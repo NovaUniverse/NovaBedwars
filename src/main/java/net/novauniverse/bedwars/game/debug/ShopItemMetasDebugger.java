@@ -1,23 +1,26 @@
 package net.novauniverse.bedwars.game.debug;
 
 import net.novauniverse.bedwars.NovaBedwars;
+import net.novauniverse.bedwars.game.enums.Items;
 import net.zeeraa.novacore.spigot.command.AllowedSenders;
 import net.zeeraa.novacore.spigot.debug.DebugCommandRegistrator;
 import net.zeeraa.novacore.spigot.debug.DebugTrigger;
 import org.bukkit.command.CommandSender;
 import org.bukkit.permissions.PermissionDefault;
 
-public class HashMapDebugger {
-    public static final void register() {
+import java.util.Arrays;
+
+public class ShopItemMetasDebugger {
+    public static void register() {
         DebugCommandRegistrator.getInstance().addDebugTrigger(new DebugTrigger() {
             @Override
             public String getName() {
-                return "hashmapchecker";
+                return "itemmetachecker";
             }
 
             @Override
             public String getPermission() {
-                return "novauniverse.debug.bedwars.hashmapchecker";
+                return "novauniverse.debug.bedwars.itemmetachecker";
             }
 
             @Override
@@ -32,9 +35,11 @@ public class HashMapDebugger {
 
             @Override
             public void onExecute(CommandSender commandSender, String s, String[] strings) {
-                NovaBedwars.getInstance().getAllPlayersArmor().forEach((player, armortype) -> commandSender.sendMessage(player.getName() + " : " + armortype));
-                NovaBedwars.getInstance().getAllPlayersPickaxeTier().forEach((player, integer) -> commandSender.sendMessage(player.getName() + " : " + integer));
-                NovaBedwars.getInstance().getAllPlayersAxeTier().forEach((player, integer) -> commandSender.sendMessage(player.getName() + " : " + integer));
+                Arrays.stream(Items.values()).forEach(items -> commandSender.sendMessage("ITEM META: " + (items.asShopItem().getItemMeta())));
+                commandSender.sendMessage("------------------------------");
+                commandSender.sendMessage("");
+                commandSender.sendMessage("------------------------------");
+                Arrays.stream(Items.values()).forEach(items -> commandSender.sendMessage("ITEM: " + (items.asShopItem())));
             }
         });
     }

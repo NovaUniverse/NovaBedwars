@@ -1,5 +1,6 @@
 package net.novauniverse.bedwars.game.enums;
 
+import net.novauniverse.bedwars.game.object.TieredItem;
 import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
 import net.zeeraa.novacore.spigot.abstraction.enums.ColoredBlockType;
 import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependentMaterial;
@@ -39,8 +40,32 @@ public enum ItemCategory {
 		item.setItemMeta(meta);
 		return item;
 	}
+	public static boolean isItemCategory(ItemStack item) {
+		boolean check = false;
+		for (ItemCategory category : ItemCategory.values()) {
+			if (item.toString().equalsIgnoreCase(category.asItem().toString())) {
+				check = item.toString().equalsIgnoreCase(category.asItem().toString());
+				break;
+			}
+		}
+		return check;
+	}
+
+	public static ItemCategory toItemCategoryEnum(ItemStack item) {
+		ItemCategory cat = null;
+		for (ItemCategory category: ItemCategory.values()) {
+			if (item.toString().equalsIgnoreCase(category.asItem().toString())) {
+				cat = category;
+				break;
+			}
+
+		}
+		return cat;
+	}
+
+
 	public ItemStack asSelectedItem() {
-		ItemStack item = new ItemStack(VersionIndependentUtils.get().getColoredItem(DyeColor.LIME, ColoredBlockType.GLASS_PANE));
+ 		ItemStack item = new ItemStack(VersionIndependentUtils.get().getColoredItem(DyeColor.LIME, ColoredBlockType.GLASS_PANE));
 		ItemMeta meta = item.getItemMeta();
 
 		meta.setDisplayName(ChatColor.GREEN + iconName);

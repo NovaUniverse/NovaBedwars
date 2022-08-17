@@ -64,20 +64,17 @@ public class Bedwars extends MapGame implements Listener {
 		beginTimer = 10;
 		beginTimerFinished = false;
 
-		beginTask = new SimpleTask(this.getPlugin(), new Runnable() {
-			@Override
-			public void run() {
-				if (beginTimer > 0) {
-					VersionIndependentSound.NOTE_PLING.broadcast();
-					Bukkit.getServer().getOnlinePlayers().forEach(player -> VersionIndependentUtils.get().sendTitle(player, "", ChatColor.GREEN + "Starting in " + ChatColor.AQUA + beginTimer, 0, 21, 0));
-					beginTimer--;
-				} else {
-					VersionIndependentSound.NOTE_PLING.broadcast(1.0F, 1.5F);
-					Bukkit.getServer().getOnlinePlayers().forEach(player -> VersionIndependentUtils.get().sendTitle(player, "", ChatColor.GREEN + "GO", 0, 20, 20));
-					beginTimerFinished = true;
-					Task.tryStopTask(beginTask);
-					sendBeginEvent();
-				}
+		beginTask = new SimpleTask(this.getPlugin(), () -> {
+			if (beginTimer > 0) {
+				VersionIndependentSound.NOTE_PLING.broadcast();
+				Bukkit.getServer().getOnlinePlayers().forEach(player -> VersionIndependentUtils.get().sendTitle(player, "", ChatColor.GREEN + "Starting in " + ChatColor.AQUA + beginTimer, 0, 21, 0));
+				beginTimer--;
+			} else {
+				VersionIndependentSound.NOTE_PLING.broadcast(1.0F, 1.5F);
+				Bukkit.getServer().getOnlinePlayers().forEach(player -> VersionIndependentUtils.get().sendTitle(player, "", ChatColor.GREEN + "GO", 0, 20, 20));
+				beginTimerFinished = true;
+				Task.tryStopTask(beginTask);
+				sendBeginEvent();
 			}
 		}, 20L);
 	}
@@ -194,11 +191,9 @@ public class Bedwars extends MapGame implements Listener {
 			Log.error("Bedwars", "Not enough bases configured! " + teamsToSetup.size() + " teams does not have a base");
 		}
 
-		Bukkit.getServer().getOnlinePlayers().forEach(p -> tpToSpectator(p));
+		Bukkit.getServer().getOnlinePlayers().forEach(this::tpToSpectator);
 
-		Bukkit.getServer().getOnlinePlayers().stream().filter(p -> players.contains(p.getUniqueId())).forEach(player -> {
-			tpToBase(player);
-		});
+		Bukkit.getServer().getOnlinePlayers().stream().filter(p -> players.contains(p.getUniqueId())).forEach(this::tpToBase);
 
 		Task.tryStartTask(beginTask);
 
