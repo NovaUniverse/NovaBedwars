@@ -222,7 +222,7 @@ public class Bedwars extends MapGame implements Listener {
 			npcs.add(itemShopNPC);
 
 			if (team != null) {
-				BedwarsNPC upgradesShopNPC = new BedwarsNPC(base.getItemShopLocation(), NPCType.UPGRADES);
+				BedwarsNPC upgradesShopNPC = new BedwarsNPC(base.getUpgradeShopLocation(), NPCType.UPGRADES);
 				upgradesShopNPC.spawn();
 				npcs.add(upgradesShopNPC);
 			}
