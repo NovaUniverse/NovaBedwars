@@ -8,7 +8,6 @@ import net.novauniverse.bedwars.game.debug.ShopItemMetasDebugger;
 import net.novauniverse.bedwars.game.debug.UUIDGetter;
 import net.novauniverse.bedwars.game.enums.ItemCategory;
 import net.novauniverse.bedwars.game.shop.ItemShop;
-import net.novauniverse.bedwars.utils.APIUtils;
 import net.novauniverse.bedwars.utils.HypixelAPI;
 import net.novauniverse.bedwars.utils.preferences.api.PreferenceAPI;
 import net.novauniverse.bedwars.utils.preferences.api.PreferenceAPISettings;
@@ -91,9 +90,6 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 
 	@Override
 	public void onEnable() {
-
-		Bukkit.getOnlinePlayers().forEach(APIUtils::attemptImportHypixelPreferences);
-
 		NovaBedwars.instance = this;
 		saveDefaultConfig();
 
