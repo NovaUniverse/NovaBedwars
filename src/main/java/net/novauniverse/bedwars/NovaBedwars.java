@@ -7,8 +7,6 @@ import net.novauniverse.bedwars.game.debug.MissileWarsDebugCommands;
 import net.novauniverse.bedwars.game.debug.ShopItemMetasDebugger;
 import net.novauniverse.bedwars.game.debug.UUIDGetter;
 import net.novauniverse.bedwars.game.enums.ItemCategory;
-import net.novauniverse.bedwars.game.modules.BedwarsPreferenceManager;
-import net.novauniverse.bedwars.game.modules.PreferenceAPIRequestCallback;
 import net.novauniverse.bedwars.game.shop.ItemShop;
 import net.novauniverse.bedwars.utils.APIUtils;
 import net.novauniverse.bedwars.utils.HypixelAPI;
@@ -30,12 +28,9 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.io.FileUtils;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -70,12 +65,6 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 			shop.display(ItemCategory.QUICK_BUY, e.getPlayer());
 		}
 	}
-	@EventHandler
-	public void onJoin(PlayerJoinEvent e) {
-		Player player = e.getPlayer();
-		APIUtils.attemptImportHypixelPreferences(player);
-	}
-
 
 	public Bedwars getGame() {
 		return game;
