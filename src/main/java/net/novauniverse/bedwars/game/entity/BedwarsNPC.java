@@ -50,6 +50,7 @@ public class BedwarsNPC {
 		villager = (Villager) getLocation().getWorld().spawnEntity(getLocation(), EntityType.VILLAGER);
 		villager.setNoDamageTicks(Integer.MAX_VALUE);
 		VersionIndependentUtils.get().setAI(villager, false);
+		VersionIndependentUtils.get().setSilent(villager, true);
 
 		Task.tryStartTask(task);
 	}
@@ -80,12 +81,13 @@ public class BedwarsNPC {
 		villager.getWorld().getNearbyEntities(villager.getLocation(), 3, 3, 3).stream().filter(e -> e.getType() == EntityType.PLAYER).findFirst().ifPresent(entity -> {
 			if (entity instanceof Player) {
 				Player player = (Player) entity;
-				Vector vec = player.getLocation().toVector().subtract(entity.getLocation().toVector());
-				Location location = entity.getLocation().setDirection(vec);
-				location.setX(entity.getLocation().getX());
-				location.setY(entity.getLocation().getY());
-				location.setZ(entity.getLocation().getZ());
-				entity.teleport(location);
+				Vector vec = player.getLocation().toVector().subtract(villager.getLocation().toVector());
+				Location location = villager.getLocation().clone();
+				location.setDirection(vec);
+				location.setX(villager.getLocation().getX());
+				location.setY(villager.getLocation().getY());
+				location.setZ(villager.getLocation().getZ());
+				villager.teleport(location);
 			}
 		});
 	}

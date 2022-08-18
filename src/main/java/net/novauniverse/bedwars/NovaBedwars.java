@@ -83,8 +83,6 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 		return preferenceAPI != null;
 	}
 
-
-
 	@Override
 	public void onEnable() {
 		NovaBedwars.instance = this;
@@ -166,7 +164,7 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 		if (!disableNovaCoreGameLobby) {
 			GUIMapVote mapSelector = new GUIMapVote();
 			GameManager.getInstance().setMapSelector(mapSelector);
-			Bukkit.getServer().getPluginManager().registerEvents(mapSelector, this);
+			//Bukkit.getServer().getPluginManager().registerEvents(mapSelector, this);
 		} else {
 			GameManager.getInstance().setMapSelector(new RandomMapSelector());
 		}
