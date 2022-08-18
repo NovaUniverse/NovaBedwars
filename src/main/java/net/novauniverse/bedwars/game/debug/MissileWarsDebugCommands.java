@@ -1,13 +1,10 @@
 package net.novauniverse.bedwars.game.debug;
 
-import net.novauniverse.bedwars.NovaBedwars;
 import net.novauniverse.bedwars.utils.APIUtils;
-import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.PermissionDefault;
 
-import net.novauniverse.bedwars.game.modules.BedwarsPreferenceManager;
 import net.zeeraa.novacore.spigot.command.AllowedSenders;
 import net.zeeraa.novacore.spigot.debug.DebugCommandRegistrator;
 import net.zeeraa.novacore.spigot.debug.DebugTrigger;
