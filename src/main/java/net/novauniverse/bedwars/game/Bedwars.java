@@ -9,13 +9,11 @@ import net.novauniverse.bedwars.game.object.base.BaseData;
 import net.novauniverse.bedwars.game.shop.ItemShop;
 import net.novauniverse.bedwars.game.shop.UpgradeShop;
 import net.zeeraa.novacore.commons.log.Log;
-import net.zeeraa.novacore.commons.tasks.Task;
 import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
 import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependentSound;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.GameEndReason;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.MapGame;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.elimination.PlayerQuitEliminationAction;
-import net.zeeraa.novacore.spigot.tasks.SimpleTask;
 import net.zeeraa.novacore.spigot.teams.Team;
 import net.zeeraa.novacore.spigot.teams.TeamManager;
 import net.zeeraa.novacore.spigot.utils.PlayerUtils;
@@ -35,7 +33,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.meta.FireworkMeta;
 
 import java.util.ArrayList;
@@ -51,10 +48,6 @@ public class Bedwars extends MapGame implements Listener {
 	private boolean ended;
 
 	private BedwarsConfig config;
-
-	private int beginTimer;
-	private boolean beginTimerFinished;
-	private Task beginTask;
 
 	private Map<Player, ArmorType> hasArmor;
 	private Map<Player, Integer> pickaxeTier;
@@ -101,25 +94,8 @@ public class Bedwars extends MapGame implements Listener {
 		pickaxeTier = new HashMap<>();
 		axeTier = new HashMap<>();
 
-		beginTimer = 10;
-		beginTimerFinished = false;
-
 		itemShop = new ItemShop();
 		upgradeShop = new UpgradeShop();
-
-		beginTask = new SimpleTask(this.getPlugin(), () -> {
-			if (beginTimer > 0) {
-				VersionIndependentSound.NOTE_PLING.broadcast();
-				Bukkit.getServer().getOnlinePlayers().forEach(player -> VersionIndependentUtils.get().sendTitle(player, "", ChatColor.GREEN + "Starting in " + ChatColor.AQUA + beginTimer, 0, 21, 0));
-				beginTimer--;
-			} else {
-				VersionIndependentSound.NOTE_PLING.broadcast(1.0F, 1.5F);
-				Bukkit.getServer().getOnlinePlayers().forEach(player -> VersionIndependentUtils.get().sendTitle(player, "", ChatColor.GREEN + "GO", 0, 20, 20));
-				beginTimerFinished = true;
-				Task.tryStopTask(beginTask);
-				sendBeginEvent();
-			}
-		}, 20L);
 	}
 
 	public BedwarsConfig getConfig() {
@@ -238,8 +214,6 @@ public class Bedwars extends MapGame implements Listener {
 
 		Bukkit.getServer().getOnlinePlayers().stream().filter(p -> players.contains(p.getUniqueId())).forEach(this::tpToBase);
 
-		Task.tryStartTask(beginTask);
-
 		started = true;
 	}
 
@@ -283,14 +257,13 @@ public class Bedwars extends MapGame implements Listener {
 			}
 		});
 
-		Task.tryStopTask(beginTask);
-
 		allowBreak.clear();
 
 		ended = true;
 	}
 
 	public void tpToBase(Player player) {
+		Log.trace("Bedwars", "tpToBase:" + player.getName());
 		Team team = TeamManager.getTeamManager().getPlayerTeam(player);
 		if (team != null) {
 			BaseData base = bases.stream().filter(b -> b.getOwner().equals(team)).findFirst().orElse(null);
@@ -300,22 +273,7 @@ public class Bedwars extends MapGame implements Listener {
 				player.setSaturation(20);
 				player.setFoodLevel(20);
 				PlayerUtils.clearPotionEffects(player);
-				player.teleport(base.getBedLocation());
-			}
-		}
-	}
-
-	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
-	public void onPlayerMove(PlayerMoveEvent e) {
-		if (e.getPlayer().getGameMode() != GameMode.SPECTATOR) {
-			if (started && !ended && !beginTimerFinished) {
-				Location to = e.getFrom().clone();
-
-				to.setY(e.getTo().getY());
-				to.setYaw(e.getTo().getYaw());
-				to.setPitch(e.getTo().getPitch());
-
-				e.setTo(to);
+				player.teleport(base.getSpawnLocation());
 			}
 		}
 	}
@@ -323,12 +281,6 @@ public class Bedwars extends MapGame implements Listener {
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onBlockPlace(BlockPlaceEvent e) {
 		if (started) {
-			if (e.getPlayer().getGameMode() != GameMode.CREATIVE) {
-				if (!beginTimerFinished) {
-					e.setCancelled(true);
-				}
-			}
-
 			if (!allowBreak.contains(e.getBlock().getLocation())) {
 				allowBreak.add(e.getBlock().getLocation());
 			}
@@ -361,10 +313,6 @@ public class Bedwars extends MapGame implements Listener {
 	public void onBlockBreak(BlockBreakEvent e) {
 		if (started) {
 			if (e.getPlayer().getGameMode() != GameMode.CREATIVE) {
-				if (!beginTimerFinished) {
-					e.setCancelled(true);
-				}
-
 				boolean allow = false;
 				if (VersionIndependentUtils.get().isBed(e.getBlock())) {
 					allow = true;

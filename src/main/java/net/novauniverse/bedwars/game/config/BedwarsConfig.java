@@ -22,8 +22,11 @@ public class BedwarsConfig extends MapModule {
 
 		this.upgradeTime = json.getInt("upgrade_time");
 		this.generatorSpeed = json.getInt("generator_speed");
+
 		this.bases = new ArrayList<>();
-		
+		this.diamondGenerators = new ArrayList<>();
+		this.emeraldGenerators = new ArrayList<>();
+
 		JSONArray basesJson = json.getJSONArray("bases");
 		for (int i = 0; i < basesJson.length(); i++) {
 			bases.add(new ConfiguredBaseData(basesJson.getJSONObject(i)));

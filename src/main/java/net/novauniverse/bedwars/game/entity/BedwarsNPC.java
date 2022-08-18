@@ -85,7 +85,7 @@ public class BedwarsNPC {
 				location.setX(entity.getLocation().getX());
 				location.setY(entity.getLocation().getY());
 				location.setZ(entity.getLocation().getZ());
-				entity.teleport(location);
+				villager.teleport(location);
 			}
 		});
 	}
