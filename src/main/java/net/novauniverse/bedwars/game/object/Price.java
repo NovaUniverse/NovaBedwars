@@ -34,7 +34,7 @@ public class Price {
 		if (item.getPrice() == null) {
 			return false;
 		}
- 		int amountLeft = item.getPrice().getValue();
+		int amountLeft = item.getPrice().getValue();
 		ArrayList<Integer> slots = InventoryUtils.slotsWith(player.getInventory(), item.getPrice().getMaterial());
 		for (Integer slot : slots) {
 			amountLeft -= player.getInventory().getItem(slot).getAmount();
@@ -45,10 +45,9 @@ public class Price {
 	public static void buyItem(Items itemEnum, PlayerInventory inventory, ItemStack item, Player player) {
 		boolean bought = true;
 		if (InventoryUtils.slotsWith(inventory, null).size() == 0) {
-			player.sendMessage(ChatColor.RED + "Fail: no slots available");
+			player.sendMessage(ChatColor.RED + "You dont have enough space in your inventory to buy that");
 			bought = false;
-		}
-		if (itemEnum.isArmor()) {
+		} else if (itemEnum.isArmor()) {
 			if (NovaBedwars.getInstance().getGame().getAllPlayersArmor().get(player) == itemEnum.getArmorType()) {
 				player.sendMessage(ChatColor.RED + "Fail: already have armor");
 				bought = false;
@@ -64,7 +63,7 @@ public class Price {
 
 			if (itemEnum == Items.WOOD_PICKAXE) {
 
-				for (int i = 0; i <= itemEnum.getTieredItems().size(); i++)  {
+				for (int i = 0; i <= itemEnum.getTieredItems().size(); i++) {
 
 					if (i == itemEnum.getTieredItems().size()) {
 						player.sendMessage(ChatColor.RED + "Fail: tier limit reached");
@@ -80,7 +79,7 @@ public class Price {
 				}
 			} else if (itemEnum == Items.WOOD_AXE) {
 
-				for (int i = 0; i <= itemEnum.getTieredItems().size(); i++)  {
+				for (int i = 0; i <= itemEnum.getTieredItems().size(); i++) {
 
 					if (i == itemEnum.getTieredItems().size()) {
 						player.sendMessage(ChatColor.RED + "Fail: tier limit reached");
@@ -97,7 +96,7 @@ public class Price {
 			}
 		} else {
 			inventory.addItem(itemEnum.getItemStack());
-			player.sendMessage(ChatColor.GREEN + "Success: normal item bought");
+			//player.sendMessage(ChatColor.GREEN + "Success: normal item bought");
 		}
 		if (bought) {
 			int amountLeft = itemEnum.getPrice().getValue();

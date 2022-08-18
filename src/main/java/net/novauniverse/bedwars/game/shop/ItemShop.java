@@ -40,7 +40,6 @@ public class ItemShop {
 		this.display(ItemCategory.QUICK_BUY, player);
 	}
 
-	@SuppressWarnings("null")
 	public void display(ItemCategory category, Player player) {
 		ItemShopHolder holder = new ItemShopHolder(category);
 		Inventory inventory = Bukkit.getServer().createInventory(holder, 6 * 9, BedwarsNPC.ITEM_SHOP_NAME);
@@ -60,8 +59,10 @@ public class ItemShop {
 		if (category == ItemCategory.QUICK_BUY) {
 			BedwarsPreferences preferences = BedwarsPreferenceManager.getInstance().getPlayerPreferences(player);
 			preferences.getItems().forEach(items -> {
-				if (items != null || items.equals(Items.NO_ITEM)) {
-					inventory.addItem(items.asShopItem());
+				if (items != null) {
+					if (!items.equals(Items.NO_ITEM)) {
+						inventory.addItem(items.asShopItem());
+					}
 				}
 			});
 
@@ -161,17 +162,19 @@ public class ItemShop {
 				this.display(itemCategory, (Player) e.getWhoClicked());
 
 			} else if (Items.isItemShopItem(e.getCurrentItem())) {
-
+				Player p = (Player) e.getWhoClicked();
+				
 				Items item = Items.toItemEnum(e.getCurrentItem());
-				if (Price.canBuy((Player) e.getWhoClicked(), item)) {
-					Price.buyItem(item, e.getWhoClicked().getInventory(), e.getCurrentItem(), (Player) e.getWhoClicked());
+				if (Price.canBuy(p, item)) {
+					Price.buyItem(item, e.getWhoClicked().getInventory(), e.getCurrentItem(), p);
 				} else {
-					e.getWhoClicked().sendMessage(ChatColor.RED + "Fail: not enough materials");
+					VersionIndependentSound.ITEM_BREAK.play(p);
+					p.sendMessage(ChatColor.RED + "You can't afford that item");
 					return GUIAction.CANCEL_INTERACTION;
 				}
 
 			} else {
-				e.getWhoClicked().sendMessage(ChatColor.RED + "Fail: not shop item");
+				//e.getWhoClicked().sendMessage(ChatColor.RED + "Fail: not shop item");
 				return GUIAction.CANCEL_INTERACTION;
 			}
 			return GUIAction.NONE;

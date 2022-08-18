@@ -295,9 +295,9 @@ public class Bedwars extends MapGame implements Listener {
 		if (e.getPlayer().getGameMode() != GameMode.SPECTATOR) {
 			npcs.stream().filter(n -> n.getVillager().getUniqueId().equals(e.getRightClicked().getUniqueId())).findFirst().ifPresent(clickedNPC -> {
 				new BukkitRunnable() {
-
 					@Override
 					public void run() {
+						player.closeInventory();
 						switch (clickedNPC.getType()) {
 						case ITEMS:
 							itemShop.display(player);
