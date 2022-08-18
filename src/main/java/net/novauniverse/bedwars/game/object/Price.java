@@ -96,7 +96,7 @@ public class Price {
 				}
 			}
 		} else {
-			inventory.addItem(itemEnum.getItemStack());
+			inventory.addItem(itemEnum.asNormalItem());
 			player.sendMessage(ChatColor.GREEN + "Success: normal item bought");
 		}
 		if (bought) {

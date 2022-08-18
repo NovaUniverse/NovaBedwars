@@ -1,6 +1,11 @@
 package net.novauniverse.bedwars.game;
 
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
 import net.novauniverse.bedwars.NovaBedwars;
+import net.novauniverse.bedwars.game.commands.ImportBedwarsPreferences;
 import net.novauniverse.bedwars.game.config.BedwarsConfig;
 import net.novauniverse.bedwars.game.entity.BedwarsNPC;
 import net.novauniverse.bedwars.game.entity.NPCType;
@@ -241,6 +246,15 @@ public class Bedwars extends MapGame implements Listener {
 		Task.tryStartTask(beginTask);
 
 		started = true;
+		TextComponent starter = new TextComponent(ChatColor.GREEN + "Click here to import");
+		BaseComponent[] hovermessage = new BaseComponent[]{starter};
+
+		TextComponent prefix = new TextComponent(ChatColor.GREEN + "Click ");
+		TextComponent here = new TextComponent(ChatColor.GOLD.toString() + ChatColor.BOLD + "here");
+		TextComponent suffix = new TextComponent(ChatColor.RESET.toString() + ChatColor.GREEN + " to import your Hypixel preferences.");
+
+		here.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hovermessage));
+		here.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/" + ImportBedwarsPreferences.COMMAND_NAME));
 	}
 
 	@Override

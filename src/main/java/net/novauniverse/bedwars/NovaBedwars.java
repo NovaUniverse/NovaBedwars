@@ -2,10 +2,7 @@ package net.novauniverse.bedwars;
 
 import net.novauniverse.bedwars.game.Bedwars;
 import net.novauniverse.bedwars.game.config.BedwarsConfig;
-import net.novauniverse.bedwars.game.debug.HashMapDebugger;
-import net.novauniverse.bedwars.game.debug.MissileWarsDebugCommands;
-import net.novauniverse.bedwars.game.debug.ShopItemMetasDebugger;
-import net.novauniverse.bedwars.game.debug.UUIDGetter;
+import net.novauniverse.bedwars.game.debug.*;
 import net.novauniverse.bedwars.game.enums.ItemCategory;
 import net.novauniverse.bedwars.game.shop.ItemShop;
 import net.novauniverse.bedwars.utils.HypixelAPI;
@@ -181,6 +178,7 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 		HashMapDebugger.register();
 		ShopItemMetasDebugger.register();
 		UUIDGetter.register();
+		GivePotion.register();
 	}
 
 	@Override

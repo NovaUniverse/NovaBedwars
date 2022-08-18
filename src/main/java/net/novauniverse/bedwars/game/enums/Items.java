@@ -11,6 +11,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
@@ -58,9 +59,9 @@ public enum Items {
 
     BOW_POWER_1(new ItemBuilder(Material.BOW).addEnchant(Enchantment.ARROW_DAMAGE, 1).build(),ItemCategory.COMBAT, new Price(Material.GOLD_INGOT, 24), "bow_(power_i)"),
     BOW_PUNCH_1_POWER_1(new ItemBuilder(Material.BOW).addEnchant(Enchantment.ARROW_DAMAGE, 1).addEnchant(Enchantment.ARROW_KNOCKBACK, 1).build(), ItemCategory.COMBAT, new Price(Material.EMERALD,6), "bow_(power_i__punch_i)"),
-    INVISIBLE(new PotionItemBuilder(Material.POTION).setPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY,30 * 20,0, false, false)).build(), ItemCategory.POTIONS, new Price(Material.EMERALD,2), "invisibility_potion_(30_seconds)"),
-    JUMP_BOOST(new PotionItemBuilder(Material.POTION).setPotionEffect(new PotionEffect(PotionEffectType.JUMP,45 * 20,4, false, false)).build(), ItemCategory.POTIONS, new Price(Material.EMERALD,1), "jump_v_potion_(45_seconds)"),
-    SPEED(new PotionItemBuilder(Material.POTION).setPotionEffect(new PotionEffect(PotionEffectType.SPEED,45 * 20,1, false, false)).build(), ItemCategory.POTIONS,new Price(Material.EMERALD, 1), "speed_ii_potion_(45_seconds)"),
+    INVISIBLE(new PotionItemBuilder(Material.POTION).setPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY,30 * 20,0, false, false), true).build(), ItemCategory.POTIONS, new Price(Material.EMERALD,2), "invisibility_potion_(30_seconds)"),
+    JUMP_BOOST(new PotionItemBuilder(Material.POTION).setPotionEffect(new PotionEffect(PotionEffectType.JUMP,45 * 20,4, false, false), true).build(), ItemCategory.POTIONS, new Price(Material.EMERALD,1), "jump_v_potion_(45_seconds)"),
+    SPEED(new PotionItemBuilder(Material.POTION).setPotionEffect(new PotionEffect(PotionEffectType.SPEED,45 * 20,1, false, false), true).build(), ItemCategory.POTIONS,new Price(Material.EMERALD, 1), "speed_ii_potion_(45_seconds)"),
     GOLDEN_APPLE(Material.GOLDEN_APPLE, 1, ItemCategory.MISC, new Price(Material.GOLD_INGOT,3), "golden_apple")
     ,FIREBALL(Material.FIREBALL, 1, ItemCategory.MISC, new Price(Material.IRON_INGOT, 40), "fireball"),
     TNT(Material.TNT, 1, ItemCategory.MISC, new Price(Material.GOLD_INGOT,6), "tnt"),
@@ -207,7 +208,15 @@ public enum Items {
         return material;
     }
 
-    public ItemStack getItemStack() {
+    public ItemStack asNormalItem() {
+        ItemMeta meta = itemStack.getItemMeta();
+        if (category == ItemCategory.POTIONS) {
+            meta.setDisplayName(potionTypeToName(((PotionMeta) meta).getCustomEffects().get(0)));
+            meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_POTION_EFFECTS);
+        }
+        meta.spigot().setUnbreakable(true);
+        itemStack.setItemMeta(meta);
+
         return itemStack;
     }
 
@@ -241,11 +250,12 @@ public enum Items {
     }
 
     private ItemStack toShopItem() {
-            ItemStack item = getItemStack().clone();
+            ItemStack item = asNormalItem().clone();
         ItemMeta meta = item.getItemMeta();
             if (getCategory() == ItemCategory.POTIONS) {
                 meta.setDisplayName(potionTypeToName(((PotionMeta) meta).getCustomEffects().get(0)));
                 item.setItemMeta(meta);
+
             }
             if (getPrice() != null) {
                 meta.setLore(addLore(getPrice()));
