@@ -17,6 +17,10 @@ public class HypixelAPIRequestCooldown {
 		cooldown--;
 	}
 	
+	public int getCooldown() {
+		return cooldown;
+	}
+	
 	public boolean hasExpired() {
 		return cooldown <= 0;
 	}

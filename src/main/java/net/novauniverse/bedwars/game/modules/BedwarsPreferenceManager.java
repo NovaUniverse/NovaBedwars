@@ -63,9 +63,9 @@ public class BedwarsPreferenceManager extends NovaModule implements Listener {
 		preferences.clear();
 		cooldown.clear();
 	}
-	
+
 	public BedwarsPreferences getPlayerPreferences(Player player) {
-		if(preferences.containsKey(player.getUniqueId())) {
+		if (preferences.containsKey(player.getUniqueId())) {
 			return preferences.get(player.getUniqueId());
 		}
 		return BedwarsPreferences.defaultPreferences(player.getUniqueId());
@@ -73,6 +73,14 @@ public class BedwarsPreferenceManager extends NovaModule implements Listener {
 
 	public boolean isHypixelRequestCooldownActive(Player player) {
 		return cooldown.stream().anyMatch(c -> c.getName().equalsIgnoreCase(player.getName()));
+	}
+
+	public int getCooldown(Player player) {
+		HypixelAPIRequestCooldown cooldown = this.cooldown.stream().filter(c -> c.getName().equalsIgnoreCase(player.getName())).findFirst().orElse(null);
+		if (cooldown != null) {
+			return cooldown.getCooldown();
+		}
+		return 0;
 	}
 
 	public boolean tryImportHypixelPreferences(final Player player, @Nullable final PreferenceAPIRequestCallback callback) {
