@@ -43,7 +43,7 @@ public class ItemShop {
 	@SuppressWarnings("null")
 	public void display(ItemCategory category, Player player) {
 		ItemShopHolder holder = new ItemShopHolder(category);
-		Inventory inventory = Bukkit.getServer().createInventory(holder, 6 * 6, BedwarsNPC.ITEM_SHOP_NAME);
+		Inventory inventory = Bukkit.getServer().createInventory(holder, 6 * 9, BedwarsNPC.ITEM_SHOP_NAME);
 		ItemStack bg = new ItemBuilder(VersionIndependentUtils.get().getColoredItem(DyeColor.GRAY, ColoredBlockType.GLASS_PANE)).setName(" ").setAmount(1).build();
 		ItemStack blackbg = new ItemBuilder(VersionIndependentUtils.get().getColoredItem(DyeColor.BLACK, ColoredBlockType.GLASS_PANE)).setName(" ").setAmount(1).build();
 		for (int i = 0; i < inventory.getSize(); i++) {

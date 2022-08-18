@@ -34,6 +34,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.inventory.meta.FireworkMeta;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -293,18 +294,24 @@ public class Bedwars extends MapGame implements Listener {
 
 		if (e.getPlayer().getGameMode() != GameMode.SPECTATOR) {
 			npcs.stream().filter(n -> n.getVillager().getUniqueId().equals(e.getRightClicked().getUniqueId())).findFirst().ifPresent(clickedNPC -> {
-				switch (clickedNPC.getType()) {
-				case ITEMS:
-					itemShop.display(player);
-					break;
+				new BukkitRunnable() {
 
-				case UPGRADES:
-					upgradeShop.display(player);
-					break;
+					@Override
+					public void run() {
+						switch (clickedNPC.getType()) {
+						case ITEMS:
+							itemShop.display(player);
+							break;
 
-				default:
-					break;
-				}
+						case UPGRADES:
+							upgradeShop.display(player);
+							break;
+
+						default:
+							break;
+						}
+					}
+				}.runTaskLater(getPlugin(), 1L);
 			});
 		}
 	}
