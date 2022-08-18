@@ -1,6 +1,8 @@
 package net.novauniverse.bedwars.game.debug;
 
-import net.novauniverse.bedwars.utils.APIUtils;
+import net.novauniverse.bedwars.game.modules.BedwarsPreferenceManager;
+
+import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.PermissionDefault;
@@ -15,7 +17,22 @@ public class MissileWarsDebugCommands {
 			@Override
 			public void onExecute(CommandSender sender, String commandLabel, String[] args) {
 				Player player = (Player) sender;
-				APIUtils.attemptImportHypixelPreferences(player);
+				if(BedwarsPreferenceManager.getInstance().tryImportHypixelPreferences(player, (success, exception) -> {
+					if(success) {
+						sender.sendMessage(ChatColor.GREEN + "Preferences imported!");
+					} else {
+						if(exception == null) {
+							sender.sendMessage(ChatColor.RED + "Failed to import");
+						} else {
+							sender.sendMessage(ChatColor.RED + "Failed to import. " + exception.getClass().getName() + " " + exception.getMessage());
+							exception.printStackTrace();
+						}
+					}
+				})) {
+					sender.sendMessage(ChatColor.BLUE + "Import started...");
+				} else {
+					sender.sendMessage(ChatColor.RED + "Hypixel API not enabled");
+				};
 			}
 
 			@Override

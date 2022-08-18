@@ -89,9 +89,8 @@ public class BedwarsPreferenceManager extends NovaModule implements Listener {
 
 				AsyncManager.runSync(() -> {
 					if (hypixelData == null) {
-
+						callback.onResult(false, null);
 					} else {
-
 						final List<Items> items = new ArrayList<>();
 
 						hypixelData.forEach(h -> {
