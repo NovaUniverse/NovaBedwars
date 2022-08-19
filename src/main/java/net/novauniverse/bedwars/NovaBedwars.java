@@ -57,14 +57,6 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 		this.disableDefaultEndSound = disableDefaultEndSound;
 	}
 
-	@EventHandler
-	public void onCrouch(PlayerToggleSneakEvent e) {
-		if (e.isSneaking()) {
-			ItemShop shop = new ItemShop();
-			shop.display(ItemCategory.QUICK_BUY, e.getPlayer());
-		}
-	}
-
 	public Bedwars getGame() {
 		return game;
 	}
