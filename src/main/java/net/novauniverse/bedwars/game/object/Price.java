@@ -55,16 +55,17 @@ public class Price {
 				//player.sendMessage(ChatColor.RED + "Fail: already have armor"); // Fail silent
 				bought = false;
 				reason = Reason.ALREADY_HAS_ARMOR;
-			}
-			if (NovaBedwars.getInstance().getGame().getAllPlayersArmor().get(player).getTier() < itemEnum.getArmorType().getTier()) {
+			} else if (NovaBedwars.getInstance().getGame().getAllPlayersArmor().get(player).getTier() < itemEnum.getArmorType().getTier()) {
 				//player.sendMessage(ChatColor.RED + "Fail: already have better tier"); // Fail silent
 				bought = false;
 				reason = Reason.ALREADY_HAS_HIGHER_TIER_ARMOR;
+			} else {
+				NovaBedwars.getInstance().getGame().getAllPlayersArmor().putIfAbsent(player, itemEnum.getArmorType());
+				NovaBedwars.getInstance().getGame().getAllPlayersArmor().put(player, itemEnum.getArmorType());
+				//player.sendMessage(ChatColor.GREEN + "Success: armor bought");
+				reason = Reason.ARMOR_BOUGHT;
 			}
-			NovaBedwars.getInstance().getGame().getAllPlayersArmor().putIfAbsent(player, itemEnum.getArmorType());
-			NovaBedwars.getInstance().getGame().getAllPlayersArmor().put(player, itemEnum.getArmorType());
-			//player.sendMessage(ChatColor.GREEN + "Success: armor bought");
-			reason = Reason.ARMOR_BOUGHT;
+
 		} else if (itemEnum.isTiered()) {
 
 			if (itemEnum == Items.WOOD_PICKAXE) {
