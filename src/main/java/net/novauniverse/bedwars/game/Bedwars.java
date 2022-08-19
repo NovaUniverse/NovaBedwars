@@ -25,6 +25,7 @@ import net.zeeraa.novacore.spigot.gameengine.module.modules.game.elimination.Pla
 import net.zeeraa.novacore.spigot.tasks.SimpleTask;
 import net.zeeraa.novacore.spigot.teams.Team;
 import net.zeeraa.novacore.spigot.teams.TeamManager;
+import net.zeeraa.novacore.spigot.utils.ItemUtils;
 import net.zeeraa.novacore.spigot.utils.PlayerUtils;
 import net.zeeraa.novacore.spigot.utils.RandomFireworkEffect;
 
@@ -32,18 +33,24 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Fireball;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.TNTPrimed;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.ItemMergeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.meta.FireworkMeta;
@@ -57,6 +64,9 @@ import java.util.Map;
 public class Bedwars extends MapGame implements Listener {
 	public static int WEAPON_SLOT_DEFAULT = 0;
 	public static int TRACKER_SLOT_DEFAULT = 8;
+
+	public static final float FIREBALL_YIELD = 1F;
+	public static final float TNT_YIELD = 4F;
 
 	private boolean started;
 	private boolean ended;
@@ -443,6 +453,39 @@ public class Bedwars extends MapGame implements Listener {
 				if (!allow) {
 					e.setCancelled(true);
 					e.getPlayer().sendMessage(ChatColor.RED + "You can only break blocks placed by players");
+				}
+			}
+		}
+	}
+
+	@EventHandler
+	public void onPlayerInteract(PlayerInteractEvent e) {
+		if (e.getAction() == Action.RIGHT_CLICK_BLOCK || e.getAction() == Action.RIGHT_CLICK_AIR) {
+			Player player = e.getPlayer();
+			if (VersionIndependentUtils.get().isInteractEventMainHand(e)) {
+				Material type = VersionIndependentUtils.get().getItemInMainHand(player).getType();
+				if (type == Material.FIREBALL) {
+					e.setCancelled(true);
+
+					ItemUtils.removeOneFromHand(player);
+
+					final Fireball fireball = player.launchProjectile(Fireball.class);
+					fireball.setVelocity(player.getLocation().getDirection().multiply(2));
+					fireball.setBounce(false);
+					fireball.setYield(Bedwars.FIREBALL_YIELD);
+					fireball.setIsIncendiary(false);
+					fireball.setCustomName(ChatColor.GOLD + "Fireball");
+					fireball.setCustomNameVisible(false);
+					fireball.setShooter(player);
+				} else if (type == Material.TNT && e.getAction() == Action.RIGHT_CLICK_BLOCK) {
+					e.setCancelled(true);
+
+					ItemUtils.removeOneFromHand(player);
+
+					BlockFace face = e.getBlockFace();
+					Location location = e.getClickedBlock().getLocation().clone().add(face.getModX(), face.getModY(), face.getModZ());
+					TNTPrimed tnt = (TNTPrimed) location.getWorld().spawnEntity(location, EntityType.PRIMED_TNT);
+					tnt.setYield(Bedwars.TNT_YIELD);
 				}
 			}
 		}
