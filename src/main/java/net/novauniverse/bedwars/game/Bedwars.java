@@ -38,6 +38,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Fireball;
 import org.bukkit.entity.Firework;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TNTPrimed;
@@ -49,6 +50,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.entity.ItemMergeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
@@ -442,6 +444,17 @@ public class Bedwars extends MapGame implements Listener {
 	}
 
 	@EventHandler(priority = EventPriority.NORMAL)
+	public void onEntitySpawn(EntitySpawnEvent e) {
+		if (started && !ended) {
+			if (e.getEntity().getType() == EntityType.DROPPED_ITEM) {
+				if (VersionIndependentUtils.get().isBed(((Item) e.getEntity()).getItemStack().getType())) {
+					e.setCancelled(true);
+				}
+			}
+		}
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL)
 	public void onBlockBreak(BlockBreakEvent e) {
 		if (started) {
 			if (e.getPlayer().getGameMode() != GameMode.CREATIVE) {
@@ -492,14 +505,14 @@ public class Bedwars extends MapGame implements Listener {
 			}
 		}
 	}
-	
+
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
 	public void onEntityExplode(EntityExplodeEvent e) {
 		if (started && !ended) {
 			e.blockList().removeIf(block -> !allowBreak.contains(block.getLocation()));
 		}
 	}
-	
+
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
 	public void onBlockExplode(BlockExplodeEvent e) {
 		if (started && !ended) {
