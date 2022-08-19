@@ -7,6 +7,7 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.novauniverse.bedwars.NovaBedwars;
 import net.novauniverse.bedwars.game.commands.ImportBedwarsPreferences;
 import net.novauniverse.bedwars.game.config.BedwarsConfig;
+import net.novauniverse.bedwars.game.config.GeneratorUpgrade;
 import net.novauniverse.bedwars.game.entity.BedwarsNPC;
 import net.novauniverse.bedwars.game.entity.NPCType;
 import net.novauniverse.bedwars.game.enums.ArmorType;
@@ -38,6 +39,7 @@ import net.zeeraa.novacore.spigot.utils.RandomFireworkEffect;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Difficulty;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -59,6 +61,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.entity.ItemDespawnEvent;
 import org.bukkit.event.entity.ItemMergeEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -101,13 +104,13 @@ public class Bedwars extends MapGame implements Listener {
 	private List<Location> allowBreak;
 	private List<BedwarsNPC> npcs;
 	private List<BaseData> bases;
+	private List<ItemGenerator> generators;
+	private List<GeneratorUpgrade> generatorUpgrades;
 
 	private ItemShop itemShop;
 	private UpgradeShop upgradeShop;
 
-	private List<ItemGenerator> generators;
-
-	private Task generatorTask;
+	private Task countdownTask;
 
 	public Map<Player, ArmorType> getAllPlayersArmor() {
 		return hasArmor;
@@ -133,8 +136,14 @@ public class Bedwars extends MapGame implements Listener {
 		return axeTier.get(player);
 	}
 
+	public List<GeneratorUpgrade> getGeneratorUpgrades() {
+		return generatorUpgrades;
+	}
+
 	public Bedwars() {
 		super(NovaBedwars.getInstance());
+
+		generatorUpgrades = new ArrayList<>();
 
 		bases = new ArrayList<>();
 		allowBreak = new ArrayList<>();
@@ -151,10 +160,17 @@ public class Bedwars extends MapGame implements Listener {
 		itemShop = new ItemShop();
 		upgradeShop = new UpgradeShop();
 
-		generatorTask = new SimpleTask(getPlugin(), new Runnable() {
+		countdownTask = new SimpleTask(getPlugin(), new Runnable() {
 			@Override
 			public void run() {
 				generators.forEach(ItemGenerator::countdown);
+				generatorUpgrades.forEach(GeneratorUpgrade::decrement);
+				generatorUpgrades.stream().filter(GeneratorUpgrade::isFinished).forEach(upgrade -> {
+					VersionIndependentSound.NOTE_PLING.broadcast();
+					Bukkit.getServer().broadcastMessage(ChatColor.GREEN + upgrade.getType().getName() + " generators have been upgraded");
+					generators.stream().filter(gen -> gen.getType() == upgrade.getType()).forEach(gen -> gen.decreaseDefaultTime(upgrade.getSpeedIncrement()));
+				});
+				generatorUpgrades.removeIf(GeneratorUpgrade::isFinished);
 			}
 		}, 20L);
 	}
@@ -235,6 +251,8 @@ public class Bedwars extends MapGame implements Listener {
 		}
 		this.config = config;
 
+		generatorUpgrades = new ArrayList<>(config.getUpgrades());
+
 		int ironGeneratorTime = config.getInitialIronTime();
 		int goldGeneratorTime = config.getInitialGoldTime();
 		int diamondGeneratorTime = config.getInitialDiamondTime();
@@ -276,9 +294,11 @@ public class Bedwars extends MapGame implements Listener {
 
 		Bukkit.getServer().getOnlinePlayers().stream().filter(p -> players.contains(p.getUniqueId())).forEach(this::tpToBase);
 
-		Task.tryStartTask(generatorTask);
+		Task.tryStartTask(countdownTask);
 
 		sendStartMessage();
+
+		getWorld().setDifficulty(Difficulty.PEACEFUL);
 
 		started = true;
 		sendBeginEvent();
@@ -325,7 +345,7 @@ public class Bedwars extends MapGame implements Listener {
 		respawnTasks.values().forEach(task -> task.cancel());
 		respawnTasks.clear();
 
-		Task.tryStopTask(generatorTask);
+		Task.tryStopTask(countdownTask);
 
 		getActiveMap().getStarterLocations().forEach(location -> {
 			Firework fw = (Firework) location.getWorld().spawnEntity(location, EntityType.FIREWORK);
@@ -637,6 +657,14 @@ public class Bedwars extends MapGame implements Listener {
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
 	public void onItemMerge(ItemMergeEvent e) {
 		if (e.getEntity().hasMetadata(ItemGenerator.NO_MERGE_METADATA_KEY) || e.getTarget().hasMetadata(ItemGenerator.NO_MERGE_METADATA_KEY)) {
+			e.setCancelled(true);
+		}
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+	public void onItemDespawn(ItemDespawnEvent e) {
+		if (e.getEntity().hasMetadata(ItemGenerator.NO_MERGE_METADATA_KEY)) {
+			e.getEntity().setTicksLived(1);
 			e.setCancelled(true);
 		}
 	}
