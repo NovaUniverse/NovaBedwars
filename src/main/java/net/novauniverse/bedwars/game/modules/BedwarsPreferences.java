@@ -64,12 +64,26 @@ public class BedwarsPreferences {
 	public static BedwarsPreferences empty(UUID uuid) {
 		return new BedwarsPreferences(uuid, new ArrayList<>());
 	}
-	
+
 	public static BedwarsPreferences defaultPreferences(UUID uuid) {
 		List<Items> defaults = new ArrayList<>();
-		
-		// Add stuff here
-		
+
+		defaults.add(Items.WOOL);
+		defaults.add(Items.STONE_SWORD);
+		defaults.add(Items.CHAINMAIL_ARMOR);
+		defaults.add(Items.NO_ITEM);
+		defaults.add(Items.BOW);
+		defaults.add(Items.SPEED);
+		defaults.add(Items.TNT);
+		defaults.add(Items.ENDER_PEARL);
+		defaults.add(Items.WOOD);
+		defaults.add(Items.IRON_SWORD);
+		defaults.add(Items.IRON_ARMOR);
+		defaults.add(Items.SHEARS);
+		defaults.add(Items.ARROW);
+		defaults.add(Items.INVISIBLE);
+		defaults.add(Items.WATER_BUCKET);
+
 		return new BedwarsPreferences(uuid, defaults);
 	}
 }
