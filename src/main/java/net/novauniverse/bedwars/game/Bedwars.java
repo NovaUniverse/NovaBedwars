@@ -93,6 +93,8 @@ public class Bedwars extends MapGame implements Listener {
 	private boolean started;
 	private boolean ended;
 
+	private int bedDestructionTime;
+
 	private BedwarsConfig config;
 
 	private Map<Player, ArmorType> hasArmor;
@@ -140,6 +142,10 @@ public class Bedwars extends MapGame implements Listener {
 		return generatorUpgrades;
 	}
 
+	public int getBedDestructionTime() {
+		return bedDestructionTime;
+	}
+	
 	public Bedwars() {
 		super(NovaBedwars.getInstance());
 
@@ -160,9 +166,25 @@ public class Bedwars extends MapGame implements Listener {
 		itemShop = new ItemShop();
 		upgradeShop = new UpgradeShop();
 
+		bedDestructionTime = Integer.MAX_VALUE;
+
 		countdownTask = new SimpleTask(getPlugin(), new Runnable() {
 			@Override
 			public void run() {
+				if (bedDestructionTime > 0) {
+					bedDestructionTime--;
+					if (bedDestructionTime == 0) {
+						bases.stream().filter(b -> b.hasBed()).forEach(base -> {
+							base.setBed(false);
+							base.getBedLocation().getBlock().breakNaturally();
+							base.getOwner().getOnlinePlayers().forEach(player -> {
+								VersionIndependentSound.WITHER_DEATH.play(player);
+								VersionIndependentUtils.get().sendTitle(player, ChatColor.RED + TextUtils.ICON_WARNING + " Bed destroyed " + TextUtils.ICON_WARNING, ChatColor.RED + "You can no longer respawn", 0, 60, 20);
+							});
+						});
+					}
+				}
+
 				generators.forEach(ItemGenerator::countdown);
 				generatorUpgrades.forEach(GeneratorUpgrade::decrement);
 				generatorUpgrades.stream().filter(GeneratorUpgrade::isFinished).forEach(upgrade -> {
@@ -562,7 +584,7 @@ public class Bedwars extends MapGame implements Listener {
 						ownerBase.setBed(false);
 						ownerBase.getOwner().getOnlinePlayers().forEach(p -> {
 							VersionIndependentSound.WITHER_DEATH.play(p);
-							VersionIndependentUtils.get().sendTitle(p, ChatColor.RED + TextUtils.ICON_WARNING + " Bed broken " + TextUtils.ICON_WARNING, ChatColor.RED + "You can no longer respawn", 0, 60, 20);
+							VersionIndependentUtils.get().sendTitle(p, ChatColor.RED + TextUtils.ICON_WARNING + " Bed destroyed " + TextUtils.ICON_WARNING, ChatColor.RED + "You can no longer respawn", 0, 60, 20);
 						});
 
 						Event bedDestructionEvent = new BedDestructionEvent(ownerBase.getOwner(), team, player);
