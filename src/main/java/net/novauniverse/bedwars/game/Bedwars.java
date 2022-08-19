@@ -271,6 +271,8 @@ public class Bedwars extends MapGame implements Listener {
 		this.config = config;
 
 		generatorUpgrades = new ArrayList<>(config.getUpgrades());
+		
+		bedDestructionTime = config.getBedDestructionTime();
 
 		int ironGeneratorTime = config.getInitialIronTime();
 		int goldGeneratorTime = config.getInitialGoldTime();
