@@ -10,6 +10,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Item;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.util.Vector;
 
 import com.gmail.filoghost.holographicdisplays.api.Hologram;
 import com.gmail.filoghost.holographicdisplays.api.HologramsAPI;
@@ -19,6 +20,7 @@ import net.novauniverse.bedwars.NovaBedwars;
 import net.zeeraa.novacore.commons.utils.TextUtils;
 import net.zeeraa.novacore.spigot.teams.Team;
 import net.zeeraa.novacore.spigot.utils.ItemBuilder;
+import net.zeeraa.novacore.spigot.utils.VectorUtils;
 
 public class ItemGenerator {
 	public static final String NO_MERGE_METADATA_KEY = "novabedwarsnomerge";
@@ -87,8 +89,9 @@ public class ItemGenerator {
 
 	public void dropItem() {
 		ItemStack itemToDrop = new ItemBuilder(type.getMaterial()).setAmount(1).build();
-		Item item = location.getWorld().dropItem(location, itemToDrop);
+		Item item = location.getWorld().dropItem(location.clone().add(0D, 1D, 0D), itemToDrop);
 		item.setMetadata(NO_MERGE_METADATA_KEY, new FixedMetadataValue(NovaBedwars.getInstance(), true));
+		item.setVelocity(VectorUtils.getEmptyVector());
 	}
 
 	public Team getOwner() {
