@@ -221,15 +221,30 @@ public class Bedwars extends MapGame implements Listener {
 		Bukkit.getServer().getOnlinePlayers().stream().filter(p -> players.contains(p.getUniqueId())).forEach(this::tpToBase);
 
 		started = true;
-		TextComponent starter = new TextComponent(ChatColor.GREEN + "Click here to import");
+		TextComponent starter = new TextComponent(ChatColor.YELLOW + "Click here to import");
 		BaseComponent[] hovermessage = new BaseComponent[]{starter};
 
 		TextComponent prefix = new TextComponent(ChatColor.GREEN + "Click ");
-		TextComponent here = new TextComponent(ChatColor.GOLD.toString() + ChatColor.BOLD + "here");
-		TextComponent suffix = new TextComponent(ChatColor.RESET.toString() + ChatColor.GREEN + " to import your Hypixel preferences.");
 
+		TextComponent here = new TextComponent(ChatColor.GOLD.toString() + ChatColor.BOLD + "here");
 		here.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hovermessage));
 		here.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/" + ImportBedwarsPreferences.COMMAND_NAME));
+
+		TextComponent command = new TextComponent("/" + ImportBedwarsPreferences.COMMAND_NAME);
+		command.setColor(net.md_5.bungee.api.ChatColor.DARK_AQUA);
+		command.setBold(true);
+
+		TextComponent suffix = new TextComponent(" or do ");
+		suffix.setColor(net.md_5.bungee.api.ChatColor.GREEN);
+
+		TextComponent suffix2 = new TextComponent(" to import your Hypixel preferences.");
+		suffix2.setColor(net.md_5.bungee.api.ChatColor.GREEN);
+
+
+		players.stream().forEach(uuid -> {
+			Player player = Bukkit.getPlayer(uuid);
+			player.spigot().sendMessage(prefix, here, suffix, command, suffix2);
+		});
 	}
 
 	@Override

@@ -12,12 +12,14 @@ import net.novauniverse.bedwars.game.object.Price;
 import net.novauniverse.bedwars.utils.BedwarsTextures;
 import net.novauniverse.bedwars.utils.InventoryUtils;
 import net.zeeraa.novacore.commons.log.Log;
+import net.zeeraa.novacore.commons.tasks.Task;
 import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
 import net.zeeraa.novacore.spigot.abstraction.enums.ColoredBlockType;
 import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependentMaterial;
 import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependentSound;
 import net.zeeraa.novacore.spigot.module.modules.gui.GUIAction;
 import net.zeeraa.novacore.spigot.module.modules.gui.callbacks.GUIClickCallback;
+import net.zeeraa.novacore.spigot.tasks.SimpleTask;
 import net.zeeraa.novacore.spigot.utils.ItemBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -34,7 +36,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class ItemShop {
-	public static final int IMPORT_HYPIXEL_PREFERENCES_SLOT = 53;
+	public static final int IMPORT_HYPIXEL_PREFERENCES_SLOT = 49;
 
 	public void display(Player player) {
 		this.display(ItemCategory.QUICK_BUY, player);
@@ -73,40 +75,23 @@ public class ItemShop {
 				builder.setName(ChatColor.GOLD + "Import hypixel preferences");
 				builder.addLore(ChatColor.AQUA + "This will try to import your bedwars preferences from hypixel");
 				builder.setAmount(1);
+				if (!BedwarsPreferenceManager.getInstance().isHypixelRequestCooldownActive(player)) {
+					inventory.setItem(ItemShop.IMPORT_HYPIXEL_PREFERENCES_SLOT, builder.build());
+				} else {
+					Task task = new SimpleTask(NovaBedwars.getInstance(), () -> {
+						ItemBuilder cooldown = new ItemBuilder(VersionIndependentUtils.getInstance().getColoredItem(DyeColor.RED, ColoredBlockType.GLASS_PANE))
+								.setName(ChatColor.RED.toString() + ChatColor.BOLD + "Please wait " + BedwarsPreferenceManager.getInstance().getCooldown(player) + " seconds before importing again")
+								.setAmount(1);
+						inventory.setItem(IMPORT_HYPIXEL_PREFERENCES_SLOT, cooldown.build());
+						player.updateInventory();
+					}, 1);
+					task.start();
+				}
 
-				inventory.setItem(ItemShop.IMPORT_HYPIXEL_PREFERENCES_SLOT, builder.build());
-				holder.addClickCallback(IMPORT_HYPIXEL_PREFERENCES_SLOT, new GUIClickCallback() {
-					@Override
-					public GUIAction onClick(Inventory clickedInventory, Inventory inventory, HumanEntity entity, int clickedSlot, SlotType slotType, InventoryAction clickType) {
-						if (BedwarsPreferenceManager.getInstance().isHypixelRequestCooldownActive(player)) {
-							player.sendMessage(ChatColor.RED + "Please wait " + BedwarsPreferenceManager.getInstance().getCooldown(player) + " seconds before trying to download preferences again");
-						} else {
-							if (!BedwarsPreferenceManager.getInstance().tryImportHypixelPreferences(player, new PreferenceAPIRequestCallback() {
-								@Override
-								public void onResult(boolean success, Exception exception) {
-									if (success) {
-										player.closeInventory();
-										VersionIndependentSound.NOTE_PLING.play(player);
-										player.sendMessage(ChatColor.GREEN + "Hypixel preferences imported");
-									} else {
-										if (exception == null) {
-											player.closeInventory();
-											VersionIndependentSound.NOTE_PLING.play(player);
-											player.sendMessage(ChatColor.RED + "Could not import your hypixel preferences. this could be caused by you changing your minecraft name recently or an error on our side");
-										} else {
-											player.closeInventory();
-											player.sendMessage(ChatColor.DARK_RED + "An error occured while trying to import your preferences. " + exception.getClass().getName());
-											Log.error("ItemShop", "Failed to import preferences for player " + player.getName() + ". " + exception.getClass().getName() + " " + exception.getMessage());
-											exception.printStackTrace();
-										}
-									}
-								}
-							})) {
-								player.sendMessage(ChatColor.DARK_RED + "Import failure");
-							}
-						}
-						return GUIAction.CANCEL_INTERACTION;
-					}
+
+				holder.addClickCallback(IMPORT_HYPIXEL_PREFERENCES_SLOT, (clickedInventory, inventory1, entity, clickedSlot, slotType, clickType) -> {
+					player.performCommand("importhypixelpreferences");
+					return GUIAction.ALLOW_INTERACTION;
 				});
 			}
 		} else if (category == ItemCategory.COMBAT) {

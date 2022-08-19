@@ -1,6 +1,7 @@
 package net.novauniverse.bedwars;
 
 import net.novauniverse.bedwars.game.Bedwars;
+import net.novauniverse.bedwars.game.commands.ImportBedwarsPreferences;
 import net.novauniverse.bedwars.game.config.BedwarsConfig;
 import net.novauniverse.bedwars.game.debug.*;
 import net.novauniverse.bedwars.game.enums.ItemCategory;
@@ -10,6 +11,7 @@ import net.novauniverse.bedwars.utils.preferences.api.PreferenceAPI;
 import net.novauniverse.bedwars.utils.preferences.api.PreferenceAPISettings;
 import net.zeeraa.novacore.commons.log.Log;
 import net.zeeraa.novacore.commons.utils.JSONFileUtils;
+import net.zeeraa.novacore.spigot.command.CommandRegistry;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.GameManager;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.map.mapmodule.MapModuleManager;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.mapselector.selectors.RandomMapSelector;
@@ -177,6 +179,8 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 		ShopItemMetasDebugger.register();
 		UUIDGetter.register();
 		GivePotion.register();
+		CommandFromMessage.register();
+		CommandRegistry.registerCommand(new ImportBedwarsPreferences());
 	}
 
 	@Override

@@ -53,12 +53,12 @@ public class BedwarsPreferenceManager extends NovaModule implements Listener {
 	}
 
 	@Override
-	public void onEnable() throws Exception {
+	public void onEnable() {
 		Task.tryStartTask(cooldownTask);
 	}
 
 	@Override
-	public void onDisable() throws Exception {
+	public void onDisable() {
 		Task.tryStopTask(cooldownTask);
 		preferences.clear();
 		cooldown.clear();
