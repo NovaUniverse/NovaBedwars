@@ -42,8 +42,10 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.ItemMergeEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -260,7 +262,7 @@ public class Bedwars extends MapGame implements Listener {
 		Task.tryStartTask(generatorTask);
 
 		sendStartMessage();
-		
+
 		started = true;
 		sendBeginEvent();
 	}
@@ -349,6 +351,35 @@ public class Bedwars extends MapGame implements Listener {
 				player.teleport(base.getSpawnLocation());
 			}
 		}
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL)
+	public void onPlayerDeath(PlayerDeathEvent e) {
+		e.getEntity().spigot().respawn();
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL)
+	public void onPlayerRespawn(PlayerRespawnEvent e) {
+		Player player = e.getPlayer();
+		Team team = TeamManager.getTeamManager().getPlayerTeam(player);
+		if (team != null) {
+			BaseData base = bases.stream().filter(b -> b.getOwner().equals(team)).findFirst().orElse(null);
+			if (base != null) {
+				if (base.hasBed()) {
+					if (players.contains(player.getUniqueId())) {
+						e.setRespawnLocation(base.getSpawnLocation());
+						new BukkitRunnable() {
+							@Override
+							public void run() {
+								tpToBase(player);
+							}
+						}.runTaskLater(getPlugin(), 2L);
+						return;
+					}
+				}
+			}
+		}
+		tpToSpectator(null);
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
