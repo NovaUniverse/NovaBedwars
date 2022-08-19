@@ -49,16 +49,16 @@ public class Price {
 			bought = false;
 		} else if (itemEnum.isArmor()) {
 			if (NovaBedwars.getInstance().getGame().getAllPlayersArmor().get(player) == itemEnum.getArmorType()) {
-				player.sendMessage(ChatColor.RED + "Fail: already have armor");
+				//player.sendMessage(ChatColor.RED + "Fail: already have armor"); // Fail silent
 				bought = false;
 			}
 			if (NovaBedwars.getInstance().getGame().getAllPlayersArmor().get(player).getTier() < itemEnum.getArmorType().getTier()) {
-				player.sendMessage(ChatColor.RED + "Fail: already have better tier");
+				//player.sendMessage(ChatColor.RED + "Fail: already have better tier"); // Fail silent
 				bought = false;
 			}
 			NovaBedwars.getInstance().getGame().getAllPlayersArmor().putIfAbsent(player, itemEnum.getArmorType());
 			NovaBedwars.getInstance().getGame().getAllPlayersArmor().put(player, itemEnum.getArmorType());
-			player.sendMessage(ChatColor.GREEN + "Success: armor bought");
+			//player.sendMessage(ChatColor.GREEN + "Success: armor bought");
 		} else if (itemEnum.isTiered()) {
 
 			if (itemEnum == Items.WOOD_PICKAXE) {
@@ -66,14 +66,14 @@ public class Price {
 				for (int i = 0; i <= itemEnum.getTieredItems().size(); i++) {
 
 					if (i == itemEnum.getTieredItems().size()) {
-						player.sendMessage(ChatColor.RED + "Fail: tier limit reached");
+						player.sendMessage(ChatColor.RED + "You already have the max tier for this item");
 						bought = false;
 					}
 
 					if (item.equals(itemEnum.getTieredItems().get(i))) {
 						NovaBedwars.getInstance().getGame().getAllPlayersPickaxeTier().putIfAbsent(player, i + 1);
 						NovaBedwars.getInstance().getGame().getAllPlayersPickaxeTier().putIfAbsent(player, i + 1);
-						player.sendMessage(ChatColor.GREEN + "Success: new pickaxe tier bought");
+						player.sendMessage(ChatColor.GREEN + "Pickaxe upgraded");
 					}
 
 				}
@@ -82,14 +82,14 @@ public class Price {
 				for (int i = 0; i <= itemEnum.getTieredItems().size(); i++) {
 
 					if (i == itemEnum.getTieredItems().size()) {
-						player.sendMessage(ChatColor.RED + "Fail: tier limit reached");
+						player.sendMessage(ChatColor.RED + "You already have the max tier for this item");
 						bought = false;
 					}
 
 					if (item.equals(itemEnum.getTieredItems().get(i))) {
 						NovaBedwars.getInstance().getGame().getAllPlayersAxeTier().put(player, i + 1);
 						NovaBedwars.getInstance().getGame().getAllPlayersAxeTier().putIfAbsent(player, i + 1);
-						player.sendMessage(ChatColor.GREEN + "Success: new axe tier bought");
+						player.sendMessage(ChatColor.GREEN + "Axe upgraded");
 					}
 
 				}
