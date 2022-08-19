@@ -21,12 +21,18 @@ public class BedwarsConfig extends MapModule {
 	private int initialGoldTime;
 	private int initialDiamondTime;
 	private int initialEmeraldTime;
+	
+	private int bedDestructionTime;
+
+	private List<GeneratorUpgrade> upgrades;
 
 	public BedwarsConfig(JSONObject json) {
 		super(json);
 
 		this.upgradeTime = json.getInt("upgrade_time");
 		this.generatorSpeed = json.getInt("generator_speed");
+
+		this.upgrades = new ArrayList<>();
 
 		this.bases = new ArrayList<>();
 		this.diamondGenerators = new ArrayList<>();
@@ -51,6 +57,17 @@ public class BedwarsConfig extends MapModule {
 		initialGoldTime = json.getInt("initial_gold_time");
 		initialDiamondTime = json.getInt("initial_diamond_time");
 		initialEmeraldTime = json.getInt("initial_emerald_time");
+
+		bedDestructionTime = json.getInt("bed_destruction_timer");
+		
+		JSONArray upgrades = json.getJSONArray("upgrades");
+		for (int i = 0; i < upgrades.length(); i++) {
+			this.upgrades.add(GeneratorUpgrade.fromJSON(upgrades.getJSONObject(i)));
+		}
+	}
+
+	public List<GeneratorUpgrade> getUpgrades() {
+		return upgrades;
 	}
 
 	public int getUpgradeTime() {
@@ -87,5 +104,9 @@ public class BedwarsConfig extends MapModule {
 
 	public int getInitialEmeraldTime() {
 		return initialEmeraldTime;
+	}
+	
+	public int getBedDestructionTime() {
+		return bedDestructionTime;
 	}
 }
