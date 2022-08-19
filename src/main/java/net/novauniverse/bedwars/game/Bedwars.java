@@ -152,7 +152,7 @@ public class Bedwars extends MapGame implements Listener {
 		generatorTask = new SimpleTask(getPlugin(), new Runnable() {
 			@Override
 			public void run() {
-				generators.forEach(gen -> gen.countdown());
+				generators.forEach(ItemGenerator::countdown);
 			}
 		}, 20L);
 	}
@@ -495,10 +495,10 @@ public class Bedwars extends MapGame implements Listener {
 			}
 		}
 	}
-	
+
 	@EventHandler(priority = EventPriority.NORMAL)
 	public void onPlayerDropItem(PlayerDropItemEvent e) {
-		if(e.getItemDrop().getItemStack().getType() == VersionIndependentMaterial.WOODEN_SWORD.toBukkitVersion()) {
+		if (e.getItemDrop().getItemStack().getType() == VersionIndependentMaterial.WOODEN_SWORD.toBukkitVersion()) {
 			e.setCancelled(true);
 		}
 	}
