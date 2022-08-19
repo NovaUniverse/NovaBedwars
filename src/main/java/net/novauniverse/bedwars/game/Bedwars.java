@@ -26,6 +26,7 @@ import net.zeeraa.novacore.spigot.tasks.SimpleTask;
 import net.zeeraa.novacore.spigot.teams.Team;
 import net.zeeraa.novacore.spigot.teams.TeamManager;
 import net.zeeraa.novacore.spigot.utils.ItemUtils;
+import net.zeeraa.novacore.spigot.utils.LocationUtils;
 import net.zeeraa.novacore.spigot.utils.PlayerUtils;
 import net.zeeraa.novacore.spigot.utils.RandomFireworkEffect;
 
@@ -34,6 +35,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Fireball;
@@ -453,21 +455,47 @@ public class Bedwars extends MapGame implements Listener {
 			}
 		}
 	}
-
+	
 	@EventHandler(priority = EventPriority.NORMAL)
 	public void onBlockBreak(BlockBreakEvent e) {
 		if (started) {
-			if (e.getPlayer().getGameMode() != GameMode.CREATIVE) {
+			Player player = e.getPlayer();
+
+			if (player.getGameMode() != GameMode.CREATIVE) {
 				boolean allow = false;
-				if (VersionIndependentUtils.get().isBed(e.getBlock())) {
+				Block block = e.getBlock();
+				if (VersionIndependentUtils.get().isBed(block)) {
+					BaseData ownerBase = bases.stream().filter(base -> LocationUtils.isSameBlock(base.getBedLocation(), block.getLocation())).findFirst().orElse(null);
+					if (ownerBase == null) {
+						for (BlockFace face : BlockFace.values()) {
+							Location location2 = LocationUtils.addFaceMod(block.getLocation().clone(), face);
+							
+							ownerBase = bases.stream().filter(base -> LocationUtils.isSameBlock(base.getBedLocation(), location2)).findFirst().orElse(null);
+							if (ownerBase != null) {
+								break;
+							}
+						}
+					}
+
+					if (ownerBase != null) {
+						Team team = TeamManager.getTeamManager().getPlayerTeam(player);
+						if (team != null) {
+							if (ownerBase.getOwner().equals(team)) {
+								player.sendMessage(ChatColor.RED + "You can't break your own bed");
+								e.setCancelled(true);
+								return;
+							}
+						}
+					}
+
 					allow = true;
-				} else if (allowBreak.contains(e.getBlock().getLocation())) {
+				} else if (allowBreak.contains(block.getLocation())) {
 					allow = true;
 				}
 
 				if (!allow) {
 					e.setCancelled(true);
-					e.getPlayer().sendMessage(ChatColor.RED + "You can only break blocks placed by players");
+					player.sendMessage(ChatColor.RED + "You can only break blocks placed by players");
 				}
 			}
 		}
@@ -475,6 +503,12 @@ public class Bedwars extends MapGame implements Listener {
 
 	@EventHandler(priority = EventPriority.NORMAL)
 	public void onPlayerInteract(PlayerInteractEvent e) {
+		if(e.getAction() == Action.RIGHT_CLICK_BLOCK) {
+			if(VersionIndependentUtils.get().isBed(e.getClickedBlock())) {
+				e.setCancelled(true);
+			}
+		}
+		
 		if (e.getAction() == Action.RIGHT_CLICK_BLOCK || e.getAction() == Action.RIGHT_CLICK_AIR) {
 			Player player = e.getPlayer();
 			if (VersionIndependentUtils.get().isInteractEventMainHand(e)) {
