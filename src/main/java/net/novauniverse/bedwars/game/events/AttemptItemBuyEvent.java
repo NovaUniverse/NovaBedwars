@@ -14,11 +14,15 @@ public class AttemptItemBuyEvent extends Event {
 	private final boolean bought;
 	private final Reason reason;
 
+	private boolean disableBuiltInMessage;
+
 	public AttemptItemBuyEvent(Items item, Player player, boolean bought, Reason reason) {
 		this.item = item;
 		this.player = player;
 		this.bought = bought;
 		this.reason = reason;
+
+		this.disableBuiltInMessage = false;
 	}
 
 	@Override
@@ -41,7 +45,16 @@ public class AttemptItemBuyEvent extends Event {
 	public boolean boughtItem() {
 		return bought;
 	}
+
 	public Reason getReason() {
 		return reason;
+	}
+
+	public boolean isDisableBuiltInMessage() {
+		return disableBuiltInMessage;
+	}
+
+	public void setDisableBuiltInMessage(boolean disableBuiltInMessage) {
+		this.disableBuiltInMessage = disableBuiltInMessage;
 	}
 }

@@ -27,7 +27,7 @@ import net.zeeraa.novacore.spigot.tasks.SimpleTask;
 
 @NovaAutoLoad(shouldEnable = true)
 public class BedwarsPreferenceManager extends NovaModule implements Listener {
-	private static final int DEFAULT_HYPIXEL_COOLDOWN_TIME = 60 * 2; // 2 minutes
+	private static final int DEFAULT_HYPIXEL_COOLDOWN_TIME = 60 * 5; // 5 minutes
 
 	private static BedwarsPreferenceManager instance;
 

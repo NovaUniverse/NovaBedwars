@@ -8,6 +8,7 @@ import org.bukkit.event.HandlerList;
 
 public class PreprocessUpgradeBuyEvent extends Event {
 	private final HandlerList HANDLERS_LIST = new HandlerList();
+
 	private Upgrades upgrades;
 	private Player player;
 	private Team team;

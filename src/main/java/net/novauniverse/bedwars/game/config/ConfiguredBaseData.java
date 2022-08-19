@@ -2,24 +2,25 @@ package net.novauniverse.bedwars.game.config;
 
 import net.novauniverse.bedwars.game.object.base.BaseData;
 import net.zeeraa.novacore.spigot.teams.Team;
+import net.zeeraa.novacore.spigot.utils.LocationData;
 import net.zeeraa.novacore.spigot.utils.XYZLocation;
 import org.bukkit.World;
 import org.json.JSONObject;
 
 public class ConfiguredBaseData {
-	private XYZLocation spawnLocation;
+	private LocationData spawnLocation;
 	private XYZLocation bedLocation;
-	private XYZLocation itemShopLocation;
-	private XYZLocation upgradeShopLocation;
+	private LocationData itemShopLocation;
+	private LocationData upgradeShopLocation;
 
 	public ConfiguredBaseData(JSONObject json) {
-		spawnLocation = new XYZLocation(json.getJSONObject("spawn_location"));
+		spawnLocation = LocationData.fromJSON(json.getJSONObject("spawn_location"));
 		bedLocation = new XYZLocation(json.getJSONObject("bed_location"));
-		itemShopLocation = new XYZLocation(json.getJSONObject("item_shop_location"));
-		upgradeShopLocation = new XYZLocation(json.getJSONObject("upgrade_shop_location"));
+		itemShopLocation = LocationData.fromJSON(json.getJSONObject("item_shop_location"));
+		upgradeShopLocation = LocationData.fromJSON(json.getJSONObject("upgrade_shop_location"));
 	}
 
 	public BaseData toBaseData(World world, Team owner) {
-		return new BaseData(owner, spawnLocation.toBukkitLocation(world), bedLocation.toBukkitLocation(world), itemShopLocation.toBukkitLocation(world), upgradeShopLocation.toBukkitLocation(world));
+		return new BaseData(owner, spawnLocation.toLocation(world), bedLocation.toBukkitLocation(world), itemShopLocation.toLocation(world), upgradeShopLocation.toLocation(world));
 	}
 }
