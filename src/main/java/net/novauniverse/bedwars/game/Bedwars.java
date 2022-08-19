@@ -147,7 +147,7 @@ public class Bedwars extends MapGame implements Listener {
 	public int getBedDestructionTime() {
 		return bedDestructionTime;
 	}
-	
+
 	public Bedwars() {
 		super(NovaBedwars.getInstance());
 
@@ -177,7 +177,7 @@ public class Bedwars extends MapGame implements Listener {
 					bases.stream().filter(BaseData::hasBed).forEach(base -> {
 						base.setBed(false);
 						base.getBedLocation().getBlock().breakNaturally();
-						Bukkit.getServer().broadcastMessage(ChatColor.RED + ""+ ChatColor.BOLD + "Bed Destruction> All beds destroyed");
+						Bukkit.getServer().broadcastMessage(ChatColor.RED + "" + ChatColor.BOLD + "Bed Destruction> All beds destroyed");
 						base.getOwner().getOnlinePlayers().forEach(player -> {
 							VersionIndependentSound.WITHER_DEATH.play(player);
 							VersionIndependentUtils.get().sendTitle(player, ChatColor.RED + TextUtils.ICON_WARNING + " Bed destroyed " + TextUtils.ICON_WARNING, ChatColor.RED + "You can no longer respawn", 0, 60, 20);
@@ -274,7 +274,7 @@ public class Bedwars extends MapGame implements Listener {
 		this.config = config;
 
 		generatorUpgrades = new ArrayList<>(config.getUpgrades());
-		
+
 		bedDestructionTime = config.getBedDestructionTime();
 
 		int ironGeneratorTime = config.getInitialIronTime();
@@ -395,6 +395,8 @@ public class Bedwars extends MapGame implements Listener {
 				VersionIndependentUtils.get().playSound(player, player.getLocation(), VersionIndependentSound.WITHER_DEATH, 1F, 1F);
 			}
 		});
+
+		itemShop.destroy();
 
 		allowBreak.clear();
 

@@ -4,8 +4,6 @@ import net.novauniverse.bedwars.NovaBedwars;
 import net.novauniverse.bedwars.game.entity.BedwarsNPC;
 import net.novauniverse.bedwars.game.enums.ItemCategory;
 import net.novauniverse.bedwars.game.enums.Items;
-import net.novauniverse.bedwars.game.enums.Reason;
-import net.novauniverse.bedwars.game.events.AttemptItemBuyEvent;
 import net.novauniverse.bedwars.game.holder.ItemShopHolder;
 import net.novauniverse.bedwars.game.modules.BedwarsPreferenceManager;
 import net.novauniverse.bedwars.game.modules.BedwarsPreferences;
@@ -17,7 +15,6 @@ import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
 import net.zeeraa.novacore.spigot.abstraction.enums.ColoredBlockType;
 import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependentMaterial;
 import net.zeeraa.novacore.spigot.module.modules.gui.GUIAction;
-import net.zeeraa.novacore.spigot.module.modules.gui.callbacks.GUICloseCallback;
 import net.zeeraa.novacore.spigot.tasks.SimpleTask;
 import net.zeeraa.novacore.spigot.utils.ItemBuilder;
 import org.bukkit.Bukkit;
@@ -25,7 +22,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import java.util.Arrays;
@@ -35,6 +31,38 @@ import java.util.stream.Collectors;
 public class ItemShop {
 	public static final int IMPORT_HYPIXEL_PREFERENCES_SLOT = 49;
 
+	private Task task;
+
+	public ItemShop() {
+		task = new SimpleTask(() -> {
+			Bukkit.getServer().getOnlinePlayers().forEach(player -> {
+				Inventory inventory = player.getOpenInventory().getTopInventory();
+				if (inventory.getHolder() instanceof ItemShopHolder) {
+					ItemShopHolder holder = (ItemShopHolder) inventory.getHolder();
+					if (holder.getCategory() == ItemCategory.QUICK_BUY) {
+						if (!BedwarsPreferenceManager.getInstance().isHypixelRequestCooldownActive(player)) {
+							ItemBuilder builder = ItemBuilder.getPlayerSkullWithBase64TextureAsBuilder(BedwarsTextures.IMPORT_HYPIXEL_PREFERENCES_BUTTON);
+							builder.setName(ChatColor.GOLD + "Import hypixel preferences");
+							builder.addLore(ChatColor.AQUA + "This will try to import your bedwars preferences from hypixel");
+							builder.setAmount(1);
+							inventory.setItem(ItemShop.IMPORT_HYPIXEL_PREFERENCES_SLOT, builder.build());
+						} else {
+							ItemBuilder cooldown = new ItemBuilder(VersionIndependentUtils.getInstance().getColoredItem(DyeColor.RED, ColoredBlockType.GLASS_PANE)).setName(ChatColor.RED.toString() + ChatColor.BOLD + "Please wait " + BedwarsPreferenceManager.getInstance().getCooldown(player) + " seconds before importing again").setAmount(1);
+							inventory.setItem(IMPORT_HYPIXEL_PREFERENCES_SLOT, cooldown.build());
+						}
+					}
+
+				}
+			});
+		}, 5L);
+		
+		Task.tryStartTask(task);
+	}
+	
+	public void destroy() {
+		Task.tryStopTask(task);
+	}
+	
 	public void display(Player player) {
 		this.display(ItemCategory.QUICK_BUY, player);
 	}
@@ -89,19 +117,6 @@ public class ItemShop {
 					ItemBuilder cooldown = new ItemBuilder(VersionIndependentUtils.getInstance().getColoredItem(DyeColor.RED, ColoredBlockType.GLASS_PANE)).setName(ChatColor.RED.toString() + ChatColor.BOLD + "Please wait " + BedwarsPreferenceManager.getInstance().getCooldown(player) + " seconds before importing again").setAmount(1);
 					inventory.setItem(IMPORT_HYPIXEL_PREFERENCES_SLOT, cooldown.build());
 				}
-				Task task = new SimpleTask(NovaBedwars.getInstance(), () -> {
-					if (player.getOpenInventory().getTopInventory().getHolder().equals(holder)) {
-						if (!BedwarsPreferenceManager.getInstance().isHypixelRequestCooldownActive(player)) {
-							inventory.setItem(ItemShop.IMPORT_HYPIXEL_PREFERENCES_SLOT, builder.build());
-						} else {
-							ItemBuilder cooldown = new ItemBuilder(VersionIndependentUtils.getInstance().getColoredItem(DyeColor.RED, ColoredBlockType.GLASS_PANE)).setName(ChatColor.RED.toString() + ChatColor.BOLD + "Please wait " + BedwarsPreferenceManager.getInstance().getCooldown(player) + " seconds before importing again").setAmount(1);
-							inventory.setItem(IMPORT_HYPIXEL_PREFERENCES_SLOT, cooldown.build());
-						}
-						player.updateInventory();
-					}
-
-				}, 1);
-				task.start();
 
 				holder.addClickCallback(IMPORT_HYPIXEL_PREFERENCES_SLOT, (clickedInventory, inventory1, entity, clickedSlot, slotType, clickType) -> {
 					player.performCommand("importhypixelpreferences");
