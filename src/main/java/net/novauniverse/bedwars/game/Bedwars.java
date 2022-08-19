@@ -48,6 +48,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.ItemMergeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
@@ -459,7 +460,7 @@ public class Bedwars extends MapGame implements Listener {
 		}
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.NORMAL)
 	public void onPlayerInteract(PlayerInteractEvent e) {
 		if (e.getAction() == Action.RIGHT_CLICK_BLOCK || e.getAction() == Action.RIGHT_CLICK_AIR) {
 			Player player = e.getPlayer();
@@ -491,13 +492,18 @@ public class Bedwars extends MapGame implements Listener {
 			}
 		}
 	}
-
+	
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
-	public void on(BlockExplodeEvent e) {
+	public void onEntityExplode(EntityExplodeEvent e) {
 		if (started && !ended) {
-			if (!allowBreak.contains(e.getBlock().getLocation())) {
-				e.setCancelled(true);
-			}
+			e.blockList().removeIf(block -> !allowBreak.contains(block.getLocation()));
+		}
+	}
+	
+	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+	public void onBlockExplode(BlockExplodeEvent e) {
+		if (started && !ended) {
+			e.blockList().removeIf(block -> !allowBreak.contains(block.getLocation()));
 		}
 	}
 
