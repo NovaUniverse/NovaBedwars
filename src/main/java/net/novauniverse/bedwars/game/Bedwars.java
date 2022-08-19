@@ -255,6 +255,8 @@ public class Bedwars extends MapGame implements Listener {
 			Log.error("Bedwars", "Not enough bases configured! " + teamsToSetup.size() + " teams does not have a base");
 		}
 
+		VersionIndependentUtils.get().setGameRule(getWorld(), "keepInventory", "false");
+
 		Bukkit.getServer().getOnlinePlayers().forEach(this::tpToSpectator);
 
 		Bukkit.getServer().getOnlinePlayers().stream().filter(p -> players.contains(p.getUniqueId())).forEach(this::tpToBase);
@@ -348,14 +350,22 @@ public class Bedwars extends MapGame implements Listener {
 				player.setSaturation(20);
 				player.setFoodLevel(20);
 				PlayerUtils.clearPotionEffects(player);
+				PlayerUtils.clearPlayerInventory(player);
 				player.teleport(base.getSpawnLocation());
+
+				// TODO: Give player items
 			}
 		}
 	}
 
 	@EventHandler(priority = EventPriority.NORMAL)
 	public void onPlayerDeath(PlayerDeathEvent e) {
-		e.getEntity().spigot().respawn();
+		Player player = e.getEntity();
+
+		PlayerUtils.clearPlayerInventory(player);
+		e.setDroppedExp(0);
+		e.getDrops().clear();
+		player.spigot().respawn();
 	}
 
 	@EventHandler(priority = EventPriority.NORMAL)
