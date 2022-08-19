@@ -1,22 +1,16 @@
 package net.novauniverse.bedwars.game.debug;
 
-import net.novauniverse.bedwars.NovaBedwars;
 import net.novauniverse.bedwars.utils.PotionItemBuilder;
 import net.zeeraa.novacore.spigot.command.AllowedSenders;
 import net.zeeraa.novacore.spigot.debug.DebugCommandRegistrator;
 import net.zeeraa.novacore.spigot.debug.DebugTrigger;
-import net.zeeraa.novacore.spigot.version.v1_8_R3.VersionIndependentUtils;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.PotionMeta;
-import org.bukkit.material.MaterialData;
 import org.bukkit.permissions.PermissionDefault;
-import org.bukkit.potion.Potion;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.potion.PotionType;
 
 public class GivePotion {
     public static final void register() {
