@@ -21,7 +21,6 @@ import net.zeeraa.novacore.spigot.gameengine.module.modules.game.mapselector.sel
 import net.zeeraa.novacore.spigot.gameengine.module.modules.gamelobby.GameLobby;
 import net.zeeraa.novacore.spigot.module.ModuleManager;
 import net.zeeraa.novacore.spigot.module.modules.compass.CompassTracker;
-
 import java.io.File;
 import java.io.IOException;
 import javax.annotation.Nullable;
@@ -141,7 +140,7 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 			Bukkit.getPluginManager().disablePlugin(this);
 			return;
 		}
-
+		
 		ModuleManager.scanForModules(this, "net.novauniverse.bedwars.game.modules");
 
 		ModuleManager.enable(GameManager.class);

@@ -25,6 +25,8 @@ import net.zeeraa.novacore.spigot.gameengine.module.modules.game.elimination.Pla
 import net.zeeraa.novacore.spigot.tasks.SimpleTask;
 import net.zeeraa.novacore.spigot.teams.Team;
 import net.zeeraa.novacore.spigot.teams.TeamManager;
+import net.zeeraa.novacore.spigot.utils.ItemUtils;
+import net.zeeraa.novacore.spigot.utils.LocationUtils;
 import net.zeeraa.novacore.spigot.utils.PlayerUtils;
 import net.zeeraa.novacore.spigot.utils.RandomFireworkEffect;
 
@@ -32,18 +34,31 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Fireball;
 import org.bukkit.entity.Firework;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.TNTPrimed;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.entity.ItemMergeEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -56,11 +71,13 @@ public class Bedwars extends MapGame implements Listener {
 	public static int WEAPON_SLOT_DEFAULT = 0;
 	public static int TRACKER_SLOT_DEFAULT = 8;
 
+	public static final float FIREBALL_YIELD = 1F;
+	public static final float TNT_YIELD = 4F;
+
 	private boolean started;
 	private boolean ended;
 
 	private BedwarsConfig config;
-
 
 	private Map<Player, ArmorType> hasArmor;
 	private Map<Player, Integer> pickaxeTier;
@@ -254,15 +271,23 @@ public class Bedwars extends MapGame implements Listener {
 			Log.error("Bedwars", "Not enough bases configured! " + teamsToSetup.size() + " teams does not have a base");
 		}
 
+		VersionIndependentUtils.get().setGameRule(getWorld(), "keepInventory", "false");
+
 		Bukkit.getServer().getOnlinePlayers().forEach(this::tpToSpectator);
 
 		Bukkit.getServer().getOnlinePlayers().stream().filter(p -> players.contains(p.getUniqueId())).forEach(this::tpToBase);
 
 		Task.tryStartTask(generatorTask);
 
+		sendStartMessage();
+
 		started = true;
+		sendBeginEvent();
+	}
+
+	public void sendStartMessage() {
 		TextComponent starter = new TextComponent(ChatColor.YELLOW + "Click here to import");
-		BaseComponent[] hovermessage = new BaseComponent[]{starter};
+		BaseComponent[] hovermessage = new BaseComponent[] { starter };
 
 		TextComponent prefix = new TextComponent(ChatColor.GREEN + "Click ");
 
@@ -280,11 +305,7 @@ public class Bedwars extends MapGame implements Listener {
 		TextComponent suffix2 = new TextComponent(" to import your Hypixel preferences.");
 		suffix2.setColor(net.md_5.bungee.api.ChatColor.GREEN);
 
-
-		players.stream().forEach(uuid -> {
-			Player player = Bukkit.getPlayer(uuid);
-			player.spigot().sendMessage(prefix, here, suffix, command, suffix2);
-		});
+		Bukkit.getServer().getOnlinePlayers().stream().filter(p -> isPlayerInGame(p)).forEach(player -> player.spigot().sendMessage(prefix, here, suffix, command, suffix2));
 	}
 
 	@Override
@@ -345,9 +366,46 @@ public class Bedwars extends MapGame implements Listener {
 				player.setSaturation(20);
 				player.setFoodLevel(20);
 				PlayerUtils.clearPotionEffects(player);
+				PlayerUtils.clearPlayerInventory(player);
 				player.teleport(base.getSpawnLocation());
+
+				// TODO: Give player items
 			}
 		}
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL)
+	public void onPlayerDeath(PlayerDeathEvent e) {
+		Player player = e.getEntity();
+
+		PlayerUtils.clearPlayerInventory(player);
+		e.setDroppedExp(0);
+		e.getDrops().clear();
+		player.spigot().respawn();
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL)
+	public void onPlayerRespawn(PlayerRespawnEvent e) {
+		Player player = e.getPlayer();
+		Team team = TeamManager.getTeamManager().getPlayerTeam(player);
+		if (team != null) {
+			BaseData base = bases.stream().filter(b -> b.getOwner().equals(team)).findFirst().orElse(null);
+			if (base != null) {
+				if (base.hasBed()) {
+					if (players.contains(player.getUniqueId())) {
+						e.setRespawnLocation(base.getSpawnLocation());
+						new BukkitRunnable() {
+							@Override
+							public void run() {
+								tpToBase(player);
+							}
+						}.runTaskLater(getPlugin(), 2L);
+						return;
+					}
+				}
+			}
+		}
+		tpToSpectator(null);
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -388,20 +446,122 @@ public class Bedwars extends MapGame implements Listener {
 	}
 
 	@EventHandler(priority = EventPriority.NORMAL)
+	public void onEntitySpawn(EntitySpawnEvent e) {
+		if (started && !ended) {
+			if (e.getEntity().getType() == EntityType.DROPPED_ITEM) {
+				if (VersionIndependentUtils.get().isBed(((Item) e.getEntity()).getItemStack().getType())) {
+					e.setCancelled(true);
+				}
+			}
+		}
+	}
+	
+	@EventHandler(priority = EventPriority.NORMAL)
 	public void onBlockBreak(BlockBreakEvent e) {
 		if (started) {
-			if (e.getPlayer().getGameMode() != GameMode.CREATIVE) {
+			Player player = e.getPlayer();
+
+			if (player.getGameMode() != GameMode.CREATIVE) {
 				boolean allow = false;
-				if (VersionIndependentUtils.get().isBed(e.getBlock())) {
+				Block block = e.getBlock();
+				if (VersionIndependentUtils.get().isBed(block)) {
+					BaseData ownerBase = bases.stream().filter(base -> LocationUtils.isSameBlock(base.getBedLocation(), block.getLocation())).findFirst().orElse(null);
+					if (ownerBase == null) {
+						for (BlockFace face : BlockFace.values()) {
+							Location location2 = LocationUtils.addFaceMod(block.getLocation().clone(), face);
+							
+							ownerBase = bases.stream().filter(base -> LocationUtils.isSameBlock(base.getBedLocation(), location2)).findFirst().orElse(null);
+							if (ownerBase != null) {
+								break;
+							}
+						}
+					}
+
+					if (ownerBase != null) {
+						Team team = TeamManager.getTeamManager().getPlayerTeam(player);
+						if (team != null) {
+							if (ownerBase.getOwner().equals(team)) {
+								player.sendMessage(ChatColor.RED + "You can't break your own bed");
+								e.setCancelled(true);
+								return;
+							}
+						}
+					}
+
 					allow = true;
-				} else if (allowBreak.contains(e.getBlock().getLocation())) {
+				} else if (allowBreak.contains(block.getLocation())) {
 					allow = true;
 				}
 
 				if (!allow) {
 					e.setCancelled(true);
-					e.getPlayer().sendMessage(ChatColor.RED + "You can only break blocks placed by players");
+					player.sendMessage(ChatColor.RED + "You can only break blocks placed by players");
 				}
+			}
+		}
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL)
+	public void onPlayerInteract(PlayerInteractEvent e) {
+		if(e.getAction() == Action.RIGHT_CLICK_BLOCK) {
+			if(VersionIndependentUtils.get().isBed(e.getClickedBlock())) {
+				e.setCancelled(true);
+			}
+		}
+		
+		if (e.getAction() == Action.RIGHT_CLICK_BLOCK || e.getAction() == Action.RIGHT_CLICK_AIR) {
+			Player player = e.getPlayer();
+			if (VersionIndependentUtils.get().isInteractEventMainHand(e)) {
+				Material type = VersionIndependentUtils.get().getItemInMainHand(player).getType();
+				if (type == Material.FIREBALL) {
+					e.setCancelled(true);
+
+					ItemUtils.removeOneFromHand(player);
+
+					final Fireball fireball = player.launchProjectile(Fireball.class);
+					fireball.setVelocity(player.getLocation().getDirection().multiply(2));
+					fireball.setBounce(false);
+					fireball.setYield(Bedwars.FIREBALL_YIELD);
+					fireball.setIsIncendiary(false);
+					fireball.setCustomName(ChatColor.GOLD + "Fireball");
+					fireball.setCustomNameVisible(false);
+					fireball.setShooter(player);
+				} else if (type == Material.TNT && e.getAction() == Action.RIGHT_CLICK_BLOCK) {
+					e.setCancelled(true);
+
+					ItemUtils.removeOneFromHand(player);
+
+					BlockFace face = e.getBlockFace();
+					Location location = e.getClickedBlock().getLocation().clone().add(face.getModX(), face.getModY(), face.getModZ());
+					TNTPrimed tnt = (TNTPrimed) location.getWorld().spawnEntity(location, EntityType.PRIMED_TNT);
+					tnt.setYield(Bedwars.TNT_YIELD);
+				}
+			}
+		}
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+	public void onEntityExplode(EntityExplodeEvent e) {
+		if (started && !ended) {
+			e.blockList().removeIf(block -> !allowBreak.contains(block.getLocation()));
+		}
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+	public void onBlockExplode(BlockExplodeEvent e) {
+		if (started && !ended) {
+			e.blockList().removeIf(block -> !allowBreak.contains(block.getLocation()));
+		}
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL)
+	public void onPlayerJoin(PlayerJoinEvent e) {
+		Player player = e.getPlayer();
+		if (started && !ended) {
+			if (players.contains(player.getUniqueId())) {
+				tpToBase(player);
+			} else {
+				tpToSpectator(player);
 			}
 		}
 	}
