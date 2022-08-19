@@ -61,7 +61,6 @@ public class Bedwars extends MapGame implements Listener {
 
 	private BedwarsConfig config;
 
-
 	private Map<Player, ArmorType> hasArmor;
 	private Map<Player, Integer> pickaxeTier;
 	private Map<Player, Integer> axeTier;
@@ -260,9 +259,15 @@ public class Bedwars extends MapGame implements Listener {
 
 		Task.tryStartTask(generatorTask);
 
+		sendStartMessage();
+		
 		started = true;
+		sendBeginEvent();
+	}
+
+	public void sendStartMessage() {
 		TextComponent starter = new TextComponent(ChatColor.YELLOW + "Click here to import");
-		BaseComponent[] hovermessage = new BaseComponent[]{starter};
+		BaseComponent[] hovermessage = new BaseComponent[] { starter };
 
 		TextComponent prefix = new TextComponent(ChatColor.GREEN + "Click ");
 
@@ -280,11 +285,7 @@ public class Bedwars extends MapGame implements Listener {
 		TextComponent suffix2 = new TextComponent(" to import your Hypixel preferences.");
 		suffix2.setColor(net.md_5.bungee.api.ChatColor.GREEN);
 
-
-		players.stream().forEach(uuid -> {
-			Player player = Bukkit.getPlayer(uuid);
-			player.spigot().sendMessage(prefix, here, suffix, command, suffix2);
-		});
+		Bukkit.getServer().getOnlinePlayers().stream().filter(p -> isPlayerInGame(p)).forEach(player -> player.spigot().sendMessage(prefix, here, suffix, command, suffix2));
 	}
 
 	@Override
