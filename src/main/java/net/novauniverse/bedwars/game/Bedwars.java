@@ -175,6 +175,7 @@ public class Bedwars extends MapGame implements Listener {
 					bases.stream().filter(b -> b.hasBed()).forEach(base -> {
 						base.setBed(false);
 						base.getBedLocation().getBlock().breakNaturally();
+						Bukkit.getServer().broadcastMessage(ChatColor.RED + ""+ ChatColor.BOLD + "Bed Destruction> All beds destroyed");
 						base.getOwner().getOnlinePlayers().forEach(player -> {
 							VersionIndependentSound.WITHER_DEATH.play(player);
 							VersionIndependentUtils.get().sendTitle(player, ChatColor.RED + TextUtils.ICON_WARNING + " Bed destroyed " + TextUtils.ICON_WARNING, ChatColor.RED + "You can no longer respawn", 0, 60, 20);
