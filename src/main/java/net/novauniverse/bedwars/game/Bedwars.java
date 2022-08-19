@@ -55,6 +55,7 @@ public class Bedwars extends MapGame implements Listener {
 
 	private BedwarsConfig config;
 
+
 	private Map<Player, ArmorType> hasArmor;
 	private Map<Player, Integer> pickaxeTier;
 	private Map<Player, Integer> axeTier;
@@ -92,6 +93,7 @@ public class Bedwars extends MapGame implements Listener {
 
 	public Bedwars() {
 		super(NovaBedwars.getInstance());
+
 		bases = new ArrayList<>();
 		allowBreak = new ArrayList<>();
 		npcs = new ArrayList<>();
@@ -228,7 +230,7 @@ public class Bedwars extends MapGame implements Listener {
 
 		TextComponent here = new TextComponent(ChatColor.GOLD.toString() + ChatColor.BOLD + "here");
 		here.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hovermessage));
-		here.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/" + ImportBedwarsPreferences.COMMAND_NAME));
+		here.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/" + ImportBedwarsPreferences.COMMAND_NAME));
 
 		TextComponent command = new TextComponent("/" + ImportBedwarsPreferences.COMMAND_NAME);
 		command.setColor(net.md_5.bungee.api.ChatColor.DARK_AQUA);

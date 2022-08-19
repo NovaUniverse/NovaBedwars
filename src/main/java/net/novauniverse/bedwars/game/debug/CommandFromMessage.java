@@ -51,7 +51,7 @@ public class CommandFromMessage {
                 TextComponent suffix2 = new TextComponent(" to import your Hypixel preferences.");
                 suffix2.setColor(net.md_5.bungee.api.ChatColor.GREEN);
                 here.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hovermessage));
-                here.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/" + ImportBedwarsPreferences.COMMAND_NAME));
+                here.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/" + ImportBedwarsPreferences.COMMAND_NAME));
                 ((Player) commandSender).spigot().sendMessage(prefix, here, suffix, command, suffix2);
             }
         });

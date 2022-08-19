@@ -1,6 +1,7 @@
 package net.novauniverse.bedwars.game.shop;
 
 import net.novauniverse.bedwars.NovaBedwars;
+import net.novauniverse.bedwars.game.Bedwars;
 import net.novauniverse.bedwars.game.entity.BedwarsNPC;
 import net.novauniverse.bedwars.game.enums.ItemCategory;
 import net.novauniverse.bedwars.game.enums.Items;
@@ -63,7 +64,18 @@ public class ItemShop {
 			preferences.getItems().forEach(items -> {
 				if (items != null) {
 					if (!items.equals(Items.NO_ITEM)) {
-						inventory.addItem(items.asShopItem());
+						if (items.isTiered()) {
+							int tier = 0;
+							if (items == Items.WOOD_PICKAXE) {
+								tier = NovaBedwars.getInstance().getGame().getPlayerPickaxeTier(player) + 1;
+							} else if (items == Items.WOOD_AXE) {
+								tier = NovaBedwars.getInstance().getGame().getPlayerAxeTier(player) + 1;
+							}
+							inventory.addItem(items.asShopItem(tier));
+						} else {
+							inventory.addItem(items.asShopItem());
+
+						}
 					}
 				}
 			});

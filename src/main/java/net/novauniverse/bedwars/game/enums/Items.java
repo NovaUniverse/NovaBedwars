@@ -263,6 +263,13 @@ public enum Items {
             item.setItemMeta(meta);
             return item;
     }
+    public ItemStack asShopItem(int tier) {
+        if (this.isTiered()) {
+            return getItemTier(tier).asShopItem();
+        } else {
+            return null;
+        }
+    }
     private List<String> addLore(Price price) {
         ChatColor color = null;
         if (price.getMaterial() == Material.EMERALD) {
