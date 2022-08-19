@@ -149,12 +149,7 @@ public class Bedwars extends MapGame implements Listener {
 		itemShop = new ItemShop();
 		upgradeShop = new UpgradeShop();
 
-		generatorTask = new SimpleTask(getPlugin(), new Runnable() {
-			@Override
-			public void run() {
-				generators.forEach(ItemGenerator::countdown);
-			}
-		}, 20L);
+		generatorTask = new SimpleTask(getPlugin(), () -> generators.forEach(ItemGenerator::countdown), 20L);
 	}
 
 	public BedwarsConfig getConfig() {
@@ -370,7 +365,7 @@ public class Bedwars extends MapGame implements Listener {
 				player.teleport(base.getSpawnLocation());
 
 				// TODO: Give player items
-				player.getInventory().addItem(new ItemBuilder(VersionIndependentMaterial.WOODEN_SWORD).setUnbreakable(true).build());
+				player.getInventory().setItem(WEAPON_SLOT_DEFAULT, new ItemBuilder(VersionIndependentMaterial.WOODEN_SWORD).setUnbreakable(true).build());
 			}
 		}
 	}

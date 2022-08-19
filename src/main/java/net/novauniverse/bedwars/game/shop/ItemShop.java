@@ -81,16 +81,16 @@ public class ItemShop {
 				builder.setName(ChatColor.GOLD + "Import hypixel preferences");
 				builder.addLore(ChatColor.AQUA + "This will try to import your bedwars preferences from hypixel");
 				builder.setAmount(1);
-				if (!BedwarsPreferenceManager.getInstance().isHypixelRequestCooldownActive(player)) {
-					inventory.setItem(ItemShop.IMPORT_HYPIXEL_PREFERENCES_SLOT, builder.build());
-				} else {
-					Task task = new SimpleTask(NovaBedwars.getInstance(), () -> {
+				Task task = new SimpleTask(NovaBedwars.getInstance(), () -> {
+					if (!BedwarsPreferenceManager.getInstance().isHypixelRequestCooldownActive(player)) {
+						inventory.setItem(ItemShop.IMPORT_HYPIXEL_PREFERENCES_SLOT, builder.build());
+					} else {
 						ItemBuilder cooldown = new ItemBuilder(VersionIndependentUtils.getInstance().getColoredItem(DyeColor.RED, ColoredBlockType.GLASS_PANE)).setName(ChatColor.RED.toString() + ChatColor.BOLD + "Please wait " + BedwarsPreferenceManager.getInstance().getCooldown(player) + " seconds before importing again").setAmount(1);
 						inventory.setItem(IMPORT_HYPIXEL_PREFERENCES_SLOT, cooldown.build());
-						player.updateInventory();
-					}, 1);
-					task.start();
-				}
+					}
+					player.updateInventory();
+				}, 1);
+				task.start();
 
 				holder.addClickCallback(IMPORT_HYPIXEL_PREFERENCES_SLOT, (clickedInventory, inventory1, entity, clickedSlot, slotType, clickType) -> {
 					player.performCommand("importhypixelpreferences");
