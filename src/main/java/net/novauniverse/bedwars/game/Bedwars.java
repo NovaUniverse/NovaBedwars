@@ -10,6 +10,7 @@ import net.novauniverse.bedwars.game.config.BedwarsConfig;
 import net.novauniverse.bedwars.game.entity.BedwarsNPC;
 import net.novauniverse.bedwars.game.entity.NPCType;
 import net.novauniverse.bedwars.game.enums.ArmorType;
+import net.novauniverse.bedwars.game.events.BedDestructionEvent;
 import net.novauniverse.bedwars.game.generator.GeneratorType;
 import net.novauniverse.bedwars.game.generator.ItemGenerator;
 import net.novauniverse.bedwars.game.object.base.BaseData;
@@ -49,6 +50,7 @@ import org.bukkit.entity.Firework;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TNTPrimed;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -542,6 +544,9 @@ public class Bedwars extends MapGame implements Listener {
 							VersionIndependentSound.WITHER_DEATH.play(p);
 							VersionIndependentUtils.get().sendTitle(p, ChatColor.RED + TextUtils.ICON_WARNING + " Bed broken " + TextUtils.ICON_WARNING, ChatColor.RED + "You can no longer respawn", 0, 60, 20);
 						});
+
+						Event bedDestructionEvent = new BedDestructionEvent(ownerBase.getOwner(), team, player);
+						Bukkit.getServer().getPluginManager().callEvent(bedDestructionEvent);
 					}
 
 					allow = true;
