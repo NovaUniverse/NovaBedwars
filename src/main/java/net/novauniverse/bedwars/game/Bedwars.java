@@ -46,6 +46,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.ItemMergeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -487,6 +488,15 @@ public class Bedwars extends MapGame implements Listener {
 					TNTPrimed tnt = (TNTPrimed) location.getWorld().spawnEntity(location, EntityType.PRIMED_TNT);
 					tnt.setYield(Bedwars.TNT_YIELD);
 				}
+			}
+		}
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+	public void on(BlockExplodeEvent e) {
+		if (started && !ended) {
+			if (!allowBreak.contains(e.getBlock().getLocation())) {
+				e.setCancelled(true);
 			}
 		}
 	}
