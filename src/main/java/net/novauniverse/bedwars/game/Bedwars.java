@@ -448,6 +448,18 @@ public class Bedwars extends MapGame implements Listener {
 		}
 	}
 
+	@EventHandler(priority = EventPriority.NORMAL)
+	public void onPlayerJoin(PlayerJoinEvent e) {
+		Player player = e.getPlayer();
+		if (started && !ended) {
+			if (players.contains(player.getUniqueId())) {
+				tpToBase(player);
+			} else {
+				tpToSpectator(player);
+			}
+		}
+	}
+
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
 	public void onItemMerge(ItemMergeEvent e) {
 		if (e.getEntity().hasMetadata(ItemGenerator.NO_MERGE_METADATA_KEY) || e.getTarget().hasMetadata(ItemGenerator.NO_MERGE_METADATA_KEY)) {
