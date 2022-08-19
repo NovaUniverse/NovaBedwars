@@ -38,6 +38,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -108,6 +109,13 @@ public class Bedwars extends MapGame implements Listener {
 
 	public BedwarsConfig getConfig() {
 		return config;
+	}
+
+	@EventHandler
+	public void playerJoin(PlayerJoinEvent e) {
+		getAllPlayersAxeTier().putIfAbsent(e.getPlayer(), 0);
+		getAllPlayersArmor().putIfAbsent(e.getPlayer(), ArmorType.NO_ARMOR);
+		getAllPlayersPickaxeTier().putIfAbsent(e.getPlayer(), 0);
 	}
 
 	@Override

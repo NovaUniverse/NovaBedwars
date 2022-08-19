@@ -1,9 +1,11 @@
 package net.novauniverse.bedwars.game.object;
 
+import net.novauniverse.bedwars.game.enums.ItemCategory;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.PotionMeta;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,9 +35,8 @@ public class TieredItem {
         return toShopItem();
     }
     private ItemStack toShopItem() {
-        ItemStack item = getItemStack();
+        ItemStack item = getItemStack().clone();
         ItemMeta meta = item.getItemMeta();
-
         if (getPrice() != null) {
             meta.setLore(addLore(getPrice()));
         }
@@ -57,8 +58,7 @@ public class TieredItem {
             stringified += "s";
         }
         List<String> lore = new ArrayList<>();
-        lore.add("");
-        lore.add(ChatColor.BOLD + "" +color + "" + price.getValue() + " " + stringified);
+        lore.add(color + "" + ChatColor.BOLD + "" + price.getValue() + " " + stringified);
         return lore;
     }
 

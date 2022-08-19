@@ -5,6 +5,8 @@ import net.novauniverse.bedwars.game.Bedwars;
 import net.novauniverse.bedwars.game.entity.BedwarsNPC;
 import net.novauniverse.bedwars.game.enums.ItemCategory;
 import net.novauniverse.bedwars.game.enums.Items;
+import net.novauniverse.bedwars.game.enums.Reason;
+import net.novauniverse.bedwars.game.events.AttemptItemBuyEvent;
 import net.novauniverse.bedwars.game.holder.ItemShopHolder;
 import net.novauniverse.bedwars.game.modules.BedwarsPreferenceManager;
 import net.novauniverse.bedwars.game.modules.BedwarsPreferences;
@@ -114,7 +116,7 @@ public class ItemShop {
 			inventory.setItem(20, blackbg);
 
 			List<Items> swordList = Arrays.stream(Items.values()).filter(i -> i.asShopItem().getType().name().contains("SWORD") || i.asShopItem().getType() == Material.STICK).collect(Collectors.toList());
-			List<Items> bowList = Arrays.stream(Items.values()).filter(i -> i.asShopItem().getType() == Material.BOW).collect(Collectors.toList());
+			List<Items> bowList = Arrays.stream(Items.values()).filter(i -> i.asShopItem().getType() == Material.BOW || i.asShopItem().getType() == Material.ARROW).collect(Collectors.toList());
 			List<Items> armorList = Arrays.stream(Items.values()).filter(i -> i.asShopItem().getType().name().contains("BOOTS")).collect(Collectors.toList());
 
 			for (int i = 21; i <= 26; i++) {
@@ -146,9 +148,17 @@ public class ItemShop {
 		} else {
 			Arrays.stream(Items.values()).forEach(items -> {
 				if (items.getCategory() == category) {
-					if (!items.isTiered()) {
+					if (items.isTiered()) {
+							int tier = 0;
+							if (items == Items.WOOD_PICKAXE) {
+								tier = NovaBedwars.getInstance().getGame().getPlayerPickaxeTier(player) + 1;
+							} else if (items == Items.WOOD_AXE) {
+								tier = NovaBedwars.getInstance().getGame().getPlayerAxeTier(player) + 1;
+							}
+							inventory.addItem(items.asShopItem(tier));
+						} else {
+							inventory.addItem(items.asShopItem());
 
-						inventory.addItem(items.asShopItem());
 					}
 				}
 			});
@@ -162,11 +172,14 @@ public class ItemShop {
 				Player p = (Player) e.getWhoClicked();
 				
 				Items item = Items.toItemEnum(e.getCurrentItem());
+				if (item == Items.NO_ITEM) {
+					return GUIAction.CANCEL_INTERACTION;
+				}
+
 				if (Price.canBuy(p, item)) {
 					Price.buyItem(item, e.getWhoClicked().getInventory(), e.getCurrentItem(), p);
 				} else {
-					VersionIndependentSound.ITEM_BREAK.play(p);
-					p.sendMessage(ChatColor.RED + "You can't afford that item");
+					Bukkit.getPluginManager().callEvent(new AttemptItemBuyEvent(item,player,false, Reason.NOT_ENOUGHT_MATERIALS));
 					return GUIAction.CANCEL_INTERACTION;
 				}
 
