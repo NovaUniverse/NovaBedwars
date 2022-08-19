@@ -5,10 +5,8 @@ import net.novauniverse.bedwars.game.commands.ImportBedwarsPreferences;
 import net.novauniverse.bedwars.game.config.BedwarsConfig;
 import net.novauniverse.bedwars.game.debug.*;
 import net.novauniverse.bedwars.game.enums.ArmorType;
-import net.novauniverse.bedwars.game.enums.ItemCategory;
 import net.novauniverse.bedwars.game.enums.Reason;
 import net.novauniverse.bedwars.game.events.AttemptItemBuyEvent;
-import net.novauniverse.bedwars.game.shop.ItemShop;
 import net.novauniverse.bedwars.utils.HypixelAPI;
 import net.novauniverse.bedwars.utils.preferences.api.PreferenceAPI;
 import net.novauniverse.bedwars.utils.preferences.api.PreferenceAPISettings;
@@ -33,9 +31,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.json.JSONException;
@@ -74,11 +72,11 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 	public boolean hasHypixelAPI() {
 		return hypixelAPI != null;
 	}
-	
+
 	public PreferenceAPI getPreferenceAPI() {
 		return preferenceAPI;
 	}
-	
+
 	public boolean hasPreferenceAPI() {
 		return preferenceAPI != null;
 	}
@@ -90,7 +88,7 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 
 		hypixelAPI = null;
 		preferenceAPI = null;
-		
+
 		disableDefaultEndSound = getConfig().getBoolean("disable_default_end_sound");
 		boolean combatTagging = getConfig().getBoolean("combat_tagging");
 		boolean disableNovaCoreGameLobby = getConfig().getBoolean("disable_novacore_gamelobby");
@@ -99,14 +97,14 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 		if (hypixelAPIKey.length() > 0) {
 			hypixelAPI = new HypixelAPI(hypixelAPIKey);
 		}
-		
+
 		boolean preferenceApiEnabled = getConfig().getBoolean("preference_api_enabled");
 		String preferenceApiUrl = getConfig().getString("preference_api_url");
 		String preferenceApiKey = getConfig().getString("preference_api_key");
-		
+
 		PreferenceAPISettings apiConfig = new PreferenceAPISettings(preferenceApiEnabled, preferenceApiUrl, preferenceApiKey);
-		
-		if(apiConfig.isEnabled()) {
+
+		if (apiConfig.isEnabled()) {
 			preferenceAPI = new PreferenceAPI(apiConfig);
 		}
 
@@ -145,7 +143,7 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 		}
 
 		ModuleManager.scanForModules(this, "net.novauniverse.bedwars.game.modules");
-		
+
 		ModuleManager.enable(GameManager.class);
 		ModuleManager.enable(CompassTracker.class);
 		if (!disableNovaCoreGameLobby) {
@@ -164,14 +162,14 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 		if (!disableNovaCoreGameLobby) {
 			GUIMapVote mapSelector = new GUIMapVote();
 			GameManager.getInstance().setMapSelector(mapSelector);
-			//Bukkit.getServer().getPluginManager().registerEvents(mapSelector, this);
+			// Bukkit.getServer().getPluginManager().registerEvents(mapSelector, this);
 		} else {
 			GameManager.getInstance().setMapSelector(new RandomMapSelector());
 		}
 
 		Log.info(getName(), "Loading maps from " + mapFolder.getPath());
 		GameManager.getInstance().readMapsFromFolder(mapFolder, worldFolder);
-		
+
 		MissileWarsDebugCommands.register();
 		HashMapDebugger.register();
 		ShopItemMetasDebugger.register();
@@ -179,6 +177,7 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 		GivePotion.register();
 		CommandFromMessage.register();
 		CommandRegistry.registerCommand(new ImportBedwarsPreferences());
+
 		Bukkit.getOnlinePlayers().forEach(player -> {
 			getGame().getAllPlayersPickaxeTier().putIfAbsent(player, 0);
 			getGame().getAllPlayersAxeTier().putIfAbsent(player, 0);
@@ -191,24 +190,16 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 		Bukkit.getScheduler().cancelTasks(this);
 		HandlerList.unregisterAll((Plugin) this);
 	}
-  
-  @EventHandler
-	public void onCrouch(PlayerToggleSneakEvent e) {
-		if (e.isSneaking()) {
-			ItemShop shop = new ItemShop();
-			shop.display(ItemCategory.QUICK_BUY, e.getPlayer());
-		}
-	}
-  
-	@EventHandler
+
+	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onBuyAttempt(AttemptItemBuyEvent e) {
 		Player player = e.getPlayer();
-		if (e.boughtItem()) {
-
-		} else {
-			if (e.getReason() == Reason.NOT_ENOUGHT_MATERIALS) {
-				VersionIndependentSound.ITEM_BREAK.play(player);
-				player.sendMessage(ChatColor.RED + "You can't afford that item");
+		if (!e.boughtItem()) {
+			if (!e.isDisableBuiltInMessage()) {
+				if (e.getReason() == Reason.NOT_ENOUGHT_MATERIALS) {
+					VersionIndependentSound.ITEM_BREAK.play(player);
+					player.sendMessage(ChatColor.RED + "You can't afford that item");
+				}
 			}
 		}
 	}

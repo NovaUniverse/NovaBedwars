@@ -6,12 +6,11 @@ import net.zeeraa.novacore.spigot.utils.ItemBuilder;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.PotionMeta;
-import org.bukkit.potion.Potion;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
 
-public class 	PotionItemBuilder extends ItemBuilder {
+public class PotionItemBuilder extends ItemBuilder {
 
 	public PotionItemBuilder(Material material) {
 		super(material);
@@ -37,7 +36,7 @@ public class 	PotionItemBuilder extends ItemBuilder {
 		super(itemStack, clone);
 	}
 
-
+	@SuppressWarnings("deprecation")
 	public PotionItemBuilder setPotionEffect(PotionEffect effect, boolean color) {
 		if (item.getType() == Material.POTION) {
 			PotionMeta meta = (PotionMeta) this.meta;
@@ -45,7 +44,7 @@ public class 	PotionItemBuilder extends ItemBuilder {
 			if (color) {
 				try {
 					item.setDurability((short) getFromEffectType(effect.getType()).getDamageValue());
-				} catch (TypeNotPresentException e) {
+				} catch (Exception e) {
 					Log.warn("Could not set item color, defaulting to water bottle.");
 				}
 			}
@@ -53,6 +52,7 @@ public class 	PotionItemBuilder extends ItemBuilder {
 		}
 		return this;
 	}
+
 	private PotionType getFromEffectType(PotionEffectType type) {
 		PotionType potionType = null;
 		for (PotionType potType : PotionType.values()) {
