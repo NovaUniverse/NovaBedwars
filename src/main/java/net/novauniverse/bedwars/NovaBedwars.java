@@ -62,26 +62,6 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 		this.disableDefaultEndSound = disableDefaultEndSound;
 	}
 
-	@EventHandler
-	public void onCrouch(PlayerToggleSneakEvent e) {
-		if (e.isSneaking()) {
-			ItemShop shop = new ItemShop();
-			shop.display(ItemCategory.QUICK_BUY, e.getPlayer());
-		}
-	}
-	@EventHandler
-	public void onBuyAttempt(AttemptItemBuyEvent e) {
-		Player player = e.getPlayer();
-		if (e.boughtItem()) {
-
-		} else {
-			if (e.getReason() == Reason.NOT_ENOUGHT_MATERIALS) {
-				VersionIndependentSound.ITEM_BREAK.play(player);
-				player.sendMessage(ChatColor.RED + "You can't afford that item");
-			}
-		}
-	}
-
 	public Bedwars getGame() {
 		return game;
 	}
@@ -210,6 +190,27 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 	public void onDisable() {
 		Bukkit.getScheduler().cancelTasks(this);
 		HandlerList.unregisterAll((Plugin) this);
+	}
+  
+  @EventHandler
+	public void onCrouch(PlayerToggleSneakEvent e) {
+		if (e.isSneaking()) {
+			ItemShop shop = new ItemShop();
+			shop.display(ItemCategory.QUICK_BUY, e.getPlayer());
+		}
+	}
+  
+	@EventHandler
+	public void onBuyAttempt(AttemptItemBuyEvent e) {
+		Player player = e.getPlayer();
+		if (e.boughtItem()) {
+
+		} else {
+			if (e.getReason() == Reason.NOT_ENOUGHT_MATERIALS) {
+				VersionIndependentSound.ITEM_BREAK.play(player);
+				player.sendMessage(ChatColor.RED + "You can't afford that item");
+			}
+		}
 	}
 }
 
