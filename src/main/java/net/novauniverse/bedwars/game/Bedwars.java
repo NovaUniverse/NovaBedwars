@@ -1,6 +1,11 @@
 package net.novauniverse.bedwars.game;
 
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
 import net.novauniverse.bedwars.NovaBedwars;
+import net.novauniverse.bedwars.game.commands.ImportBedwarsPreferences;
 import net.novauniverse.bedwars.game.config.BedwarsConfig;
 import net.novauniverse.bedwars.game.entity.BedwarsNPC;
 import net.novauniverse.bedwars.game.entity.NPCType;
@@ -38,6 +43,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.ItemMergeEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -54,6 +60,7 @@ public class Bedwars extends MapGame implements Listener {
 	private boolean ended;
 
 	private BedwarsConfig config;
+
 
 	private Map<Player, ArmorType> hasArmor;
 	private Map<Player, Integer> pickaxeTier;
@@ -96,6 +103,7 @@ public class Bedwars extends MapGame implements Listener {
 
 	public Bedwars() {
 		super(NovaBedwars.getInstance());
+
 		bases = new ArrayList<>();
 		allowBreak = new ArrayList<>();
 		npcs = new ArrayList<>();
@@ -119,6 +127,13 @@ public class Bedwars extends MapGame implements Listener {
 
 	public BedwarsConfig getConfig() {
 		return config;
+	}
+
+	@EventHandler
+	public void playerJoin(PlayerJoinEvent e) {
+		getAllPlayersAxeTier().putIfAbsent(e.getPlayer(), 0);
+		getAllPlayersArmor().putIfAbsent(e.getPlayer(), ArmorType.NO_ARMOR);
+		getAllPlayersPickaxeTier().putIfAbsent(e.getPlayer(), 0);
 	}
 
 	@Override
@@ -246,6 +261,30 @@ public class Bedwars extends MapGame implements Listener {
 		Task.tryStartTask(generatorTask);
 
 		started = true;
+		TextComponent starter = new TextComponent(ChatColor.YELLOW + "Click here to import");
+		BaseComponent[] hovermessage = new BaseComponent[]{starter};
+
+		TextComponent prefix = new TextComponent(ChatColor.GREEN + "Click ");
+
+		TextComponent here = new TextComponent(ChatColor.GOLD.toString() + ChatColor.BOLD + "here");
+		here.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hovermessage));
+		here.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/" + ImportBedwarsPreferences.COMMAND_NAME));
+
+		TextComponent command = new TextComponent("/" + ImportBedwarsPreferences.COMMAND_NAME);
+		command.setColor(net.md_5.bungee.api.ChatColor.DARK_AQUA);
+		command.setBold(true);
+
+		TextComponent suffix = new TextComponent(" or do ");
+		suffix.setColor(net.md_5.bungee.api.ChatColor.GREEN);
+
+		TextComponent suffix2 = new TextComponent(" to import your Hypixel preferences.");
+		suffix2.setColor(net.md_5.bungee.api.ChatColor.GREEN);
+
+
+		players.stream().forEach(uuid -> {
+			Player player = Bukkit.getPlayer(uuid);
+			player.spigot().sendMessage(prefix, here, suffix, command, suffix2);
+		});
 	}
 
 	@Override

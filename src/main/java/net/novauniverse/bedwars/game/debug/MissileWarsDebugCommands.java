@@ -32,7 +32,7 @@ public class MissileWarsDebugCommands {
 					sender.sendMessage(ChatColor.BLUE + "Import started...");
 				} else {
 					sender.sendMessage(ChatColor.RED + "Hypixel API not enabled");
-				};
+				}
 			}
 
 			@Override

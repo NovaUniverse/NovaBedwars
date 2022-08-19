@@ -1,9 +1,12 @@
 package net.novauniverse.bedwars.game.shop;
 
 import net.novauniverse.bedwars.NovaBedwars;
+import net.novauniverse.bedwars.game.Bedwars;
 import net.novauniverse.bedwars.game.entity.BedwarsNPC;
 import net.novauniverse.bedwars.game.enums.ItemCategory;
 import net.novauniverse.bedwars.game.enums.Items;
+import net.novauniverse.bedwars.game.enums.Reason;
+import net.novauniverse.bedwars.game.events.AttemptItemBuyEvent;
 import net.novauniverse.bedwars.game.holder.ItemShopHolder;
 import net.novauniverse.bedwars.game.modules.BedwarsPreferenceManager;
 import net.novauniverse.bedwars.game.modules.BedwarsPreferences;
@@ -12,12 +15,14 @@ import net.novauniverse.bedwars.game.object.Price;
 import net.novauniverse.bedwars.utils.BedwarsTextures;
 import net.novauniverse.bedwars.utils.InventoryUtils;
 import net.zeeraa.novacore.commons.log.Log;
+import net.zeeraa.novacore.commons.tasks.Task;
 import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
 import net.zeeraa.novacore.spigot.abstraction.enums.ColoredBlockType;
 import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependentMaterial;
 import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependentSound;
 import net.zeeraa.novacore.spigot.module.modules.gui.GUIAction;
 import net.zeeraa.novacore.spigot.module.modules.gui.callbacks.GUIClickCallback;
+import net.zeeraa.novacore.spigot.tasks.SimpleTask;
 import net.zeeraa.novacore.spigot.utils.ItemBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -34,7 +39,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class ItemShop {
-	public static final int IMPORT_HYPIXEL_PREFERENCES_SLOT = 53;
+	public static final int IMPORT_HYPIXEL_PREFERENCES_SLOT = 49;
 
 	public void display(Player player) {
 		this.display(ItemCategory.QUICK_BUY, player);
@@ -61,7 +66,18 @@ public class ItemShop {
 			preferences.getItems().forEach(items -> {
 				if (items != null) {
 					if (!items.equals(Items.NO_ITEM)) {
-						inventory.addItem(items.asShopItem());
+						if (items.isTiered()) {
+							int tier = 0;
+							if (items == Items.WOOD_PICKAXE) {
+								tier = NovaBedwars.getInstance().getGame().getPlayerPickaxeTier(player) + 1;
+							} else if (items == Items.WOOD_AXE) {
+								tier = NovaBedwars.getInstance().getGame().getPlayerAxeTier(player) + 1;
+							}
+							inventory.addItem(items.asShopItem(tier));
+						} else {
+							inventory.addItem(items.asShopItem());
+
+						}
 					}
 				}
 			});
@@ -73,40 +89,23 @@ public class ItemShop {
 				builder.setName(ChatColor.GOLD + "Import hypixel preferences");
 				builder.addLore(ChatColor.AQUA + "This will try to import your bedwars preferences from hypixel");
 				builder.setAmount(1);
+				if (!BedwarsPreferenceManager.getInstance().isHypixelRequestCooldownActive(player)) {
+					inventory.setItem(ItemShop.IMPORT_HYPIXEL_PREFERENCES_SLOT, builder.build());
+				} else {
+					Task task = new SimpleTask(NovaBedwars.getInstance(), () -> {
+						ItemBuilder cooldown = new ItemBuilder(VersionIndependentUtils.getInstance().getColoredItem(DyeColor.RED, ColoredBlockType.GLASS_PANE))
+								.setName(ChatColor.RED.toString() + ChatColor.BOLD + "Please wait " + BedwarsPreferenceManager.getInstance().getCooldown(player) + " seconds before importing again")
+								.setAmount(1);
+						inventory.setItem(IMPORT_HYPIXEL_PREFERENCES_SLOT, cooldown.build());
+						player.updateInventory();
+					}, 1);
+					task.start();
+				}
 
-				inventory.setItem(ItemShop.IMPORT_HYPIXEL_PREFERENCES_SLOT, builder.build());
-				holder.addClickCallback(IMPORT_HYPIXEL_PREFERENCES_SLOT, new GUIClickCallback() {
-					@Override
-					public GUIAction onClick(Inventory clickedInventory, Inventory inventory, HumanEntity entity, int clickedSlot, SlotType slotType, InventoryAction clickType) {
-						if (BedwarsPreferenceManager.getInstance().isHypixelRequestCooldownActive(player)) {
-							player.sendMessage(ChatColor.RED + "Please wait " + BedwarsPreferenceManager.getInstance().getCooldown(player) + " seconds before trying to download preferences again");
-						} else {
-							if (!BedwarsPreferenceManager.getInstance().tryImportHypixelPreferences(player, new PreferenceAPIRequestCallback() {
-								@Override
-								public void onResult(boolean success, Exception exception) {
-									if (success) {
-										player.closeInventory();
-										VersionIndependentSound.NOTE_PLING.play(player);
-										player.sendMessage(ChatColor.GREEN + "Hypixel preferences imported");
-									} else {
-										if (exception == null) {
-											player.closeInventory();
-											VersionIndependentSound.NOTE_PLING.play(player);
-											player.sendMessage(ChatColor.RED + "Could not import your hypixel preferences. this could be caused by you changing your minecraft name recently or an error on our side");
-										} else {
-											player.closeInventory();
-											player.sendMessage(ChatColor.DARK_RED + "An error occured while trying to import your preferences. " + exception.getClass().getName());
-											Log.error("ItemShop", "Failed to import preferences for player " + player.getName() + ". " + exception.getClass().getName() + " " + exception.getMessage());
-											exception.printStackTrace();
-										}
-									}
-								}
-							})) {
-								player.sendMessage(ChatColor.DARK_RED + "Import failure");
-							}
-						}
-						return GUIAction.CANCEL_INTERACTION;
-					}
+
+				holder.addClickCallback(IMPORT_HYPIXEL_PREFERENCES_SLOT, (clickedInventory, inventory1, entity, clickedSlot, slotType, clickType) -> {
+					player.performCommand("importhypixelpreferences");
+					return GUIAction.ALLOW_INTERACTION;
 				});
 			}
 		} else if (category == ItemCategory.COMBAT) {
@@ -117,7 +116,7 @@ public class ItemShop {
 			inventory.setItem(20, blackbg);
 
 			List<Items> swordList = Arrays.stream(Items.values()).filter(i -> i.asShopItem().getType().name().contains("SWORD") || i.asShopItem().getType() == Material.STICK).collect(Collectors.toList());
-			List<Items> bowList = Arrays.stream(Items.values()).filter(i -> i.asShopItem().getType() == Material.BOW).collect(Collectors.toList());
+			List<Items> bowList = Arrays.stream(Items.values()).filter(i -> i.asShopItem().getType() == Material.BOW || i.asShopItem().getType() == Material.ARROW).collect(Collectors.toList());
 			List<Items> armorList = Arrays.stream(Items.values()).filter(i -> i.asShopItem().getType().name().contains("BOOTS")).collect(Collectors.toList());
 
 			for (int i = 21; i <= 26; i++) {
@@ -149,9 +148,17 @@ public class ItemShop {
 		} else {
 			Arrays.stream(Items.values()).forEach(items -> {
 				if (items.getCategory() == category) {
-					if (!items.isTiered()) {
+					if (items.isTiered()) {
+							int tier = 0;
+							if (items == Items.WOOD_PICKAXE) {
+								tier = NovaBedwars.getInstance().getGame().getPlayerPickaxeTier(player) + 1;
+							} else if (items == Items.WOOD_AXE) {
+								tier = NovaBedwars.getInstance().getGame().getPlayerAxeTier(player) + 1;
+							}
+							inventory.addItem(items.asShopItem(tier));
+						} else {
+							inventory.addItem(items.asShopItem());
 
-						inventory.addItem(items.asShopItem());
 					}
 				}
 			});
@@ -165,11 +172,14 @@ public class ItemShop {
 				Player p = (Player) e.getWhoClicked();
 				
 				Items item = Items.toItemEnum(e.getCurrentItem());
+				if (item == Items.NO_ITEM) {
+					return GUIAction.CANCEL_INTERACTION;
+				}
+
 				if (Price.canBuy(p, item)) {
 					Price.buyItem(item, e.getWhoClicked().getInventory(), e.getCurrentItem(), p);
 				} else {
-					VersionIndependentSound.ITEM_BREAK.play(p);
-					p.sendMessage(ChatColor.RED + "You can't afford that item");
+					Bukkit.getPluginManager().callEvent(new AttemptItemBuyEvent(item,player,false, Reason.NOT_ENOUGHT_MATERIALS));
 					return GUIAction.CANCEL_INTERACTION;
 				}
 

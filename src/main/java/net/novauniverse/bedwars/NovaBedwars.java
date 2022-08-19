@@ -1,18 +1,21 @@
 package net.novauniverse.bedwars;
 
 import net.novauniverse.bedwars.game.Bedwars;
+import net.novauniverse.bedwars.game.commands.ImportBedwarsPreferences;
 import net.novauniverse.bedwars.game.config.BedwarsConfig;
-import net.novauniverse.bedwars.game.debug.HashMapDebugger;
-import net.novauniverse.bedwars.game.debug.MissileWarsDebugCommands;
-import net.novauniverse.bedwars.game.debug.ShopItemMetasDebugger;
-import net.novauniverse.bedwars.game.debug.UUIDGetter;
+import net.novauniverse.bedwars.game.debug.*;
+import net.novauniverse.bedwars.game.enums.ArmorType;
 import net.novauniverse.bedwars.game.enums.ItemCategory;
+import net.novauniverse.bedwars.game.enums.Reason;
+import net.novauniverse.bedwars.game.events.AttemptItemBuyEvent;
 import net.novauniverse.bedwars.game.shop.ItemShop;
 import net.novauniverse.bedwars.utils.HypixelAPI;
 import net.novauniverse.bedwars.utils.preferences.api.PreferenceAPI;
 import net.novauniverse.bedwars.utils.preferences.api.PreferenceAPISettings;
 import net.zeeraa.novacore.commons.log.Log;
 import net.zeeraa.novacore.commons.utils.JSONFileUtils;
+import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependentSound;
+import net.zeeraa.novacore.spigot.command.CommandRegistry;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.GameManager;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.map.mapmodule.MapModuleManager;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.mapselector.selectors.RandomMapSelector;
@@ -27,6 +30,8 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.io.FileUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
@@ -171,12 +176,41 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 		HashMapDebugger.register();
 		ShopItemMetasDebugger.register();
 		UUIDGetter.register();
+		GivePotion.register();
+		CommandFromMessage.register();
+		CommandRegistry.registerCommand(new ImportBedwarsPreferences());
+		Bukkit.getOnlinePlayers().forEach(player -> {
+			getGame().getAllPlayersPickaxeTier().putIfAbsent(player, 0);
+			getGame().getAllPlayersAxeTier().putIfAbsent(player, 0);
+			getGame().getAllPlayersArmor().putIfAbsent(player, ArmorType.NO_ARMOR);
+		});
 	}
 
 	@Override
 	public void onDisable() {
 		Bukkit.getScheduler().cancelTasks(this);
 		HandlerList.unregisterAll((Plugin) this);
+	}
+  
+  @EventHandler
+	public void onCrouch(PlayerToggleSneakEvent e) {
+		if (e.isSneaking()) {
+			ItemShop shop = new ItemShop();
+			shop.display(ItemCategory.QUICK_BUY, e.getPlayer());
+		}
+	}
+  
+	@EventHandler
+	public void onBuyAttempt(AttemptItemBuyEvent e) {
+		Player player = e.getPlayer();
+		if (e.boughtItem()) {
+
+		} else {
+			if (e.getReason() == Reason.NOT_ENOUGHT_MATERIALS) {
+				VersionIndependentSound.ITEM_BREAK.play(player);
+				player.sendMessage(ChatColor.RED + "You can't afford that item");
+			}
+		}
 	}
 }
 
