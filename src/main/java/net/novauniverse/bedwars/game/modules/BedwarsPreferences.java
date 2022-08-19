@@ -75,6 +75,7 @@ public class BedwarsPreferences {
 		defaults.add(Items.BOW);
 		defaults.add(Items.SPEED);
 		defaults.add(Items.TNT);
+		defaults.add(Items.ENDER_PEARL);
 		defaults.add(Items.WOOD);
 		defaults.add(Items.IRON_SWORD);
 		defaults.add(Items.IRON_ARMOR);
