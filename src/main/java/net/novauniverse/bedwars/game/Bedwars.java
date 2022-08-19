@@ -11,6 +11,8 @@ import net.novauniverse.bedwars.game.config.GeneratorUpgrade;
 import net.novauniverse.bedwars.game.entity.BedwarsNPC;
 import net.novauniverse.bedwars.game.entity.NPCType;
 import net.novauniverse.bedwars.game.enums.ArmorType;
+import net.novauniverse.bedwars.game.enums.Reason;
+import net.novauniverse.bedwars.game.events.AttemptItemBuyEvent;
 import net.novauniverse.bedwars.game.events.BedDestructionEvent;
 import net.novauniverse.bedwars.game.generator.GeneratorType;
 import net.novauniverse.bedwars.game.generator.ItemGenerator;
@@ -172,7 +174,7 @@ public class Bedwars extends MapGame implements Listener {
 			if (bedDestructionTime > 0) {
 				bedDestructionTime--;
 				if (bedDestructionTime == 0) {
-					bases.stream().filter(b -> b.hasBed()).forEach(base -> {
+					bases.stream().filter(BaseData::hasBed).forEach(base -> {
 						base.setBed(false);
 						base.getBedLocation().getBlock().breakNaturally();
 						base.getOwner().getOnlinePlayers().forEach(player -> {
@@ -685,6 +687,19 @@ public class Bedwars extends MapGame implements Listener {
 		if (e.getEntity().hasMetadata(ItemGenerator.NO_MERGE_METADATA_KEY)) {
 			e.getEntity().setTicksLived(1);
 			e.setCancelled(true);
+		}
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST)
+	public void onBuyAttempt(AttemptItemBuyEvent e) {
+		Player player = e.getPlayer();
+		if (!e.boughtItem()) {
+			if (!e.isDisableBuiltInMessage()) {
+				if (e.getReason() == Reason.NOT_ENOUGHT_MATERIALS) {
+					VersionIndependentSound.ITEM_BREAK.play(player);
+					player.sendMessage(ChatColor.RED + "You can't afford that item");
+				}
+			}
 		}
 	}
 }

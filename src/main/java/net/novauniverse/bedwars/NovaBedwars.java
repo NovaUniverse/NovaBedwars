@@ -191,18 +191,7 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 		HandlerList.unregisterAll((Plugin) this);
 	}
 
-	@EventHandler(priority = EventPriority.HIGHEST)
-	public void onBuyAttempt(AttemptItemBuyEvent e) {
-		Player player = e.getPlayer();
-		if (!e.boughtItem()) {
-			if (!e.isDisableBuiltInMessage()) {
-				if (e.getReason() == Reason.NOT_ENOUGHT_MATERIALS) {
-					VersionIndependentSound.ITEM_BREAK.play(player);
-					player.sendMessage(ChatColor.RED + "You can't afford that item");
-				}
-			}
-		}
-	}
+
 }
 
 // UwU, Daddy

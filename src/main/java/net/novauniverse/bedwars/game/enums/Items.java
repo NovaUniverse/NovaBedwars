@@ -7,6 +7,7 @@ import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
 import net.zeeraa.novacore.spigot.abstraction.enums.ColoredBlockType;
 import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependentMaterial;
 import net.zeeraa.novacore.spigot.utils.ItemBuilder;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
@@ -171,15 +172,16 @@ public enum Items {
         Items ite = null;
         for (Items items: Items.values()) {
             if (item.toString().equalsIgnoreCase(items.asShopItem().toString())) {
-
                 ite = items;
                 break;
-            }
-            if (items.isTiered()) {
-                for (TieredItem tieredItem : items.getTieredItems()) {
-                    if (item.toString().equalsIgnoreCase(tieredItem.getItemStack().toString())) {
-                        ite = items;
-                        break;
+            } else {
+                if (items.isTiered()) {
+                    assert items.getTieredItems() != null;
+                    for (TieredItem tieredItem : items.getTieredItems()) {
+                        if (item.toString().equalsIgnoreCase(tieredItem.asShopItem().toString())) {
+                            ite = items;
+                            break;
+                        }
                     }
                 }
             }

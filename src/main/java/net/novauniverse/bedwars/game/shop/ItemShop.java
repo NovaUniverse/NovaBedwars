@@ -17,6 +17,7 @@ import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
 import net.zeeraa.novacore.spigot.abstraction.enums.ColoredBlockType;
 import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependentMaterial;
 import net.zeeraa.novacore.spigot.module.modules.gui.GUIAction;
+import net.zeeraa.novacore.spigot.module.modules.gui.callbacks.GUICloseCallback;
 import net.zeeraa.novacore.spigot.tasks.SimpleTask;
 import net.zeeraa.novacore.spigot.utils.ItemBuilder;
 import org.bukkit.Bukkit;
@@ -24,6 +25,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import java.util.Arrays;
@@ -81,14 +83,23 @@ public class ItemShop {
 				builder.setName(ChatColor.GOLD + "Import hypixel preferences");
 				builder.addLore(ChatColor.AQUA + "This will try to import your bedwars preferences from hypixel");
 				builder.setAmount(1);
+				if (!BedwarsPreferenceManager.getInstance().isHypixelRequestCooldownActive(player)) {
+					inventory.setItem(ItemShop.IMPORT_HYPIXEL_PREFERENCES_SLOT, builder.build());
+				} else {
+					ItemBuilder cooldown = new ItemBuilder(VersionIndependentUtils.getInstance().getColoredItem(DyeColor.RED, ColoredBlockType.GLASS_PANE)).setName(ChatColor.RED.toString() + ChatColor.BOLD + "Please wait " + BedwarsPreferenceManager.getInstance().getCooldown(player) + " seconds before importing again").setAmount(1);
+					inventory.setItem(IMPORT_HYPIXEL_PREFERENCES_SLOT, cooldown.build());
+				}
 				Task task = new SimpleTask(NovaBedwars.getInstance(), () -> {
-					if (!BedwarsPreferenceManager.getInstance().isHypixelRequestCooldownActive(player)) {
-						inventory.setItem(ItemShop.IMPORT_HYPIXEL_PREFERENCES_SLOT, builder.build());
-					} else {
-						ItemBuilder cooldown = new ItemBuilder(VersionIndependentUtils.getInstance().getColoredItem(DyeColor.RED, ColoredBlockType.GLASS_PANE)).setName(ChatColor.RED.toString() + ChatColor.BOLD + "Please wait " + BedwarsPreferenceManager.getInstance().getCooldown(player) + " seconds before importing again").setAmount(1);
-						inventory.setItem(IMPORT_HYPIXEL_PREFERENCES_SLOT, cooldown.build());
+					if (player.getOpenInventory().getTopInventory().getHolder().equals(holder)) {
+						if (!BedwarsPreferenceManager.getInstance().isHypixelRequestCooldownActive(player)) {
+							inventory.setItem(ItemShop.IMPORT_HYPIXEL_PREFERENCES_SLOT, builder.build());
+						} else {
+							ItemBuilder cooldown = new ItemBuilder(VersionIndependentUtils.getInstance().getColoredItem(DyeColor.RED, ColoredBlockType.GLASS_PANE)).setName(ChatColor.RED.toString() + ChatColor.BOLD + "Please wait " + BedwarsPreferenceManager.getInstance().getCooldown(player) + " seconds before importing again").setAmount(1);
+							inventory.setItem(IMPORT_HYPIXEL_PREFERENCES_SLOT, cooldown.build());
+						}
+						player.updateInventory();
 					}
-					player.updateInventory();
+
 				}, 1);
 				task.start();
 
@@ -164,14 +175,7 @@ public class ItemShop {
 				if (item == Items.NO_ITEM) {
 					return GUIAction.CANCEL_INTERACTION;
 				}
-
-				if (Price.canBuy(p, item)) {
-					Price.buyItem(item, e.getWhoClicked().getInventory(), e.getCurrentItem(), p);
-				} else {
-					Bukkit.getPluginManager().callEvent(new AttemptItemBuyEvent(item, player, false, Reason.NOT_ENOUGHT_MATERIALS));
-					return GUIAction.CANCEL_INTERACTION;
-				}
-
+				Price.buyItem(item, e.getWhoClicked().getInventory(), e.getCurrentItem(), p);
 			} else {
 				// e.getWhoClicked().sendMessage(ChatColor.RED + "Fail: not shop item");
 				return GUIAction.CANCEL_INTERACTION;
