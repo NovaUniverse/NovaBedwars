@@ -117,6 +117,18 @@ public class ItemGenerator {
 	}
 
 	public void setGenerateItemDelay(int generateItemDelay) {
+		if (generateItemDelay <= 0) {
+			generateItemDelay = 1;
+		}
+
+		if (this.timeLeft > generateItemDelay) {
+			this.timeLeft = generateItemDelay;
+		}
+
 		this.generateItemDelay = generateItemDelay;
+	}
+
+	public void decreaseDefaultTime(int speedIncrement) {
+		this.setGenerateItemDelay(this.getGenerateItemDelay() - speedIncrement);
 	}
 }
