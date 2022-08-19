@@ -5,15 +5,19 @@ import net.novauniverse.bedwars.game.config.BedwarsConfig;
 import net.novauniverse.bedwars.game.entity.BedwarsNPC;
 import net.novauniverse.bedwars.game.entity.NPCType;
 import net.novauniverse.bedwars.game.enums.ArmorType;
+import net.novauniverse.bedwars.game.generator.GeneratorType;
+import net.novauniverse.bedwars.game.generator.ItemGenerator;
 import net.novauniverse.bedwars.game.object.base.BaseData;
 import net.novauniverse.bedwars.game.shop.ItemShop;
 import net.novauniverse.bedwars.game.shop.UpgradeShop;
 import net.zeeraa.novacore.commons.log.Log;
+import net.zeeraa.novacore.commons.tasks.Task;
 import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
 import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependentSound;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.GameEndReason;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.MapGame;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.elimination.PlayerQuitEliminationAction;
+import net.zeeraa.novacore.spigot.tasks.SimpleTask;
 import net.zeeraa.novacore.spigot.teams.Team;
 import net.zeeraa.novacore.spigot.teams.TeamManager;
 import net.zeeraa.novacore.spigot.utils.PlayerUtils;
@@ -32,6 +36,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.ItemMergeEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -60,6 +65,10 @@ public class Bedwars extends MapGame implements Listener {
 
 	private ItemShop itemShop;
 	private UpgradeShop upgradeShop;
+
+	private List<ItemGenerator> generators;
+
+	private Task generatorTask;
 
 	public Map<Player, ArmorType> getAllPlayersArmor() {
 		return hasArmor;
@@ -95,8 +104,17 @@ public class Bedwars extends MapGame implements Listener {
 		pickaxeTier = new HashMap<>();
 		axeTier = new HashMap<>();
 
+		generators = new ArrayList<>();
+
 		itemShop = new ItemShop();
 		upgradeShop = new UpgradeShop();
+
+		generatorTask = new SimpleTask(getPlugin(), new Runnable() {
+			@Override
+			public void run() {
+				generators.forEach(gen -> gen.countdown());
+			}
+		}, 20L);
 	}
 
 	public BedwarsConfig getConfig() {
@@ -185,6 +203,12 @@ public class Bedwars extends MapGame implements Listener {
 		 * team.getDisplayName()); } });
 		 */
 
+		// TODO: Load from config
+		int ironGeneratorTime = 4;
+		int goldGeneratorTime = 10;
+		int diamondGeneratorTime = 30;
+		int emeraldGeneratorTime = 60;
+
 		List<Team> teamsToSetup = new ArrayList<>(TeamManager.getTeamManager().getTeams());
 		config.getBases().forEach(cfgBase -> {
 			Team team = null;
@@ -194,18 +218,22 @@ public class Bedwars extends MapGame implements Listener {
 
 			BaseData base = cfgBase.toBaseData(getWorld(), team);
 
+			generators.add(new ItemGenerator(base.getSpawnLocation(), GeneratorType.IRON, ironGeneratorTime, false));
+			generators.add(new ItemGenerator(base.getSpawnLocation(), GeneratorType.GOLD, goldGeneratorTime, false));
+
 			BedwarsNPC itemShopNPC = new BedwarsNPC(base.getItemShopLocation(), NPCType.ITEMS);
 			itemShopNPC.spawn();
 			npcs.add(itemShopNPC);
 
-			if (team != null) {
-				BedwarsNPC upgradesShopNPC = new BedwarsNPC(base.getUpgradeShopLocation(), NPCType.UPGRADES);
-				upgradesShopNPC.spawn();
-				npcs.add(upgradesShopNPC);
-			}
+			BedwarsNPC upgradesShopNPC = new BedwarsNPC(base.getUpgradeShopLocation(), NPCType.UPGRADES);
+			upgradesShopNPC.spawn();
+			npcs.add(upgradesShopNPC);
 
 			bases.add(base);
 		});
+
+		config.getDiamondGenerators().forEach(xyz -> generators.add(new ItemGenerator(xyz.toBukkitLocation(getWorld()), GeneratorType.DIAMOND, diamondGeneratorTime, true)));
+		config.getEmeraldGenerators().forEach(xyz -> generators.add(new ItemGenerator(xyz.toBukkitLocation(getWorld()), GeneratorType.EMERALD, emeraldGeneratorTime, true)));
 
 		if (teamsToSetup.size() > 0) {
 			Log.error("Bedwars", "Not enough bases configured! " + teamsToSetup.size() + " teams does not have a base");
@@ -214,6 +242,8 @@ public class Bedwars extends MapGame implements Listener {
 		Bukkit.getServer().getOnlinePlayers().forEach(this::tpToSpectator);
 
 		Bukkit.getServer().getOnlinePlayers().stream().filter(p -> players.contains(p.getUniqueId())).forEach(this::tpToBase);
+
+		Task.tryStartTask(generatorTask);
 
 		started = true;
 	}
@@ -232,6 +262,8 @@ public class Bedwars extends MapGame implements Listener {
 		if (ended || !started) {
 			return;
 		}
+
+		Task.tryStopTask(generatorTask);
 
 		getActiveMap().getStarterLocations().forEach(location -> {
 			Firework fw = (Firework) location.getWorld().spawnEntity(location, EntityType.FIREWORK);
@@ -332,6 +364,13 @@ public class Bedwars extends MapGame implements Listener {
 					e.getPlayer().sendMessage(ChatColor.RED + "You can only break blocks placed by players");
 				}
 			}
+		}
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+	public void onItemMerge(ItemMergeEvent e) {
+		if (e.getEntity().hasMetadata(ItemGenerator.NO_MERGE_METADATA_KEY) || e.getTarget().hasMetadata(ItemGenerator.NO_MERGE_METADATA_KEY)) {
+			e.setCancelled(true);
 		}
 	}
 }
