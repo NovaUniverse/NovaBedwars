@@ -22,7 +22,11 @@ import net.zeeraa.novacore.spigot.utils.VectorUtils;
 
 public class ItemGenerator {
 	public static final String NO_MERGE_METADATA_KEY = "novabedwarsnomerge";
+	public static final String MULTIPICKUP_METADATA_KEY = "novabedwarsmultipickup";
+	
 	public static final double HOLOGRAM_OFFSET = 2.5D;
+	
+	public static final double MULTI_PICKUP_RANGE = 1.25D;
 
 	private Location location;
 
@@ -38,14 +42,17 @@ public class ItemGenerator {
 
 	private Hologram hologram;
 
-	public ItemGenerator(Location location, GeneratorType type, int generateItemDelay, boolean useHologram) {
-		this(location, type, generateItemDelay, useHologram, null);
+	private boolean multiPickup;
+
+	public ItemGenerator(Location location, GeneratorType type, int generateItemDelay, boolean useHologram, boolean multiPickup) {
+		this(location, type, generateItemDelay, useHologram, multiPickup, null);
 	}
 
-	public ItemGenerator(Location location, GeneratorType type, int generateItemDelay, boolean useHologram, Team owner) {
+	public ItemGenerator(Location location, GeneratorType type, int generateItemDelay, boolean useHologram, boolean multiPickup, Team owner) {
 		this.location = location;
 		this.type = type;
 		this.generateItemDelay = generateItemDelay;
+		this.multiPickup = multiPickup;
 		this.owner = owner;
 
 		this.full = false;
@@ -98,6 +105,10 @@ public class ItemGenerator {
 
 	public boolean isFull() {
 		return full;
+	}
+
+	public boolean isMultiPickup() {
+		return multiPickup;
 	}
 
 	public Location getLocation() {

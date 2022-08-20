@@ -75,6 +75,7 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.meta.FireworkMeta;
@@ -299,8 +300,8 @@ public class Bedwars extends MapGame implements Listener {
 
 			BaseData base = cfgBase.toBaseData(getWorld(), team);
 
-			generators.add(new ItemGenerator(base.getSpawnLocation(), GeneratorType.IRON, ironGeneratorTime, false));
-			generators.add(new ItemGenerator(base.getSpawnLocation(), GeneratorType.GOLD, goldGeneratorTime, false));
+			generators.add(new ItemGenerator(base.getSpawnLocation(), GeneratorType.IRON, ironGeneratorTime, false, true, team));
+			generators.add(new ItemGenerator(base.getSpawnLocation(), GeneratorType.GOLD, goldGeneratorTime, false, true, team));
 
 			BedwarsNPC itemShopNPC = new BedwarsNPC(base.getItemShopLocation(), NPCType.ITEMS);
 			itemShopNPC.spawn();
@@ -313,8 +314,8 @@ public class Bedwars extends MapGame implements Listener {
 			bases.add(base);
 		});
 
-		config.getDiamondGenerators().forEach(xyz -> generators.add(new ItemGenerator(xyz.toBukkitLocation(getWorld()), GeneratorType.DIAMOND, diamondGeneratorTime, true)));
-		config.getEmeraldGenerators().forEach(xyz -> generators.add(new ItemGenerator(xyz.toBukkitLocation(getWorld()), GeneratorType.EMERALD, emeraldGeneratorTime, true)));
+		config.getDiamondGenerators().forEach(xyz -> generators.add(new ItemGenerator(xyz.toBukkitLocation(getWorld()), GeneratorType.DIAMOND, diamondGeneratorTime, true, false)));
+		config.getEmeraldGenerators().forEach(xyz -> generators.add(new ItemGenerator(xyz.toBukkitLocation(getWorld()), GeneratorType.EMERALD, emeraldGeneratorTime, true, false)));
 
 		if (teamsToSetup.size() > 0) {
 			Log.error("Bedwars", "Not enough bases configured! " + teamsToSetup.size() + " teams does not have a base");
@@ -758,7 +759,7 @@ public class Bedwars extends MapGame implements Listener {
 			break;
 
 		case 4:
-			generators.add(new ItemGenerator(base.getSpawnLocation(), GeneratorType.EMERALD, config.getEmeraldForgeTime(), false, team));
+			generators.add(new ItemGenerator(base.getSpawnLocation(), GeneratorType.EMERALD, config.getEmeraldForgeTime(), false, true, team));
 			break;
 
 		default:
@@ -825,7 +826,20 @@ public class Bedwars extends MapGame implements Listener {
 				VersionIndependentSound.EAT.play(player);
 			}
 		}
+	}
 
+	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = false)
+	public void onPlayerPickupItem(PlayerPickupItemEvent e) {
+		Player player = e.getPlayer();
+		if (e.getItem().hasMetadata(ItemGenerator.MULTIPICKUP_METADATA_KEY)) {
+			player.getWorld().getNearbyEntities(player.getLocation(), ItemGenerator.MULTI_PICKUP_RANGE, ItemGenerator.MULTI_PICKUP_RANGE, ItemGenerator.MULTI_PICKUP_RANGE).stream().filter(entity -> entity.getType() == EntityType.PLAYER).forEach(entity -> {
+				Player player2 = (Player) entity;
+				if (player2.equals(player)) {
+					return;
+				}
+				player.getInventory().addItem(e.getItem().getItemStack());
+			});
+		}
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
