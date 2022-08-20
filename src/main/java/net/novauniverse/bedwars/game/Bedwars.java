@@ -387,13 +387,24 @@ public class Bedwars extends MapGame implements Listener {
 		Task.tryStartTask(armorCheckTask);
 		Task.tryStartTask(compassTask);
 		Task.tryStartTask(tntParticleTask);
-		
+
 		sendStartMessage();
 
 		getWorld().setDifficulty(Difficulty.PEACEFUL);
 
 		started = true;
 		sendBeginEvent();
+	}
+
+	public boolean hasBed(Player player) {
+		Team team = TeamManager.getTeamManager().getPlayerTeam(player);
+		if (team != null) {
+			BaseData base = bases.stream().filter(b -> b.getOwner().equals(team)).findFirst().orElse(null);
+			if (base != null) {
+				return base.hasBed();
+			}
+		}
+		return false;
 	}
 
 	public void sendStartMessage() {
