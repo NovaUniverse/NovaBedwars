@@ -95,6 +95,9 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
+import com.gmail.filoghost.holographicdisplays.api.Hologram;
+import com.gmail.filoghost.holographicdisplays.api.HologramsAPI;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -128,7 +131,7 @@ public class Bedwars extends MapGame implements Listener {
 	private List<BaseData> bases;
 	private List<ItemGenerator> generators;
 	private List<GeneratorUpgrade> generatorUpgrades;
-
+	private List<Hologram> baseNameHolograms;
 	private List<UUID> armorHidden;
 
 	private ItemShop itemShop;
@@ -195,6 +198,8 @@ public class Bedwars extends MapGame implements Listener {
 		generators = new ArrayList<>();
 
 		armorHidden = new ArrayList<>();
+
+		baseNameHolograms = new ArrayList<>();
 
 		itemShop = new ItemShop();
 		upgradeShop = new UpgradeShop();
@@ -358,10 +363,17 @@ public class Bedwars extends MapGame implements Listener {
 			upgradesShopNPC.spawn();
 			npcs.add(upgradesShopNPC);
 
+			String teamName = ChatColor.RED + "" + ChatColor.BOLD + TextUtils.ICON_WARNING + " No Team " + TextUtils.ICON_WARNING;
 			if (team == null) {
 				base.setBed(false);
 				base.getBedLocation().getBlock().breakNaturally();
+			} else {
+				teamName = team.getTeamColor() + "" + ChatColor.BOLD + team.getDisplayName();
 			}
+
+			Hologram hologram = HologramsAPI.createHologram(getPlugin(), base.getBedLocation().clone().add(0.0D, 6.0D, 0.0D));
+			hologram.appendTextLine(teamName);
+			baseNameHolograms.add(hologram);
 
 			bases.add(base);
 		});
@@ -452,6 +464,8 @@ public class Bedwars extends MapGame implements Listener {
 		Task.tryStopTask(armorCheckTask);
 		Task.tryStopTask(compassTask);
 		Task.tryStopTask(tntParticleTask);
+
+		baseNameHolograms.forEach(Hologram::delete);
 
 		getActiveMap().getStarterLocations().forEach(location -> {
 			Firework fw = (Firework) location.getWorld().spawnEntity(location, EntityType.FIREWORK);
