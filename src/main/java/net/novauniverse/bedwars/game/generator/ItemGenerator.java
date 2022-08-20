@@ -95,7 +95,10 @@ public class ItemGenerator {
 	public void dropItem() {
 		ItemStack itemToDrop = new ItemBuilder(type.getMaterial()).setAmount(1).build();
 		Item item = location.getWorld().dropItem(location.clone().add(0D, 1D, 0D), itemToDrop);
-		item.setMetadata(NO_MERGE_METADATA_KEY, new FixedMetadataValue(NovaBedwars.getInstance(), true));
+		item.setMetadata(ItemGenerator.NO_MERGE_METADATA_KEY, new FixedMetadataValue(NovaBedwars.getInstance(), true));
+		if(multiPickup) {
+			item.setMetadata(ItemGenerator.MULTIPICKUP_METADATA_KEY, new FixedMetadataValue(NovaBedwars.getInstance(), true));
+		}
 		item.setVelocity(VectorUtils.getEmptyVector());
 	}
 
