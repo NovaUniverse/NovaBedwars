@@ -10,11 +10,13 @@ import net.novauniverse.bedwars.game.object.base.BaseData;
 import net.zeeraa.novacore.commons.log.Log;
 import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
 import net.zeeraa.novacore.spigot.abstraction.enums.ColoredBlockType;
+import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependentSound;
 import net.zeeraa.novacore.spigot.module.modules.gui.GUIAction;
 import net.zeeraa.novacore.spigot.teams.Team;
 import net.zeeraa.novacore.spigot.teams.TeamManager;
 import net.zeeraa.novacore.spigot.utils.ItemBuilder;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -52,6 +54,10 @@ public class UpgradeShop {
 					if (!finalData.hasSharpness()) {
 						Price.buyUpgrade(player, Upgrades.SHARPNESS.getPrice());
 						finalData.setSharpness(true);
+						finalData.getOwner().getOnlinePlayers().forEach(p -> {
+							VersionIndependentSound.NOTE_PLING.play(player);
+							p.sendMessage(ChatColor.AQUA + player.getName() + " bought sharpness");
+						});
 						success = true;
 					}
 				}
@@ -62,6 +68,10 @@ public class UpgradeShop {
 						Price.buyUpgrade(player, Upgrades.PROTECTION.getTieredUpgrades().get(finalData.getProtectionLevel()).getPrice());
 						finalData.setProtectionLevel(finalData.getProtectionLevel() + 1);
 						success = true;
+						finalData.getOwner().getOnlinePlayers().forEach(p -> {
+							VersionIndependentSound.NOTE_PLING.play(player);
+							p.sendMessage(ChatColor.AQUA + player.getName() + " bought protection " + finalData.getProtectionLevel());
+						});
 					}
 				}
 			} else if (inventoryClickEvent.getSlot() == 8) {
@@ -72,6 +82,10 @@ public class UpgradeShop {
 						finalData.setForgeLevel(finalData.getForgeLevel() + 1);
 						success = true;
 						NovaBedwars.getInstance().getGame().buyForgeUpgrade(player, finalData.getForgeLevel());
+						finalData.getOwner().getOnlinePlayers().forEach(p -> {
+							VersionIndependentSound.NOTE_PLING.play(player);
+							p.sendMessage(ChatColor.AQUA + player.getName() + " bought forge upgrade " + finalData.getForgeLevel());
+						});
 					}
 				}
 			}
