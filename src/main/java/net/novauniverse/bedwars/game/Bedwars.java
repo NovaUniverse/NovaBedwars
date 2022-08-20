@@ -727,7 +727,6 @@ public class Bedwars extends MapGame implements Listener {
 			if (data.hasSharpness()) {
 				InventoryUtils.slotsWith(teamPlayer.getInventory(), Material.DIAMOND_SWORD, Material.STONE_SWORD, Material.IRON_SWORD, VersionIndependentMaterial.GOLDEN_SWORD.toBukkitVersion(), VersionIndependentMaterial.WOODEN_SWORD.toBukkitVersion()).forEach(slot -> teamPlayer.getInventory().getItem(slot).addEnchantment(Enchantment.DAMAGE_ALL, 1));
 			}
-
 		});
 	}
 

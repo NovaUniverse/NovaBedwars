@@ -67,8 +67,8 @@ public class UpgradeShop {
 			} else if (inventoryClickEvent.getSlot() == 8) {
 				upgrade = Upgrades.FORGE;
 				if (finalData.getForgeLevel() < 4) {
-					if (Price.canBuy(player, Upgrades.FORGE.getTieredUpgrades().get(finalData.getProtectionLevel()).getPrice())) {
-						Price.buyUpgrade(player, Upgrades.FORGE.getTieredUpgrades().get(finalData.getProtectionLevel()).getPrice());
+					if (Price.canBuy(player, Upgrades.FORGE.getTieredUpgrades().get(finalData.getForgeLevel()).getPrice())) {
+						Price.buyUpgrade(player, Upgrades.FORGE.getTieredUpgrades().get(finalData.getForgeLevel()).getPrice());
 						finalData.setForgeLevel(finalData.getForgeLevel() + 1);
 						success = true;
 						NovaBedwars.getInstance().getGame().buyForgeUpgrade(player, finalData.getForgeLevel());
