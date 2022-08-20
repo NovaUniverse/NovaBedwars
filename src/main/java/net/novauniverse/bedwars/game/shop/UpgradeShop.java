@@ -7,7 +7,6 @@ import net.novauniverse.bedwars.game.events.AttemptUpgradeBuyEvent;
 import net.novauniverse.bedwars.game.holder.UpgradeShopHolder;
 import net.novauniverse.bedwars.game.object.Price;
 import net.novauniverse.bedwars.game.object.base.BaseData;
-import net.zeeraa.novacore.commons.log.Log;
 import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
 import net.zeeraa.novacore.spigot.abstraction.enums.ColoredBlockType;
 import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependentSound;
