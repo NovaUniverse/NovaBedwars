@@ -44,17 +44,25 @@ public class BedwarsNPC {
 		hologram = HologramsAPI.createHologram(NovaBedwars.getInstance(), location.clone().add(0D, HOLOGRAM_OFFSET, 0D));
 		hologram.appendTextLine(getName());
 
-		villager = (Villager) getLocation().getWorld().spawnEntity(getLocation(), EntityType.VILLAGER);
-		villager.setNoDamageTicks(Integer.MAX_VALUE);
-		
-		villager.setRemoveWhenFarAway(false);
-		villager.setCustomNameVisible(false);
-		villager.setCustomName("Anders");
-		
-		VersionIndependentUtils.get().setAI(villager, false);
-		VersionIndependentUtils.get().setSilent(villager, true);
+		spawnVillager();
 
 		Task.tryStartTask(task);
+	}
+
+	private void spawnVillager() {
+		if (villager != null) {
+			if (!villager.isDead()) {
+				villager.remove();
+			}
+		}
+
+		villager = (Villager) getLocation().getWorld().spawnEntity(getLocation(), EntityType.VILLAGER);
+		villager.setNoDamageTicks(Integer.MAX_VALUE);
+
+		villager.setRemoveWhenFarAway(false);
+
+		VersionIndependentUtils.get().setAI(villager, false);
+		VersionIndependentUtils.get().setSilent(villager, true);
 	}
 
 	public void dispose() {
@@ -77,6 +85,15 @@ public class BedwarsNPC {
 		default:
 			return "[INVALID ENUM TYPE]";
 		}
+	}
+
+	public void checkVillager() {
+		if (villager != null) {
+			if (!villager.isDead()) {
+				return;
+			}
+		}
+		spawnVillager();
 	}
 
 	public void lookAtPlayer() {

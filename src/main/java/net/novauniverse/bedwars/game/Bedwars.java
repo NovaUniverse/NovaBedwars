@@ -120,6 +120,7 @@ public class Bedwars extends MapGame implements Listener {
 	private UpgradeShop upgradeShop;
 
 	private Task countdownTask;
+	private Task npcFixTask;
 
 	public Map<Player, ArmorType> getAllPlayersArmor() {
 		return hasArmor;
@@ -179,6 +180,8 @@ public class Bedwars extends MapGame implements Listener {
 
 		bedDestructionTime = Integer.MAX_VALUE;
 
+		npcFixTask = new SimpleTask(getPlugin(), () -> npcs.forEach(BedwarsNPC::checkVillager), 20L);
+		
 		countdownTask = new SimpleTask(getPlugin(), () -> {
 			if (bedDestructionTime > 0) {
 				bedDestructionTime--;
@@ -333,6 +336,7 @@ public class Bedwars extends MapGame implements Listener {
 		Bukkit.getServer().getOnlinePlayers().stream().filter(p -> players.contains(p.getUniqueId())).forEach(this::tpToBase);
 
 		Task.tryStartTask(countdownTask);
+		Task.tryStartTask(npcFixTask);
 
 		sendStartMessage();
 
@@ -384,6 +388,7 @@ public class Bedwars extends MapGame implements Listener {
 		respawnTasks.clear();
 
 		Task.tryStopTask(countdownTask);
+		Task.tryStopTask(npcFixTask);
 
 		getActiveMap().getStarterLocations().forEach(location -> {
 			Firework fw = (Firework) location.getWorld().spawnEntity(location, EntityType.FIREWORK);
@@ -475,7 +480,7 @@ public class Bedwars extends MapGame implements Listener {
 			}
 		}
 	}
-
+	
 	@EventHandler(priority = EventPriority.NORMAL)
 	public void onPlayerDeath(PlayerDeathEvent e) {
 		if (!started) {
