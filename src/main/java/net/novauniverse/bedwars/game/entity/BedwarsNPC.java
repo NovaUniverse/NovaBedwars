@@ -8,10 +8,7 @@ import net.zeeraa.novacore.spigot.tasks.SimpleTask;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Player;
 import org.bukkit.entity.Villager;
-import org.bukkit.util.Vector;
-
 import com.gmail.filoghost.holographicdisplays.api.Hologram;
 import com.gmail.filoghost.holographicdisplays.api.HologramsAPI;
 
@@ -49,6 +46,11 @@ public class BedwarsNPC {
 
 		villager = (Villager) getLocation().getWorld().spawnEntity(getLocation(), EntityType.VILLAGER);
 		villager.setNoDamageTicks(Integer.MAX_VALUE);
+		
+		villager.setRemoveWhenFarAway(false);
+		villager.setCustomNameVisible(false);
+		villager.setCustomName("Anders");
+		
 		VersionIndependentUtils.get().setAI(villager, false);
 		VersionIndependentUtils.get().setSilent(villager, true);
 
@@ -78,18 +80,18 @@ public class BedwarsNPC {
 	}
 
 	public void lookAtPlayer() {
-		villager.getWorld().getNearbyEntities(villager.getLocation(), 3, 3, 3).stream().filter(e -> e.getType() == EntityType.PLAYER).findFirst().ifPresent(entity -> {
-			if (entity instanceof Player) {
-				Player player = (Player) entity;
-				Vector vec = player.getLocation().toVector().subtract(villager.getLocation().toVector());
-				Location location = villager.getLocation().clone();
-				location.setDirection(vec);
-				location.setX(villager.getLocation().getX());
-				location.setY(villager.getLocation().getY());
-				location.setZ(villager.getLocation().getZ());
-				villager.teleport(location);
-			}
-		});
+		/*
+		 * villager.getWorld().getNearbyEntities(villager.getLocation(), 3, 3,
+		 * 3).stream().filter(e -> e.getType() ==
+		 * EntityType.PLAYER).findFirst().ifPresent(entity -> { if (entity instanceof
+		 * Player) { Player player = (Player) entity; Vector vec =
+		 * player.getLocation().toVector().subtract(villager.getLocation().toVector());
+		 * Location location = villager.getLocation().clone();
+		 * location.setDirection(vec); location.setX(villager.getLocation().getX());
+		 * location.setY(villager.getLocation().getY());
+		 * location.setZ(villager.getLocation().getZ()); villager.teleport(location); }
+		 * });
+		 */
 	}
 
 	public boolean isSpawned() {

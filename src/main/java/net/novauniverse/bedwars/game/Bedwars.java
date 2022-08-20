@@ -311,6 +311,11 @@ public class Bedwars extends MapGame implements Listener {
 			upgradesShopNPC.spawn();
 			npcs.add(upgradesShopNPC);
 
+			if (team == null) {
+				base.setBed(false);
+				base.getBedLocation().getBlock().breakNaturally();
+			}
+
 			bases.add(base);
 		});
 
@@ -428,8 +433,8 @@ public class Bedwars extends MapGame implements Listener {
 
 				// TODO: Give player items
 				player.getInventory().setItem(WEAPON_SLOT_DEFAULT, new ItemBuilder(VersionIndependentMaterial.WOODEN_SWORD).setUnbreakable(true).build());
-				updatePlayerItems(player); // Has to be run at the last stage
-				
+				updatePlayerItems(player); // Has to be run at the last stage§
+
 			}
 		}
 	}
