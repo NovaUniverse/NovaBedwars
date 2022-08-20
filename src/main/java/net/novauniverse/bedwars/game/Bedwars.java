@@ -757,7 +757,12 @@ public class Bedwars extends MapGame implements Listener {
 			generators.stream().filter(g -> g.isOwnedBy(team)).filter(g -> g.getType() == GeneratorType.GOLD).forEach(g -> g.decreaseDefaultTime(2));
 			break;
 
+		case 4:
+			generators.add(new ItemGenerator(base.getSpawnLocation(), GeneratorType.EMERALD, config.getEmeraldForgeTime(), false, team));
+			break;
+
 		default:
+			Log.warn("Missilewars", "Invalid forge upgrade tier " + tier);
 			break;
 		}
 	}
