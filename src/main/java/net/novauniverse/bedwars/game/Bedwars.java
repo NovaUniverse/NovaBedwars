@@ -690,19 +690,19 @@ public class Bedwars extends MapGame implements Listener {
 		switch (armorType) {
 		case GOLD:
 			player.getInventory().setLeggings(new ItemBuilder(Material.GOLD_LEGGINGS).setUnbreakable(true).build());
-			player.getInventory().setLeggings(new ItemBuilder(Material.GOLD_BOOTS).setUnbreakable(true).build());
+			player.getInventory().setBoots(new ItemBuilder(Material.GOLD_BOOTS).setUnbreakable(true).build());
 			break;
 		case CHAINMAIL:
 			player.getInventory().setLeggings(new ItemBuilder(Material.CHAINMAIL_LEGGINGS).setUnbreakable(true).build());
-			player.getInventory().setLeggings(new ItemBuilder(Material.CHAINMAIL_BOOTS).setUnbreakable(true).build());
+			player.getInventory().setBoots(new ItemBuilder(Material.CHAINMAIL_BOOTS).setUnbreakable(true).build());
 			break;
 		case IRON:
 			player.getInventory().setLeggings(new ItemBuilder(Material.IRON_LEGGINGS).setUnbreakable(true).build());
-			player.getInventory().setLeggings(new ItemBuilder(Material.IRON_BOOTS).setUnbreakable(true).build());
+			player.getInventory().setBoots(new ItemBuilder(Material.IRON_BOOTS).setUnbreakable(true).build());
 			break;
 		case DIAMOND:
 			player.getInventory().setLeggings(new ItemBuilder(Material.DIAMOND_LEGGINGS).setUnbreakable(true).build());
-			player.getInventory().setLeggings(new ItemBuilder(Material.DIAMOND_BOOTS).setUnbreakable(true).build());
+			player.getInventory().setBoots(new ItemBuilder(Material.DIAMOND_BOOTS).setUnbreakable(true).build());
 			break;
 		default:
 			break;
