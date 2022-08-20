@@ -78,6 +78,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -181,7 +182,7 @@ public class Bedwars extends MapGame implements Listener {
 		bedDestructionTime = Integer.MAX_VALUE;
 
 		npcFixTask = new SimpleTask(getPlugin(), () -> npcs.forEach(BedwarsNPC::checkVillager), 20L);
-		
+
 		countdownTask = new SimpleTask(getPlugin(), () -> {
 			if (bedDestructionTime > 0) {
 				bedDestructionTime--;
@@ -480,7 +481,7 @@ public class Bedwars extends MapGame implements Listener {
 			}
 		}
 	}
-	
+
 	@EventHandler(priority = EventPriority.NORMAL)
 	public void onPlayerDeath(PlayerDeathEvent e) {
 		if (!started) {
@@ -488,6 +489,19 @@ public class Bedwars extends MapGame implements Listener {
 		}
 
 		Player player = e.getEntity();
+
+		Player killer = player.getKiller();
+		if (killer != null) {
+			Bukkit.getServer().broadcastMessage(ChatColor.AQUA + player.getName() + ChatColor.RED + " was killed by " + ChatColor.AQUA + killer.getName());
+
+			for (ItemStack item : player.getInventory().getContents()) {
+				if (item.getType() == Material.EMERALD || item.getType() == Material.DIAMOND || item.getType() == Material.GOLD_INGOT || item.getType() == Material.IRON_INGOT) {
+					killer.getInventory().addItem(item);
+				}
+			}
+		} else {
+			Bukkit.getServer().broadcastMessage(ChatColor.AQUA + player.getName() + ChatColor.RED + " died");
+		}
 
 		PlayerUtils.clearPlayerInventory(player);
 		e.setDroppedExp(0);

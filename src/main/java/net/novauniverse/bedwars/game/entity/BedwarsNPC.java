@@ -1,6 +1,7 @@
 package net.novauniverse.bedwars.game.entity;
 
 import net.novauniverse.bedwars.NovaBedwars;
+import net.zeeraa.novacore.commons.log.Log;
 import net.zeeraa.novacore.commons.tasks.Task;
 import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
 import net.zeeraa.novacore.spigot.tasks.SimpleTask;
@@ -93,6 +94,7 @@ public class BedwarsNPC {
 				return;
 			}
 		}
+		Log.trace("BedwarsNPC", "Villager seems to be dead, spawning a new one");
 		spawnVillager();
 	}
 
