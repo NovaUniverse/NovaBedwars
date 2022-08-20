@@ -573,7 +573,7 @@ public class Bedwars extends MapGame implements Listener {
 			}
 		}
 
-		Log.trace("EventDebug", e.getAction() + " " + e.getClickedInventory() + " " + e.getCurrentItem() + " " + e.getCursor() + " " + e.isCancelled());
+		//Log.trace("EventDebug", e.getAction() + " " + e.getClickedInventory() + " " + e.getCurrentItem() + " " + e.getCursor() + " " + e.isCancelled());
 	}
 
 	@EventHandler(priority = EventPriority.NORMAL)
