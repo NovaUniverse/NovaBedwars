@@ -742,6 +742,7 @@ public class Bedwars extends MapGame implements Listener {
 			return;
 		}
 
+		// Cry about it
 		switch (tier) {
 		case 1:
 			generators.stream().filter(g -> g.isOwnedBy(team)).filter(g -> g.getType() == GeneratorType.IRON).forEach(g -> g.decreaseDefaultTime(1));
