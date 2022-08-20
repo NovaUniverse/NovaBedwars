@@ -985,12 +985,7 @@ public class Bedwars extends MapGame implements Listener {
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onBuyAttempt(AttemptItemBuyEvent e) {
 		Player player = e.getPlayer();
-		if (e.boughtItem()) {
-			//TODO: Make a better fix for this
-			if(e.getItem() == Items.WOOL) {
-				
-			}
-		} else {
+		if (!e.boughtItem()) {
 			if (e.getReason() == Reason.NOT_ENOUGHT_MATERIALS) {
 				if (!e.isDisableBuiltInMessage()) {
 					VersionIndependentSound.ITEM_BREAK.play(player);
