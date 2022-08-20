@@ -1,7 +1,5 @@
 package net.novauniverse.bedwars.game.debug;
 
-import net.novauniverse.bedwars.game.enums.ItemCategory;
-import net.novauniverse.bedwars.game.shop.ItemShop;
 import net.novauniverse.bedwars.game.shop.UpgradeShop;
 import net.zeeraa.novacore.spigot.command.AllowedSenders;
 import net.zeeraa.novacore.spigot.debug.DebugCommandRegistrator;

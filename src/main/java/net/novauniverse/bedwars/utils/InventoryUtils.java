@@ -4,11 +4,12 @@ import org.bukkit.Material;
 import org.bukkit.inventory.Inventory;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 public class InventoryUtils {
 
 
-    public static ArrayList<Integer> slotsWith(Inventory inventory, Collection<Material> materials) {
+    public static List<Integer> slotsWith(Inventory inventory, Collection<Material> materials) {
         ArrayList<Integer> slots = new ArrayList<>();
         for (int i = 0; i < inventory.getSize(); i++) {
             if (materials != null) {
@@ -29,7 +30,7 @@ public class InventoryUtils {
         }
         return slots;
     }
-    public static ArrayList<Integer> slotsWith(Inventory inventory, Material... materials) {
+    public static List<Integer> slotsWith(Inventory inventory, Material... materials) {
         ArrayList<Integer> slots = new ArrayList<>();
         for (int i = 0; i < inventory.getSize(); i++) {
             if (materials != null) {
@@ -50,7 +51,7 @@ public class InventoryUtils {
         }
         return slots;
     }
-    public static ArrayList<Integer> slotsWith(Inventory inventory, Material material) {
+    public static List<Integer> slotsWith(Inventory inventory, Material material) {
         ArrayList<Integer> slots = new ArrayList<>();
         for (int i = 0; i < inventory.getSize(); i++) {
             if (material != null) {

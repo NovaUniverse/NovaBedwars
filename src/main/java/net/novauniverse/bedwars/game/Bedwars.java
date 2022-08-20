@@ -86,7 +86,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class Bedwars extends MapGame implements Listener {
 	public static int WEAPON_SLOT_DEFAULT = 0;
@@ -427,6 +426,7 @@ public class Bedwars extends MapGame implements Listener {
 				player.teleport(base.getSpawnLocation());
 
 				// TODO: Give player items
+				updatePlayerItems(player);
 				player.getInventory().setItem(WEAPON_SLOT_DEFAULT, new ItemBuilder(VersionIndependentMaterial.WOODEN_SWORD).setUnbreakable(true).build());
 			}
 		}
@@ -663,11 +663,16 @@ public class Bedwars extends MapGame implements Listener {
 	}
 
 	public void updatePlayerItems(Player player) {
+		Team team = TeamManager.getTeamManager().getPlayerTeam(player);
+		if (team == null) {
+			return;
+		}
+
 		int pickaxeTier = getPlayerPickaxeTier(player);
 		int axeTier = getPlayerAxeTier(player);
 		ArmorType armorType = getPlayerArmor(player);
-		ArrayList<Integer> pickaxeSlot = InventoryUtils.slotsWith(player.getInventory(), Material.DIAMOND_PICKAXE, Material.IRON_PICKAXE, Material.STONE_PICKAXE, VersionIndependentMaterial.GOLDEN_PICKAXE.toBukkitVersion(), VersionIndependentMaterial.WOODEN_PICKAXE.toBukkitVersion());
-		ArrayList<Integer> axeSlot = InventoryUtils.slotsWith(player.getInventory(), Material.DIAMOND_AXE, Material.IRON_AXE, Material.STONE_AXE, VersionIndependentMaterial.GOLDEN_AXE.toBukkitVersion(), VersionIndependentMaterial.WOODEN_AXE.toBukkitVersion());
+		List<Integer> pickaxeSlot = InventoryUtils.slotsWith(player.getInventory(), Material.DIAMOND_PICKAXE, Material.IRON_PICKAXE, Material.STONE_PICKAXE, VersionIndependentMaterial.GOLDEN_PICKAXE.toBukkitVersion(), VersionIndependentMaterial.WOODEN_PICKAXE.toBukkitVersion());
+		List<Integer> axeSlot = InventoryUtils.slotsWith(player.getInventory(), Material.DIAMOND_AXE, Material.IRON_AXE, Material.STONE_AXE, VersionIndependentMaterial.GOLDEN_AXE.toBukkitVersion(), VersionIndependentMaterial.WOODEN_AXE.toBukkitVersion());
 		if (Items.WOOD_PICKAXE.getItemTier(pickaxeTier) != null) {
 			if (pickaxeSlot.size() == 0) {
 				player.getInventory().addItem(Items.WOOD_PICKAXE.getItemTier(pickaxeTier).getItemStack());
@@ -683,52 +688,78 @@ public class Bedwars extends MapGame implements Listener {
 			}
 		}
 		switch (armorType) {
-			case GOLD:
-				player.getInventory().setLeggings(new ItemBuilder(Material.GOLD_LEGGINGS).setUnbreakable(true).build());
-				player.getInventory().setLeggings(new ItemBuilder(Material.GOLD_BOOTS).setUnbreakable(true).build());
-			case CHAINMAIL:
-				player.getInventory().setLeggings(new ItemBuilder(Material.CHAINMAIL_LEGGINGS).setUnbreakable(true).build());
-				player.getInventory().setLeggings(new ItemBuilder(Material.CHAINMAIL_BOOTS).setUnbreakable(true).build());
-			case IRON:
-				player.getInventory().setLeggings(new ItemBuilder(Material.IRON_LEGGINGS).setUnbreakable(true).build());
-				player.getInventory().setLeggings(new ItemBuilder(Material.IRON_BOOTS).setUnbreakable(true).build());
-			case DIAMOND:
-				player.getInventory().setLeggings(new ItemBuilder(Material.DIAMOND_LEGGINGS).setUnbreakable(true).build());
-				player.getInventory().setLeggings(new ItemBuilder(Material.DIAMOND_BOOTS).setUnbreakable(true).build());
+		case GOLD:
+			player.getInventory().setLeggings(new ItemBuilder(Material.GOLD_LEGGINGS).setUnbreakable(true).build());
+			player.getInventory().setLeggings(new ItemBuilder(Material.GOLD_BOOTS).setUnbreakable(true).build());
+			break;
+		case CHAINMAIL:
+			player.getInventory().setLeggings(new ItemBuilder(Material.CHAINMAIL_LEGGINGS).setUnbreakable(true).build());
+			player.getInventory().setLeggings(new ItemBuilder(Material.CHAINMAIL_BOOTS).setUnbreakable(true).build());
+			break;
+		case IRON:
+			player.getInventory().setLeggings(new ItemBuilder(Material.IRON_LEGGINGS).setUnbreakable(true).build());
+			player.getInventory().setLeggings(new ItemBuilder(Material.IRON_BOOTS).setUnbreakable(true).build());
+			break;
+		case DIAMOND:
+			player.getInventory().setLeggings(new ItemBuilder(Material.DIAMOND_LEGGINGS).setUnbreakable(true).build());
+			player.getInventory().setLeggings(new ItemBuilder(Material.DIAMOND_BOOTS).setUnbreakable(true).build());
+			break;
+		default:
+			break;
 		}
-		AtomicReference<BaseData> data = null;
-		NovaBedwars.getInstance().getGame().getBases().forEach(baseData -> {
-			if (baseData.getOwner() == TeamManager.getTeamManager().getPlayerTeam(player.getUniqueId())) {
-				data.set(baseData);
-			}
-			data.get().getOwner().getOnlinePlayers().forEach(teamPlayer -> {
-				if (data.get().getProtectionLevel() != 0) {
-					if (teamPlayer.getInventory().getHelmet() != null) {
-						teamPlayer.getInventory().getHelmet().addEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, data.get().getProtectionLevel());
-					}
-					if (teamPlayer.getInventory().getChestplate() != null) {
-						teamPlayer.getInventory().getChestplate().addEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, data.get().getProtectionLevel());
-					}
-					if (teamPlayer.getInventory().getLeggings() != null) {
-						teamPlayer.getInventory().getLeggings().addEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, data.get().getProtectionLevel());
-					}
-					if (teamPlayer.getInventory().getBoots() != null) {
-						teamPlayer.getInventory().getBoots().addEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, data.get().getProtectionLevel());
-					}
-				}
-				if (data.get().hasSharpness()) {
-					InventoryUtils.slotsWith(teamPlayer.getInventory(), Material.DIAMOND_SWORD,  Material.STONE_SWORD, Material.IRON_SWORD, VersionIndependentMaterial.GOLDEN_SWORD.toBukkitVersion(), VersionIndependentMaterial.WOODEN_SWORD.toBukkitVersion())
-							.forEach(slot -> teamPlayer.getInventory().getItem(slot).addEnchantment(Enchantment.DAMAGE_ALL, 1));
-				}
 
-			});
+		BaseData data = bases.stream().filter(b -> b.getOwner().equals(team)).findFirst().orElse(null);
+		data.getOwner().getOnlinePlayers().forEach(teamPlayer -> {
+			if (data.getProtectionLevel() > 0) {
+				if (teamPlayer.getInventory().getHelmet() != null) {
+					teamPlayer.getInventory().getHelmet().addEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, data.getProtectionLevel());
+				}
+				if (teamPlayer.getInventory().getChestplate() != null) {
+					teamPlayer.getInventory().getChestplate().addEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, data.getProtectionLevel());
+				}
+				if (teamPlayer.getInventory().getLeggings() != null) {
+					teamPlayer.getInventory().getLeggings().addEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, data.getProtectionLevel());
+				}
+				if (teamPlayer.getInventory().getBoots() != null) {
+					teamPlayer.getInventory().getBoots().addEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, data.getProtectionLevel());
+				}
+			}
+			if (data.hasSharpness()) {
+				InventoryUtils.slotsWith(teamPlayer.getInventory(), Material.DIAMOND_SWORD, Material.STONE_SWORD, Material.IRON_SWORD, VersionIndependentMaterial.GOLDEN_SWORD.toBukkitVersion(), VersionIndependentMaterial.WOODEN_SWORD.toBukkitVersion()).forEach(slot -> teamPlayer.getInventory().getItem(slot).addEnchantment(Enchantment.DAMAGE_ALL, 1));
+			}
 
 		});
-
 	}
 
 	public void buyForgeUpgrade(Player player, int tier) {
-		Log.error("Anton you dumbass you didnt do anything here");
+		Team team = TeamManager.getTeamManager().getPlayerTeam(player);
+		if (team == null) {
+			return;
+		}
+
+		BaseData base = bases.stream().filter(b -> b.getOwner().equals(team)).findFirst().orElse(null);
+		if (base == null) {
+			return;
+		}
+
+		switch (tier) {
+		case 1:
+			generators.stream().filter(g -> g.isOwnedBy(team)).filter(g -> g.getType() == GeneratorType.IRON).forEach(g -> g.decreaseDefaultTime(1));
+			generators.stream().filter(g -> g.isOwnedBy(team)).filter(g -> g.getType() == GeneratorType.GOLD).forEach(g -> g.decreaseDefaultTime(2));
+			break;
+
+		case 2:
+			generators.stream().filter(g -> g.isOwnedBy(team)).filter(g -> g.getType() == GeneratorType.IRON).forEach(g -> g.decreaseDefaultTime(1));
+			generators.stream().filter(g -> g.isOwnedBy(team)).filter(g -> g.getType() == GeneratorType.GOLD).forEach(g -> g.decreaseDefaultTime(2));
+			break;
+
+		case 3:
+			generators.stream().filter(g -> g.isOwnedBy(team)).filter(g -> g.getType() == GeneratorType.GOLD).forEach(g -> g.decreaseDefaultTime(2));
+			break;
+
+		default:
+			break;
+		}
 	}
 
 	@EventHandler(priority = EventPriority.NORMAL)
@@ -736,8 +767,6 @@ public class Bedwars extends MapGame implements Listener {
 		OfflinePlayer player = e.getPlayer();
 		tryCancelRespawn(player);
 	}
-
-
 
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
 	public void onEntityExplode(EntityExplodeEvent e) {
@@ -793,6 +822,7 @@ public class Bedwars extends MapGame implements Listener {
 		}
 
 	}
+
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onUpgradeAttempt(AttemptUpgradeBuyEvent e) {
 

@@ -12,8 +12,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 public class Price {
 	private final Material material;
@@ -34,7 +34,7 @@ public class Price {
 
 	public static boolean canBuy(Player player, Price price) {
 		int amountLeft = price.getValue();
-		ArrayList<Integer> slots = InventoryUtils.slotsWith(player.getInventory(), price.getMaterial());
+		List<Integer> slots = InventoryUtils.slotsWith(player.getInventory(), price.getMaterial());
 		for (Integer slot : slots) {
 			amountLeft -= player.getInventory().getItem(slot).getAmount();
 		}
@@ -52,7 +52,7 @@ public class Price {
 			price = item.getItemTier(NovaBedwars.getInstance().getGame().getPlayerPickaxeTier(player) + 1).getPrice();
 		}
 		int amountLeft = price.getValue();
-		ArrayList<Integer> slots = InventoryUtils.slotsWith(player.getInventory(), price.getMaterial());
+		List<Integer> slots = InventoryUtils.slotsWith(player.getInventory(), price.getMaterial());
 		for (Integer slot : slots) {
 			amountLeft -= player.getInventory().getItem(slot).getAmount();
 		}
@@ -108,7 +108,7 @@ public class Price {
 							player.sendMessage(ChatColor.RED + "You already have the max tier for this item");
 							bought = false;
 							reason = Reason.ALREADY_HAS_AXE_MAX_TIER;
-						}else {
+						} else {
 							if (item.equals(itemEnum.getTieredItems().get(i).asShopItem())) {
 								NovaBedwars.getInstance().getGame().getAllPlayersAxeTier().put(player, i + 1);
 								player.sendMessage(ChatColor.GREEN + "Axe upgraded");
@@ -137,7 +137,7 @@ public class Price {
 			}
 			int amountLeft = price.getValue();
 
-			ArrayList<Integer> slots = InventoryUtils.slotsWith(player.getInventory(), price.getMaterial());
+			List<Integer> slots = InventoryUtils.slotsWith(player.getInventory(), price.getMaterial());
 			for (Integer slot : slots) {
 				amountLeft -= player.getInventory().getItem(slot).getAmount();
 				if (amountLeft <= 0) {
@@ -155,9 +155,10 @@ public class Price {
 		}
 		Bukkit.getPluginManager().callEvent(new AttemptItemBuyEvent(itemEnum, player, bought, reason));
 	}
+
 	public static void buyUpgrade(Player player, Price price) {
 		int amountLeft = price.getValue();
-		ArrayList<Integer> slots = InventoryUtils.slotsWith(player.getInventory(), price.getMaterial());
+		List<Integer> slots = InventoryUtils.slotsWith(player.getInventory(), price.getMaterial());
 		for (Integer slot : slots) {
 			amountLeft -= player.getInventory().getItem(slot).getAmount();
 			if (amountLeft <= 0) {

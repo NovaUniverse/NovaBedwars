@@ -131,4 +131,11 @@ public class ItemGenerator {
 	public void decreaseDefaultTime(int speedIncrement) {
 		this.setGenerateItemDelay(this.getGenerateItemDelay() - speedIncrement);
 	}
+
+	public boolean isOwnedBy(Team team) {
+		if (owner != null) {
+			return owner.equals(team);
+		}
+		return false;
+	}
 }
