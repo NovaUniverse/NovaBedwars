@@ -547,7 +547,7 @@ public class Bedwars extends MapGame implements Listener {
 	public void onInventoryClick(InventoryClickEvent e) {
 		if (e.getCurrentItem() != null) {
 			if (e.getCurrentItem().getType().toString().contains("AXE")) { // Pickaxe also included in this
-				if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
+				if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY || e.getAction() == InventoryAction.PICKUP_ALL) {
 					e.setCancelled(true);
 				}
 
@@ -561,7 +561,7 @@ public class Bedwars extends MapGame implements Listener {
 
 		if (e.getCursor() != null) {
 			if (e.getCursor().getType().toString().contains("AXE")) { // Pickaxe also included in this
-				if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
+				if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY || e.getAction() == InventoryAction.PICKUP_ALL) {
 					e.setCancelled(true);
 				}
 
