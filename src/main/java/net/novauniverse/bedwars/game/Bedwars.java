@@ -41,6 +41,7 @@ import net.zeeraa.novacore.spigot.utils.ItemUtils;
 import net.zeeraa.novacore.spigot.utils.LocationUtils;
 import net.zeeraa.novacore.spigot.utils.PlayerUtils;
 import net.zeeraa.novacore.spigot.utils.RandomFireworkEffect;
+import xyz.xenondevs.particle.ParticleEffect;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -71,6 +72,8 @@ import org.bukkit.event.entity.ItemDespawnEvent;
 import org.bukkit.event.entity.ItemMergeEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.inventory.InventoryAction;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -79,7 +82,9 @@ import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.FireworkMeta;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -122,6 +127,7 @@ public class Bedwars extends MapGame implements Listener {
 
 	private Task countdownTask;
 	private Task npcFixTask;
+	private Task particleTask;
 
 	public Map<Player, ArmorType> getAllPlayersArmor() {
 		return hasArmor;
@@ -182,6 +188,8 @@ public class Bedwars extends MapGame implements Listener {
 		bedDestructionTime = Integer.MAX_VALUE;
 
 		npcFixTask = new SimpleTask(getPlugin(), () -> npcs.forEach(BedwarsNPC::checkVillager), 20L);
+
+		particleTask = new SimpleTask(getPlugin(), () -> Bukkit.getServer().getOnlinePlayers().stream().filter(p -> p.hasPotionEffect(PotionEffectType.INVISIBILITY)).forEach(p -> ParticleEffect.FOOTSTEP.display(p.getLocation().clone().add(0D, 0.05D, 0D))), 5L);
 
 		countdownTask = new SimpleTask(getPlugin(), () -> {
 			if (bedDestructionTime > 0) {
@@ -338,6 +346,7 @@ public class Bedwars extends MapGame implements Listener {
 
 		Task.tryStartTask(countdownTask);
 		Task.tryStartTask(npcFixTask);
+		Task.tryStartTask(particleTask);
 
 		sendStartMessage();
 
@@ -390,6 +399,7 @@ public class Bedwars extends MapGame implements Listener {
 
 		Task.tryStopTask(countdownTask);
 		Task.tryStopTask(npcFixTask);
+		Task.tryStopTask(particleTask);
 
 		getActiveMap().getStarterLocations().forEach(location -> {
 			Firework fw = (Firework) location.getWorld().spawnEntity(location, EntityType.FIREWORK);
@@ -439,10 +449,13 @@ public class Bedwars extends MapGame implements Listener {
 
 				// TODO: Give player items
 				player.getInventory().setItem(WEAPON_SLOT_DEFAULT, new ItemBuilder(VersionIndependentMaterial.WOODEN_SWORD).setUnbreakable(true).build());
-				updatePlayerItems(player); // Has to be run at the last stage§
-
+				giveArmorAndTools(player);
 			}
 		}
+	}
+
+	public void giveArmorAndTools(Player player) {
+		updatePlayerItems(player);
 	}
 
 	public void tryCancelRespawn(OfflinePlayer player) {
@@ -476,6 +489,37 @@ public class Bedwars extends MapGame implements Listener {
 							}
 						}.runTaskLater(getPlugin(), RESPAWN_TIME_SECONDS * 20L);
 						respawnTasks.put(player.getUniqueId(), task);
+					}
+				}
+			}
+		}
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL)
+	public void onInventoryClick(InventoryClickEvent e) {
+		if (e.getCurrentItem() != null) {
+			if (e.getCurrentItem().getType().toString().contains("AXE")) { // Pickaxe also included in this
+				if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
+					e.setCancelled(true);
+				}
+
+				if (e.getClickedInventory() != null) {
+					if (!(e.getClickedInventory() instanceof PlayerInventory)) {
+						e.setCancelled(true);
+					}
+				}
+			}
+		}
+
+		if (e.getCursor() != null) {
+			if (e.getCursor().getType().toString().contains("AXE")) { // Pickaxe also included in this
+				if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
+					e.setCancelled(true);
+				}
+
+				if (e.getClickedInventory() != null) {
+					if (!(e.getClickedInventory() instanceof PlayerInventory)) {
+						e.setCancelled(true);
 					}
 				}
 			}
@@ -520,6 +564,7 @@ public class Bedwars extends MapGame implements Listener {
 				BaseData base = bases.stream().filter(b -> b.getOwner().equals(team)).findFirst().orElse(null);
 				if (base != null) {
 					if (!base.hasBed()) {
+						Log.debug("Bedwars", "Player died and has no bed. Killer is " + player.getKiller());
 						eliminatePlayer(player, player.getKiller(), PlayerEliminationReason.DEATH);
 					}
 				}
@@ -587,7 +632,7 @@ public class Bedwars extends MapGame implements Listener {
 
 	@EventHandler(priority = EventPriority.NORMAL)
 	public void onPlayerDropItem(PlayerDropItemEvent e) {
-		if (e.getItemDrop().getItemStack().getType() == VersionIndependentMaterial.WOODEN_SWORD.toBukkitVersion()) {
+		if (e.getItemDrop().getItemStack().getType() == VersionIndependentMaterial.WOODEN_SWORD.toBukkitVersion() || e.getItemDrop().getItemStack().getType().toString().contains("AXE")) {
 			e.setCancelled(true);
 		}
 	}
