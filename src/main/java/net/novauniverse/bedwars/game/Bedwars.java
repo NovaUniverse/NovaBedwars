@@ -837,7 +837,7 @@ public class Bedwars extends MapGame implements Listener {
 				if (player2.equals(player)) {
 					return;
 				}
-				player.getInventory().addItem(e.getItem().getItemStack());
+				player2.getInventory().addItem(e.getItem().getItemStack());
 			});
 		}
 	}
