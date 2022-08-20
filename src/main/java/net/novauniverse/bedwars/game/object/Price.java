@@ -5,8 +5,11 @@ import net.novauniverse.bedwars.game.enums.Items;
 import net.novauniverse.bedwars.game.enums.Reason;
 import net.novauniverse.bedwars.game.events.AttemptItemBuyEvent;
 import net.novauniverse.bedwars.utils.InventoryUtils;
+import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
+import net.zeeraa.novacore.spigot.abstraction.enums.ColoredBlockType;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -84,7 +87,6 @@ public class Price {
 				}
 
 			} else if (itemEnum.isTiered()) {
-
 				if (itemEnum == Items.WOOD_PICKAXE) {
 					for (int i = 0; i < itemEnum.getTieredItems().size(); i++) {
 						if (itemEnum.getTieredItems().size() == NovaBedwars.getInstance().getGame().getPlayerPickaxeTier(player) - 1) {
@@ -103,7 +105,6 @@ public class Price {
 					}
 				} else if (itemEnum == Items.WOOD_AXE) {
 					for (int i = 0; i < itemEnum.getTieredItems().size(); i++) {
-
 						if (itemEnum.getTieredItems().size() == NovaBedwars.getInstance().getGame().getPlayerAxeTier(player) - 1) {
 							player.sendMessage(ChatColor.RED + "You already have the max tier for this item");
 							bought = false;
@@ -119,8 +120,21 @@ public class Price {
 					}
 				}
 			} else {
-				inventory.addItem(itemEnum.asNormalItem());
-				player.sendMessage(ChatColor.GREEN + "Success: normal item bought");
+				if (itemEnum == Items.WOOL) {
+					DyeColor color = DyeColor.WHITE;
+					/*Team team = TeamManager.getTeamManager().getPlayerTeam(player);
+					if (team != null) {
+						color = DyeColor.getByColor(ChatColorRGBMapper.chatColorToRGBColorData(team.getTeamColor()).toBukkitColor());
+					}*/
+
+					ItemStack wool = VersionIndependentUtils.get().getColoredItem(color, ColoredBlockType.WOOL);
+					wool.setAmount(16);
+
+					player.getInventory().addItem(wool);
+				} else {
+					inventory.addItem(itemEnum.asNormalItem());
+				}
+				// player.sendMessage(ChatColor.GREEN + "Success: normal item bought");
 				reason = Reason.NORMAL_ITEM_BOUGHT;
 
 			}

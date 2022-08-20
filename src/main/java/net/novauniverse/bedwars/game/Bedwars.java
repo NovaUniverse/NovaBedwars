@@ -233,10 +233,12 @@ public class Bedwars extends MapGame implements Listener {
 			if (bedDestructionTime > 0) {
 				bedDestructionTime--;
 				if (bedDestructionTime == 0) {
+					Bukkit.getServer().broadcastMessage(ChatColor.RED + "" + ChatColor.BOLD + "Bed Destruction> All beds destroyed");
+
 					bases.stream().filter(BaseData::hasBed).forEach(base -> {
 						base.setBed(false);
 						base.getBedLocation().getBlock().breakNaturally();
-						Bukkit.getServer().broadcastMessage(ChatColor.RED + "" + ChatColor.BOLD + "Bed Destruction> All beds destroyed");
+
 						base.getOwner().getOnlinePlayers().forEach(player -> {
 							VersionIndependentSound.WITHER_DEATH.play(player);
 							VersionIndependentUtils.get().sendTitle(player, ChatColor.RED + TextUtils.ICON_WARNING + " Bed destroyed " + TextUtils.ICON_WARNING, ChatColor.RED + "You can no longer respawn", 0, 60, 20);
@@ -258,13 +260,6 @@ public class Bedwars extends MapGame implements Listener {
 
 	public BedwarsConfig getConfig() {
 		return config;
-	}
-
-	@EventHandler
-	public void playerJoin(PlayerJoinEvent e) {
-		getAllPlayersAxeTier().putIfAbsent(e.getPlayer(), 0);
-		getAllPlayersArmor().putIfAbsent(e.getPlayer(), ArmorType.NO_ARMOR);
-		getAllPlayersPickaxeTier().putIfAbsent(e.getPlayer(), 0);
 	}
 
 	@Override
@@ -522,6 +517,8 @@ public class Bedwars extends MapGame implements Listener {
 
 		player.getInventory().setHelmet(new ItemBuilder(Material.LEATHER_HELMET).setLeatherArmorColor(color).setUnbreakable(true).build());
 		player.getInventory().setChestplate(new ItemBuilder(Material.LEATHER_CHESTPLATE).setLeatherArmorColor(color).setUnbreakable(true).build());
+		player.getInventory().setLeggings(new ItemBuilder(Material.LEATHER_LEGGINGS).setLeatherArmorColor(color).setUnbreakable(true).build());
+		player.getInventory().setBoots(new ItemBuilder(Material.LEATHER_BOOTS).setLeatherArmorColor(color).setUnbreakable(true).build());
 
 		updatePlayerItems(player);
 	}
@@ -572,13 +569,13 @@ public class Bedwars extends MapGame implements Listener {
 
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onInventoryClick(InventoryClickEvent e) {
-		if(e.getSlotType() != null) {
-			if(e.getSlotType() == SlotType.ARMOR) {
+		if (e.getSlotType() != null) {
+			if (e.getSlotType() == SlotType.ARMOR) {
 				e.setCancelled(true);
 				return;
 			}
 		}
-		
+
 		if (e.getCurrentItem() != null) {
 			if (e.getCurrentItem().getType().toString().contains("AXE")) { // Pickaxe also included in this
 				if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
@@ -756,6 +753,7 @@ public class Bedwars extends MapGame implements Listener {
 						}
 
 						// We broke the bed
+						VersionIndependentSound.ORB_PICKUP.play(player);
 						Bukkit.getServer().broadcastMessage(team.getTeamColor() + "" + ChatColor.BOLD + team.getDisplayName() + ChatColor.GOLD + ChatColor.BOLD + " broke " + ownerBase.getOwner().getTeamColor() + ChatColor.BOLD + ownerBase.getOwner().getDisplayName() + ChatColor.GOLD + ChatColor.BOLD + "'s bed");
 						ownerBase.getOwner().sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Bed Broken> " + team.getTeamColor() + "" + ChatColor.BOLD + team.getDisplayName() + ChatColor.RED + ChatColor.BOLD + " broke your bed");
 						ownerBase.setBed(false);
@@ -959,6 +957,11 @@ public class Bedwars extends MapGame implements Listener {
 	@EventHandler(priority = EventPriority.NORMAL)
 	public void onPlayerJoin(PlayerJoinEvent e) {
 		Player player = e.getPlayer();
+
+		getAllPlayersAxeTier().putIfAbsent(player, 0);
+		getAllPlayersArmor().putIfAbsent(player, ArmorType.NO_ARMOR);
+		getAllPlayersPickaxeTier().putIfAbsent(player, 0);
+
 		if (started && !ended) {
 			handlePlayerRespawnOrJoin(player);
 		}
@@ -982,7 +985,12 @@ public class Bedwars extends MapGame implements Listener {
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onBuyAttempt(AttemptItemBuyEvent e) {
 		Player player = e.getPlayer();
-		if (!e.boughtItem()) {
+		if (e.boughtItem()) {
+			//TODO: Make a better fix for this
+			if(e.getItem() == Items.WOOL) {
+				
+			}
+		} else {
 			if (e.getReason() == Reason.NOT_ENOUGHT_MATERIALS) {
 				if (!e.isDisableBuiltInMessage()) {
 					VersionIndependentSound.ITEM_BREAK.play(player);

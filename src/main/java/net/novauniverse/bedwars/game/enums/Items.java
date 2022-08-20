@@ -272,7 +272,7 @@ public enum Items {
 
     private ItemStack toShopItem() {
             ItemStack item = asNormalItem().clone();
-        ItemMeta meta = item.getItemMeta();
+            ItemMeta meta = item.getItemMeta();
             if (getCategory() == ItemCategory.POTIONS) {
                 meta.setDisplayName(potionTypeToName(((PotionMeta) meta).getCustomEffects().get(0)));
                 item.setItemMeta(meta);
@@ -283,6 +283,7 @@ public enum Items {
             item.setItemMeta(meta);
             return item;
     }
+    
     public ItemStack asShopItem(int tier) {
         if (this.isTiered()) {
             if (getItemTier(tier) != null) {
@@ -294,6 +295,7 @@ public enum Items {
             return null;
         }
     }
+    
     private List<String> addLore(Price price) {
         ChatColor color = null;
         if (price.getMaterial() == Material.EMERALD) {
@@ -311,9 +313,11 @@ public enum Items {
         lore.add(color + "" + ChatColor.BOLD + "" + price.getValue() + " " + stringified);
         return lore;
     }
+    
     private String convertToSeconds(int duration) {
         return " (" + duration / 20 + " Seconds)";
     }
+    
     private String potionTypeToName(PotionEffect effect) {
         String roman = "";
         if (effect.getAmplifier() >= 1) {
@@ -329,6 +333,7 @@ public enum Items {
             return ChatColor.RED + "POTION EFFECT COULD NOT BE FOUND";
         }
     }
+    
     public String intToRoman(int num) {
         //System.out.println("Integer: " + num);
         int[] values = {1000,900,500,400,100,90,50,40,10,9,5,4,1};
