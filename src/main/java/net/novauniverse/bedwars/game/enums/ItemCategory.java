@@ -16,7 +16,7 @@ public enum ItemCategory {
 	QUICK_BUY("Quick Buy", ChatColor.WHITE, Material.NETHER_STAR,0),COMBAT("Combat", ChatColor.RED, VersionIndependentMaterial.GOLDEN_SWORD.toBukkitVersion(),2),
 	BLOCK("Blocks", ChatColor.GOLD, Material.BRICK,3),
 	TOOLS("Tools",ChatColor.DARK_AQUA, Material.IRON_PICKAXE,4), POTIONS("Potions",ChatColor.LIGHT_PURPLE, Material.POTION,5),
-	MISC("Miscelaneous (please tell me how to type that)",ChatColor.GRAY, Material.FIREBALL, 6);
+	MISC("Miscellaneous",ChatColor.GRAY, Material.FIREBALL, 6);
 	private final String iconName;
 	private final ChatColor color;
 	private final Material icon;
