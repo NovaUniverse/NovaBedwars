@@ -33,6 +33,8 @@ import net.zeeraa.novacore.spigot.gameengine.module.modules.game.MapGame;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.elimination.PlayerEliminationReason;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.elimination.PlayerQuitEliminationAction;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.events.PlayerEliminatedEvent;
+import net.zeeraa.novacore.spigot.module.ModuleManager;
+import net.zeeraa.novacore.spigot.module.modules.compass.CompassTracker;
 import net.zeeraa.novacore.spigot.tasks.SimpleTask;
 import net.zeeraa.novacore.spigot.teams.Team;
 import net.zeeraa.novacore.spigot.teams.TeamManager;
@@ -81,6 +83,8 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.FireworkMeta;
@@ -122,12 +126,16 @@ public class Bedwars extends MapGame implements Listener {
 	private List<ItemGenerator> generators;
 	private List<GeneratorUpgrade> generatorUpgrades;
 
+	private List<UUID> armorHidden;
+
 	private ItemShop itemShop;
 	private UpgradeShop upgradeShop;
 
 	private Task countdownTask;
 	private Task npcFixTask;
 	private Task particleTask;
+	private Task armorCheckTask;
+	private Task compassTask;
 
 	public Map<Player, ArmorType> getAllPlayersArmor() {
 		return hasArmor;
@@ -182,6 +190,8 @@ public class Bedwars extends MapGame implements Listener {
 
 		generators = new ArrayList<>();
 
+		armorHidden = new ArrayList<>();
+
 		itemShop = new ItemShop();
 		upgradeShop = new UpgradeShop();
 
@@ -190,6 +200,30 @@ public class Bedwars extends MapGame implements Listener {
 		npcFixTask = new SimpleTask(getPlugin(), () -> npcs.forEach(BedwarsNPC::checkVillager), 20L);
 
 		particleTask = new SimpleTask(getPlugin(), () -> Bukkit.getServer().getOnlinePlayers().stream().filter(p -> p.hasPotionEffect(PotionEffectType.INVISIBILITY)).forEach(p -> ParticleEffect.FOOTSTEP.display(p.getLocation().clone().add(0D, 0.05D, 0D))), 5L);
+
+		compassTask = new SimpleTask(getPlugin(), () -> {
+			Bukkit.getServer().getOnlinePlayers().stream().filter(p -> TeamManager.getTeamManager().hasTeam(p)).forEach(player -> {
+				Team team = TeamManager.getTeamManager().getPlayerTeam(player);
+				BaseData base = bases.stream().filter(b -> b.getOwner().equals(team)).findFirst().orElse(null);
+				if (base != null) {
+					player.setCompassTarget(base.getBedLocation());
+				}
+			});
+		}, 10L);
+
+		armorCheckTask = new SimpleTask(getPlugin(), () -> {
+			Bukkit.getServer().getOnlinePlayers().stream().filter(this::isPlayerInGame).forEach(player -> {
+				if (armorHidden.contains(player.getUniqueId())) {
+					if (!player.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
+						armorHidden.remove(player.getUniqueId());
+						giveArmorAndTools(player);
+					}
+				} else if (player.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
+					armorHidden.add(player.getUniqueId());
+					player.getInventory().setArmorContents(null);
+				}
+			});
+		}, 5L);
 
 		countdownTask = new SimpleTask(getPlugin(), () -> {
 			if (bedDestructionTime > 0) {
@@ -284,6 +318,8 @@ public class Bedwars extends MapGame implements Listener {
 		if (started) {
 			return;
 		}
+		
+		ModuleManager.disable(CompassTracker.class);
 
 		BedwarsConfig config = (BedwarsConfig) getActiveMap().getMapData().getMapModule(BedwarsConfig.class);
 		if (config == null) {
@@ -347,6 +383,8 @@ public class Bedwars extends MapGame implements Listener {
 		Task.tryStartTask(countdownTask);
 		Task.tryStartTask(npcFixTask);
 		Task.tryStartTask(particleTask);
+		Task.tryStartTask(armorCheckTask);
+		Task.tryStartTask(compassTask);
 
 		sendStartMessage();
 
@@ -400,6 +438,8 @@ public class Bedwars extends MapGame implements Listener {
 		Task.tryStopTask(countdownTask);
 		Task.tryStopTask(npcFixTask);
 		Task.tryStopTask(particleTask);
+		Task.tryStopTask(armorCheckTask);
+		Task.tryStopTask(compassTask);
 
 		getActiveMap().getStarterLocations().forEach(location -> {
 			Firework fw = (Firework) location.getWorld().spawnEntity(location, EntityType.FIREWORK);
@@ -448,7 +488,8 @@ public class Bedwars extends MapGame implements Listener {
 				player.teleport(base.getSpawnLocation());
 
 				// TODO: Give player items
-				player.getInventory().setItem(WEAPON_SLOT_DEFAULT, new ItemBuilder(VersionIndependentMaterial.WOODEN_SWORD).setUnbreakable(true).build());
+				player.getInventory().setItem(Bedwars.WEAPON_SLOT_DEFAULT, new ItemBuilder(VersionIndependentMaterial.WOODEN_SWORD).setUnbreakable(true).build());
+				player.getInventory().setItem(Bedwars.TRACKER_SLOT_DEFAULT, new ItemBuilder(Material.COMPASS).build());
 				giveArmorAndTools(player);
 			}
 		}
@@ -495,7 +536,14 @@ public class Bedwars extends MapGame implements Listener {
 		}
 	}
 
-	@EventHandler(priority = EventPriority.NORMAL)
+	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+	public void onPlayerTeleport(PlayerTeleportEvent e) {
+		if (e.getCause() == TeleportCause.ENDER_PEARL) {
+			VersionIndependentSound.ENDERMAN_TELEPORT.playAtLocation(e.getTo(), 2L, 1L);
+		}
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onInventoryClick(InventoryClickEvent e) {
 		if (e.getCurrentItem() != null) {
 			if (e.getCurrentItem().getType().toString().contains("AXE")) { // Pickaxe also included in this
@@ -524,6 +572,8 @@ public class Bedwars extends MapGame implements Listener {
 				}
 			}
 		}
+
+		Log.trace("EventDebug", e.getAction() + " " + e.getClickedInventory() + " " + e.getCurrentItem() + " " + e.getCursor() + " " + e.isCancelled());
 	}
 
 	@EventHandler(priority = EventPriority.NORMAL)

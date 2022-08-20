@@ -137,7 +137,6 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 		ModuleManager.scanForModules(this, "net.novauniverse.bedwars.game.modules");
 
 		ModuleManager.enable(GameManager.class);
-		ModuleManager.enable(CompassTracker.class);
 		if (!disableNovaCoreGameLobby) {
 			ModuleManager.enable(GameLobby.class);
 		}
