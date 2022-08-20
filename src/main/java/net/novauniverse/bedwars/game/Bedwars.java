@@ -136,6 +136,7 @@ public class Bedwars extends MapGame implements Listener {
 	private Task particleTask;
 	private Task armorCheckTask;
 	private Task compassTask;
+	private Task tntParticleTask;
 
 	public Map<Player, ArmorType> getAllPlayersArmor() {
 		return hasArmor;
@@ -198,7 +199,7 @@ public class Bedwars extends MapGame implements Listener {
 		bedDestructionTime = Integer.MAX_VALUE;
 
 		npcFixTask = new SimpleTask(getPlugin(), () -> npcs.forEach(BedwarsNPC::checkVillager), 20L);
-
+		tntParticleTask = new SimpleTask(getPlugin(), () -> Bukkit.getServer().getOnlinePlayers().stream().filter(p -> p.getInventory().contains(Material.TNT)).forEach(player -> ParticleEffect.REDSTONE.display(player.getLocation().clone().add(0D, 3D, 0D))), 3L);
 		particleTask = new SimpleTask(getPlugin(), () -> Bukkit.getServer().getOnlinePlayers().stream().filter(p -> p.hasPotionEffect(PotionEffectType.INVISIBILITY)).forEach(p -> ParticleEffect.FOOTSTEP.display(p.getLocation().clone().add(0D, 0.05D, 0D))), 5L);
 
 		compassTask = new SimpleTask(getPlugin(), () -> {
@@ -385,7 +386,8 @@ public class Bedwars extends MapGame implements Listener {
 		Task.tryStartTask(particleTask);
 		Task.tryStartTask(armorCheckTask);
 		Task.tryStartTask(compassTask);
-
+		Task.tryStartTask(tntParticleTask);
+		
 		sendStartMessage();
 
 		getWorld().setDifficulty(Difficulty.PEACEFUL);
@@ -440,6 +442,7 @@ public class Bedwars extends MapGame implements Listener {
 		Task.tryStopTask(particleTask);
 		Task.tryStopTask(armorCheckTask);
 		Task.tryStopTask(compassTask);
+		Task.tryStopTask(tntParticleTask);
 
 		getActiveMap().getStarterLocations().forEach(location -> {
 			Firework fw = (Firework) location.getWorld().spawnEntity(location, EntityType.FIREWORK);
@@ -617,8 +620,8 @@ public class Bedwars extends MapGame implements Listener {
 				BaseData base = bases.stream().filter(b -> b.getOwner().equals(team)).findFirst().orElse(null);
 				if (base != null) {
 					if (!base.hasBed()) {
-						Log.debug("Bedwars", "Player died and has no bed. Killer is " + player.getKiller());
-						eliminatePlayer(player, player.getKiller(), PlayerEliminationReason.DEATH);
+						Log.debug("Bedwars", "Player died and has no bed. Killer is " + killer);
+						eliminatePlayer(player, killer, PlayerEliminationReason.DEATH);
 					}
 				}
 			}

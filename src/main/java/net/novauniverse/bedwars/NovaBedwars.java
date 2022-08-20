@@ -1,9 +1,30 @@
 package net.novauniverse.bedwars;
 
+import java.io.File;
+import java.io.IOException;
+
+import javax.annotation.Nullable;
+
+import org.apache.commons.io.FileUtils;
+import org.bukkit.Bukkit;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import net.novauniverse.bedwars.game.Bedwars;
 import net.novauniverse.bedwars.game.commands.ImportBedwarsPreferences;
 import net.novauniverse.bedwars.game.config.BedwarsConfig;
-import net.novauniverse.bedwars.game.debug.*;
+import net.novauniverse.bedwars.game.debug.CommandFromMessage;
+import net.novauniverse.bedwars.game.debug.GivePotion;
+import net.novauniverse.bedwars.game.debug.HashMapDebugger;
+import net.novauniverse.bedwars.game.debug.MissileWarsDebugCommands;
+import net.novauniverse.bedwars.game.debug.ShopItemMetasDebugger;
+import net.novauniverse.bedwars.game.debug.ShopOpenDebug;
+import net.novauniverse.bedwars.game.debug.UUIDGetter;
+import net.novauniverse.bedwars.game.debug.UpgradeShopOpenDebug;
 import net.novauniverse.bedwars.game.enums.ArmorType;
 import net.novauniverse.bedwars.utils.HypixelAPI;
 import net.novauniverse.bedwars.utils.preferences.api.PreferenceAPI;
@@ -17,19 +38,6 @@ import net.zeeraa.novacore.spigot.gameengine.module.modules.game.mapselector.sel
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.mapselector.selectors.guivoteselector.GUIMapVote;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.gamelobby.GameLobby;
 import net.zeeraa.novacore.spigot.module.ModuleManager;
-import net.zeeraa.novacore.spigot.module.modules.compass.CompassTracker;
-import java.io.File;
-import java.io.IOException;
-import javax.annotation.Nullable;
-
-import org.apache.commons.io.FileUtils;
-import org.bukkit.Bukkit;
-import org.bukkit.event.HandlerList;
-import org.bukkit.event.Listener;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.java.JavaPlugin;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 public final class NovaBedwars extends JavaPlugin implements Listener {
 	private static NovaBedwars instance;
