@@ -427,8 +427,9 @@ public class Bedwars extends MapGame implements Listener {
 				player.teleport(base.getSpawnLocation());
 
 				// TODO: Give player items
-				updatePlayerItems(player);
 				player.getInventory().setItem(WEAPON_SLOT_DEFAULT, new ItemBuilder(VersionIndependentMaterial.WOODEN_SWORD).setUnbreakable(true).build());
+				updatePlayerItems(player); // Has to be run at the last stage
+				
 			}
 		}
 	}
@@ -671,9 +672,11 @@ public class Bedwars extends MapGame implements Listener {
 
 		int pickaxeTier = getPlayerPickaxeTier(player);
 		int axeTier = getPlayerAxeTier(player);
+
 		ArmorType armorType = getPlayerArmor(player);
 		List<Integer> pickaxeSlot = InventoryUtils.slotsWith(player.getInventory(), Material.DIAMOND_PICKAXE, Material.IRON_PICKAXE, Material.STONE_PICKAXE, VersionIndependentMaterial.GOLDEN_PICKAXE.toBukkitVersion(), VersionIndependentMaterial.WOODEN_PICKAXE.toBukkitVersion());
 		List<Integer> axeSlot = InventoryUtils.slotsWith(player.getInventory(), Material.DIAMOND_AXE, Material.IRON_AXE, Material.STONE_AXE, VersionIndependentMaterial.GOLDEN_AXE.toBukkitVersion(), VersionIndependentMaterial.WOODEN_AXE.toBukkitVersion());
+
 		if (Items.WOOD_PICKAXE.getItemTier(pickaxeTier) != null) {
 			if (pickaxeSlot.size() == 0) {
 				player.getInventory().addItem(Items.WOOD_PICKAXE.getItemTier(pickaxeTier).getItemStack());
@@ -681,6 +684,7 @@ public class Bedwars extends MapGame implements Listener {
 				player.getInventory().setItem(pickaxeSlot.stream().findFirst().get(), Items.WOOD_PICKAXE.getItemTier(pickaxeTier).getItemStack());
 			}
 		}
+
 		if (Items.WOOD_AXE.getItemTier(axeTier) != null) {
 			if (axeSlot.size() == 0) {
 				player.getInventory().addItem(Items.WOOD_AXE.getItemTier(axeTier).getItemStack());
@@ -688,6 +692,7 @@ public class Bedwars extends MapGame implements Listener {
 				player.getInventory().setItem(axeSlot.stream().findFirst().get(), Items.WOOD_AXE.getItemTier(axeTier).getItemStack());
 			}
 		}
+
 		switch (armorType) {
 		case GOLD:
 			player.getInventory().setLeggings(new ItemBuilder(Material.GOLD_LEGGINGS).setUnbreakable(true).build());
@@ -819,11 +824,12 @@ public class Bedwars extends MapGame implements Listener {
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onBuyAttempt(AttemptItemBuyEvent e) {
 		Player player = e.getPlayer();
-		if (e.boughtItem()) {
-
-		} else {
+		if (!e.boughtItem()) {
 			if (e.getReason() == Reason.NOT_ENOUGHT_MATERIALS) {
-				VersionIndependentSound.EAT.play(player);
+				if (!e.isDisableBuiltInMessage()) {
+					VersionIndependentSound.ITEM_BREAK.play(player);
+					player.sendMessage(ChatColor.RED + "You cant afford that");
+				}
 			}
 		}
 	}

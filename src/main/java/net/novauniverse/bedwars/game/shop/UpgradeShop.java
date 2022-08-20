@@ -47,7 +47,6 @@ public class UpgradeShop {
 		holder.addClickCallback(inventoryClickEvent -> {
 			boolean success = false;
 			Upgrades upgrade = null;
-			Log.trace(inventoryClickEvent.toString());
 			if (inventoryClickEvent.getSlot() == 0) {
 				upgrade = Upgrades.SHARPNESS;
 				if (Price.canBuy(player, Upgrades.SHARPNESS.getPrice())) {

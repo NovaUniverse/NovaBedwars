@@ -184,8 +184,6 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 		Bukkit.getScheduler().cancelTasks(this);
 		HandlerList.unregisterAll((Plugin) this);
 	}
-
-
 }
 
 // UwU, Daddy
