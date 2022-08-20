@@ -1,7 +1,6 @@
 package net.novauniverse.bedwars.game.shop;
 
 import net.novauniverse.bedwars.NovaBedwars;
-import net.novauniverse.bedwars.game.Bedwars;
 import net.novauniverse.bedwars.game.entity.BedwarsNPC;
 import net.novauniverse.bedwars.game.enums.Upgrades;
 import net.novauniverse.bedwars.game.events.AttemptUpgradeBuyEvent;
