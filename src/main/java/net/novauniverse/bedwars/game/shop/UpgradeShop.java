@@ -52,10 +52,6 @@ public class UpgradeShop {
 						success = true;
 					}
 				}
-
-
-
-
 			} else if (inventoryClickEvent.getSlot() == 4) {
 				upgrade = Upgrades.PROTECTION;
 				if (!(finalData.getProtectionLevel() >= 4)) {
@@ -64,11 +60,7 @@ public class UpgradeShop {
 						finalData.setProtectionLevel(finalData.getProtectionLevel() + 1);
 						success = true;
 					}
-
-
 				}
-
-
 			} else if (inventoryClickEvent.getSlot() == 8) {
 				upgrade = Upgrades.FORGE;
 				if (!(finalData.getForgeLevel() >= 4)) {
@@ -84,5 +76,7 @@ public class UpgradeShop {
 			Bukkit.getPluginManager().callEvent(new AttemptUpgradeBuyEvent(upgrade, success, player, team));
 			return GUIAction.NONE;
 		});
+		
+		player.openInventory(inventory);
 	}
 }
