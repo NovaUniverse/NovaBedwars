@@ -35,6 +35,7 @@ public class TieredItem {
 		if (getPrice() != null) {
 			meta.setLore(addLore(getPrice()));
 		}
+		meta.spigot().setUnbreakable(true);
 		item.setItemMeta(meta);
 		return item;
 	}

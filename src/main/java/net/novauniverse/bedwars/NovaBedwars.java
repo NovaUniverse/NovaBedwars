@@ -169,6 +169,7 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 		GivePotion.register();
 		CommandFromMessage.register();
 		ShopOpenDebug.register();
+		UpgradeShopOpenDebug.register();
 		CommandRegistry.registerCommand(new ImportBedwarsPreferences());
 
 		Bukkit.getOnlinePlayers().forEach(player -> {

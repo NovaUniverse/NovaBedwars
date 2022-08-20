@@ -50,7 +50,7 @@ public enum Items {
 
     WOOD_AXE(ItemCategory.TOOLS, "wooden_axe",
             new TieredItem(new ItemBuilder(VersionIndependentMaterial.WOODEN_AXE).addEnchant(Enchantment.DIG_SPEED,1).build(), new Price(Material.IRON_INGOT, 10)),
-            new TieredItem(new ItemBuilder(Material.STONE_PICKAXE).addEnchant(Enchantment.DIG_SPEED, 1).build(), new Price(Material.IRON_INGOT, 10)),
+            new TieredItem(new ItemBuilder(Material.STONE_AXE).addEnchant(Enchantment.DIG_SPEED, 1).build(), new Price(Material.IRON_INGOT, 10)),
             new TieredItem(new ItemBuilder(Material.IRON_AXE).addEnchant(Enchantment.DIG_SPEED, 2).build(), new Price(Material.IRON_INGOT, 20)),
             new TieredItem(new ItemBuilder(VersionIndependentMaterial.GOLDEN_AXE).addEnchant(Enchantment.DIG_SPEED, 2).build(), new Price(Material.GOLD_INGOT, 3)),
             new TieredItem(new ItemBuilder(Material.DIAMOND_AXE).addEnchant(Enchantment.DIG_SPEED, 3).build(), new Price(Material.GOLD_INGOT, 3))),
@@ -147,7 +147,8 @@ public enum Items {
     }
 
     Items(ItemCategory category, String hypixelCounterpart, TieredItem... tieredItems) {
-        this.tieredItems = new ArrayList<>(Arrays.asList(tieredItems));
+        this.tieredItems = new ArrayList<>();
+        this.tieredItems.addAll(Arrays.asList(tieredItems));
         this.category = category;
         this.itemStack = this.tieredItems.get(0).getItemStack();
         this.material = this.tieredItems.get(0).getItemStack().getType();
@@ -164,6 +165,15 @@ public enum Items {
                 check = item.toString().equalsIgnoreCase(items.asShopItem().toString());
                 break;
             }
+            if (items.isTiered()) {
+                assert items.getTieredItems() != null;
+                for (TieredItem tieredItem : items.getTieredItems()) {
+                        if (item.equals(tieredItem.asShopItem())) {
+                            check = item.equals(tieredItem.asShopItem());
+                            break;
+                        }
+                    }
+                }
         }
         return check;
     }
@@ -174,20 +184,27 @@ public enum Items {
             if (item.toString().equalsIgnoreCase(items.asShopItem().toString())) {
                 ite = items;
                 break;
-            } else {
-                if (items.isTiered()) {
-                    assert items.getTieredItems() != null;
-                    for (TieredItem tieredItem : items.getTieredItems()) {
-                        if (item.toString().equalsIgnoreCase(tieredItem.asShopItem().toString())) {
+            }
+            if (items.isTiered()) {
+                assert items.getTieredItems() != null;
+                for (TieredItem tieredItem : items.getTieredItems()) {
+                        if (item.equals(tieredItem.asShopItem())) {
                             ite = items;
                             break;
                         }
                     }
                 }
-            }
+
         }
         return ite;
     }
+
+    public void maxValueLore(TieredItem item) {
+        List<String> lore = item.asShopItem().getItemMeta().getLore();
+        lore.add(ChatColor.RED + "Max tier reached");
+        item.asShopItem().getItemMeta().setLore(lore);
+    }
+
     @Nullable
     public ColoredBlockType getColoredBlockType() {
         return coloredBlockType;
@@ -243,7 +260,11 @@ public enum Items {
     }
 
     public TieredItem getItemTier(int tier) {
-        return tieredItems.get(tier - 1);
+        if (tier == 0) {
+            return null;
+        } else {
+            return tieredItems.get(tier - 1);
+        }
     }
 
     public ItemStack asShopItem() {
@@ -256,7 +277,6 @@ public enum Items {
             if (getCategory() == ItemCategory.POTIONS) {
                 meta.setDisplayName(potionTypeToName(((PotionMeta) meta).getCustomEffects().get(0)));
                 item.setItemMeta(meta);
-
             }
             if (getPrice() != null) {
                 meta.setLore(addLore(getPrice()));
@@ -266,7 +286,11 @@ public enum Items {
     }
     public ItemStack asShopItem(int tier) {
         if (this.isTiered()) {
-            return getItemTier(tier).asShopItem();
+            if (getItemTier(tier) != null) {
+                return getItemTier(tier).asShopItem();
+            } else {
+                return new ItemStack(Material.AIR, 0);
+            }
         } else {
             return null;
         }

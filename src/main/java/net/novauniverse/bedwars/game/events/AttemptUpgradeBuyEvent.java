@@ -6,16 +6,19 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
-public class PreprocessUpgradeBuyEvent extends Event {
-	private final HandlerList HANDLERS_LIST = new HandlerList();
+public class AttemptUpgradeBuyEvent extends Event {
+	private static final HandlerList HANDLERS_LIST = new HandlerList();
 
 	private Upgrades upgrades;
 	private Player player;
 	private Team team;
+	private boolean success;
 
-	public PreprocessUpgradeBuyEvent(Upgrades item, Player player, Team team) {
+	public AttemptUpgradeBuyEvent(Upgrades item, boolean success, Player player, Team team) {
 		this.upgrades = item;
 		this.player = player;
+		this.team = team;
+		this.success = success;
 	}
 
 	public Upgrades getUpgrade() {
@@ -30,20 +33,17 @@ public class PreprocessUpgradeBuyEvent extends Event {
 		return team;
 	}
 
+	public boolean isSuccess() {
+		return success;
+	}
+
 	@Override
 	public HandlerList getHandlers() {
 		return HANDLERS_LIST;
 	}
 
-	public void setUpgrade(Upgrades upgrades) {
-		this.upgrades = upgrades;
+	public static HandlerList getHandlerList() {
+		return HANDLERS_LIST;
 	}
 
-	public void setPlayer(Player player) {
-		this.player = player;
-	}
-
-	public void setTeam(Team team) {
-		this.team = team;
-	}
 }
