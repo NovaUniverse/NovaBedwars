@@ -26,7 +26,7 @@ public class ItemGenerator {
 	
 	public static final double HOLOGRAM_OFFSET = 2.5D;
 	
-	public static final double MULTI_PICKUP_RANGE = 1.25D;
+	public static final double MULTI_PICKUP_RANGE = 0.5D;
 
 	private Location location;
 
