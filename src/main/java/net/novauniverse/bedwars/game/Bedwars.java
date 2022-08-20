@@ -38,6 +38,7 @@ import net.zeeraa.novacore.spigot.module.modules.compass.CompassTracker;
 import net.zeeraa.novacore.spigot.tasks.SimpleTask;
 import net.zeeraa.novacore.spigot.teams.Team;
 import net.zeeraa.novacore.spigot.teams.TeamManager;
+import net.zeeraa.novacore.spigot.utils.ChatColorRGBMapper;
 import net.zeeraa.novacore.spigot.utils.ItemBuilder;
 import net.zeeraa.novacore.spigot.utils.ItemUtils;
 import net.zeeraa.novacore.spigot.utils.LocationUtils;
@@ -47,6 +48,7 @@ import xyz.xenondevs.particle.ParticleEffect;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Color;
 import org.bukkit.Difficulty;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -76,6 +78,7 @@ import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryType.SlotType;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -102,7 +105,7 @@ public class Bedwars extends MapGame implements Listener {
 	public static int WEAPON_SLOT_DEFAULT = 0;
 	public static int TRACKER_SLOT_DEFAULT = 8;
 
-	public static final float FIREBALL_YIELD = 1F;
+	public static final float FIREBALL_YIELD = 2F;
 	public static final float TNT_YIELD = 4F;
 
 	public static final int RESPAWN_TIME_SECONDS = 10;
@@ -510,6 +513,16 @@ public class Bedwars extends MapGame implements Listener {
 	}
 
 	public void giveArmorAndTools(Player player) {
+		Color color = Color.WHITE;
+
+		Team team = TeamManager.getTeamManager().getPlayerTeam(player);
+		if (team != null) {
+			color = ChatColorRGBMapper.chatColorToRGBColorData(team.getTeamColor()).toBukkitColor();
+		}
+
+		player.getInventory().setHelmet(new ItemBuilder(Material.LEATHER_HELMET).setLeatherArmorColor(color).setUnbreakable(true).build());
+		player.getInventory().setChestplate(new ItemBuilder(Material.LEATHER_CHESTPLATE).setLeatherArmorColor(color).setUnbreakable(true).build());
+
 		updatePlayerItems(player);
 	}
 
@@ -559,9 +572,16 @@ public class Bedwars extends MapGame implements Listener {
 
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onInventoryClick(InventoryClickEvent e) {
+		if(e.getSlotType() != null) {
+			if(e.getSlotType() == SlotType.ARMOR) {
+				e.setCancelled(true);
+				return;
+			}
+		}
+		
 		if (e.getCurrentItem() != null) {
 			if (e.getCurrentItem().getType().toString().contains("AXE")) { // Pickaxe also included in this
-				if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY || e.getAction() == InventoryAction.PICKUP_ALL) {
+				if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
 					e.setCancelled(true);
 				}
 
@@ -575,7 +595,7 @@ public class Bedwars extends MapGame implements Listener {
 
 		if (e.getCursor() != null) {
 			if (e.getCursor().getType().toString().contains("AXE")) { // Pickaxe also included in this
-				if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY || e.getAction() == InventoryAction.PICKUP_ALL) {
+				if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
 					e.setCancelled(true);
 				}
 
@@ -764,8 +784,10 @@ public class Bedwars extends MapGame implements Listener {
 	@EventHandler(priority = EventPriority.NORMAL)
 	public void onPlayerInteract(PlayerInteractEvent e) {
 		if (e.getAction() == Action.RIGHT_CLICK_BLOCK) {
-			if (VersionIndependentUtils.get().isBed(e.getClickedBlock())) {
-				e.setCancelled(true);
+			if (!e.getPlayer().isSneaking()) {
+				if (VersionIndependentUtils.get().isBed(e.getClickedBlock())) {
+					e.setCancelled(true);
+				}
 			}
 		}
 
