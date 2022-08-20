@@ -318,7 +318,7 @@ public class Bedwars extends MapGame implements Listener {
 		if (started) {
 			return;
 		}
-		
+
 		ModuleManager.disable(CompassTracker.class);
 
 		BedwarsConfig config = (BedwarsConfig) getActiveMap().getMapData().getMapModule(BedwarsConfig.class);
@@ -573,7 +573,8 @@ public class Bedwars extends MapGame implements Listener {
 			}
 		}
 
-		//Log.trace("EventDebug", e.getAction() + " " + e.getClickedInventory() + " " + e.getCurrentItem() + " " + e.getCursor() + " " + e.isCancelled());
+		// Log.trace("EventDebug", e.getAction() + " " + e.getClickedInventory() + " " +
+		// e.getCurrentItem() + " " + e.getCursor() + " " + e.isCancelled());
 	}
 
 	@EventHandler(priority = EventPriority.NORMAL)
@@ -589,8 +590,10 @@ public class Bedwars extends MapGame implements Listener {
 			Bukkit.getServer().broadcastMessage(ChatColor.AQUA + player.getName() + ChatColor.RED + " was killed by " + ChatColor.AQUA + killer.getName());
 
 			for (ItemStack item : player.getInventory().getContents()) {
-				if (item.getType() == Material.EMERALD || item.getType() == Material.DIAMOND || item.getType() == Material.GOLD_INGOT || item.getType() == Material.IRON_INGOT) {
-					killer.getInventory().addItem(item);
+				if (item != null) {
+					if (item.getType() == Material.EMERALD || item.getType() == Material.DIAMOND || item.getType() == Material.GOLD_INGOT || item.getType() == Material.IRON_INGOT) {
+						killer.getInventory().addItem(item);
+					}
 				}
 			}
 		} else {
