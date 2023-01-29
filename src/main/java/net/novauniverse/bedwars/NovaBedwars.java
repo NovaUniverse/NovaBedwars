@@ -173,7 +173,7 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 		}
 
 		Log.info(getName(), "Loading maps from " + mapFolder.getPath());
-		GameManager.getInstance().readMapsFromFolder(mapFolder, worldFolder);
+		GameManager.getInstance().readMapsFromFolderDelayed(mapFolder, worldFolder);
 
 		MissileWarsDebugCommands.register();
 		HashMapDebugger.register();
