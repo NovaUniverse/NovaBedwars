@@ -5,10 +5,23 @@ import java.io.IOException;
 
 import javax.annotation.Nullable;
 
+import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
+import net.zeeraa.novacore.spigot.abstraction.manager.CustomSpectatorManager;
+import net.zeeraa.novacore.spigot.command.AllowedSenders;
+import net.zeeraa.novacore.spigot.debug.DebugCommandRegistrator;
+import net.zeeraa.novacore.spigot.debug.DebugTrigger;
+import net.zeeraa.novacore.spigot.utils.PlayerUtils;
 import org.apache.commons.io.FileUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.TNTPrimed;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.json.JSONException;
@@ -189,6 +202,66 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 			getGame().getAllPlayersPickaxeTier().putIfAbsent(player, 0);
 			getGame().getAllPlayersAxeTier().putIfAbsent(player, 0);
 			getGame().getAllPlayersArmor().putIfAbsent(player, ArmorType.NO_ARMOR);
+		});
+
+		CustomSpectatorManager.addPermittedEvent(PlayerTeleportEvent.class);
+		CustomSpectatorManager.addPermittedEvent(PlayerCommandPreprocessEvent.class);
+
+		DebugCommandRegistrator.getInstance().addDebugTrigger(new DebugTrigger() {
+			@Override
+			public String getName() {
+				return "damageTest";
+			}
+
+			@Override
+			public String getPermission() {
+				return "damageTest";
+			}
+
+			@Override
+			public AllowedSenders getAllowedSenders() {
+				return AllowedSenders.PLAYERS;
+			}
+
+			@Override
+			public PermissionDefault getPermissionDefault() {
+				return PermissionDefault.OP;
+			}
+
+			@Override
+			public void onExecute(CommandSender commandSender, String s, String[] strings) {
+				((Player) commandSender).damage(2);
+			}
+		});
+
+		DebugCommandRegistrator.getInstance().addDebugTrigger(new DebugTrigger() {
+			@Override
+			public String getName() {
+				return "explosiontest";
+			}
+
+			@Override
+			public String getPermission() {
+				return "explosiontest";
+			}
+
+			@Override
+			public AllowedSenders getAllowedSenders() {
+				return AllowedSenders.PLAYERS;
+			}
+
+			@Override
+			public PermissionDefault getPermissionDefault() {
+				return PermissionDefault.OP;
+			}
+
+			@Override
+			public void onExecute(CommandSender commandSender, String s, String[] strings) {
+				Player player = (Player) commandSender;
+				TNTPrimed tnt = (TNTPrimed) player.getWorld().spawnEntity(player.getLocation(), EntityType.PRIMED_TNT);
+				VersionIndependentUtils.get().setSource(tnt, player);
+				Bukkit.getScheduler().runTaskLater(instance, () -> game.explode(tnt, 4, 4, 5, false, true, Bukkit.getOnlinePlayers(), null), 40L);
+			}
 		});
 	}
 

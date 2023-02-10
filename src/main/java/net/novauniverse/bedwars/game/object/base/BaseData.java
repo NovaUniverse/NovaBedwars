@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
+import net.novauniverse.bedwars.game.enums.Upgrades;
 import org.bukkit.Location;
 
 import net.novauniverse.bedwars.game.object.Trap;
@@ -38,6 +39,8 @@ public class BaseData {
 		this.upgradeShopLocation = upgradeShopLocation;
 		this.traps = new ArrayList<>();
 	}
+
+
 
 	@Nullable
 	public Team getOwner() {
@@ -82,6 +85,19 @@ public class BaseData {
 
 	public Location getUpgradeShopLocation() {
 		return upgradeShopLocation;
+	}
+
+	public int getDataFromUpgrade(Upgrades upgrades) {
+		switch (upgrades) {
+			case SHARPNESS:
+				return sharpness ? 1: 0;
+			case PROTECTION:
+				return protectionLevel;
+			case FORGE:
+				return forgeLevel;
+			default:
+				return 0;
+		}
 	}
 
 	public void setOwner(Team owner) {

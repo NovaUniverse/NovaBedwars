@@ -1,5 +1,6 @@
 package net.novauniverse.bedwars.game.object;
 
+import io.github.bananapuncher714.nbteditor.NBTEditor;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -12,9 +13,15 @@ public class TieredItem {
 	private final ItemStack itemStack;
 	private final Price price;
 
+	private final ItemStack shopItem;
 	public TieredItem(ItemStack itemStack, Price price) {
 		this.itemStack = itemStack;
 		this.price = price;
+		shopItem = toShopItem();
+	}
+
+	public ItemStack getShopItem() {
+		return shopItem;
 	}
 
 	public ItemStack getItemStack() {
@@ -37,6 +44,7 @@ public class TieredItem {
 		}
 		meta.spigot().setUnbreakable(true);
 		item.setItemMeta(meta);
+		NBTEditor.set(item, 1, "bedwars", "isshopitem");
 		return item;
 	}
 

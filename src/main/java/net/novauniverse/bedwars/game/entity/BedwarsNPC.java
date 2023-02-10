@@ -13,7 +13,7 @@ import com.gmail.filoghost.holographicdisplays.api.Hologram;
 import com.gmail.filoghost.holographicdisplays.api.HologramsAPI;
 
 public class BedwarsNPC {
-	public static final double HOLOGRAM_OFFSET = 2.0D;
+	public static final double HOLOGRAM_OFFSET = 2.5D;
 
 	private Location location;
 	private NPCType type;

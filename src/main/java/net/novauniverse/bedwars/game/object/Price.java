@@ -5,17 +5,15 @@ import net.novauniverse.bedwars.game.enums.Items;
 import net.novauniverse.bedwars.game.enums.Reason;
 import net.novauniverse.bedwars.game.events.AttemptItemBuyEvent;
 import net.novauniverse.bedwars.utils.InventoryUtils;
-import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
-import net.zeeraa.novacore.spigot.abstraction.enums.ColoredBlockType;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class Price {
@@ -72,11 +70,11 @@ public class Price {
 				reason = Reason.NOT_ENOUGH_SPACE;
 			} else if (itemEnum.isArmor()) {
 				if (NovaBedwars.getInstance().getGame().getPlayerArmor(player) == itemEnum.getArmorType()) {
-					player.sendMessage(ChatColor.RED + "Fail: already have armor"); // Fail silent
+					player.sendMessage(ChatColor.RED + "You already have this armor."); // Fail silent
 					bought = false;
 					reason = Reason.ALREADY_HAS_ARMOR;
 				} else if (NovaBedwars.getInstance().getGame().getPlayerArmor(player).getTier() > itemEnum.getArmorType().getTier()) {
-					player.sendMessage(ChatColor.RED + "Fail: already have better tier"); // Fail silent
+					player.sendMessage(ChatColor.RED + "You already have a better armor tier."); // Fail silent
 					bought = false;
 					reason = Reason.ALREADY_HAS_HIGHER_TIER_ARMOR;
 				} else {
@@ -119,24 +117,23 @@ public class Price {
 
 					}
 				}
+			} else if (itemEnum.isSword()) {
+				if (InventoryUtils.slotsWith(player.getInventory(), Material.WOOD_SWORD).isEmpty()) {
+					inventory.addItem(itemEnum.asNormalItem());
+				} else {
+					List<Integer> values = InventoryUtils.slotsWith(player.getInventory(), Material.WOOD_SWORD);
+					Collections.sort(values);
+					int toReplace = values.get(0);
+					inventory.setItem(toReplace, itemEnum.asNormalItem());
+				}
+
 			} else {
-				if (itemEnum == Items.WOOL) {
-					DyeColor color = DyeColor.WHITE;
-					/*Team team = TeamManager.getTeamManager().getPlayerTeam(player);
-					if (team != null) {
-						color = DyeColor.getByColor(ChatColorRGBMapper.chatColorToRGBColorData(team.getTeamColor()).toBukkitColor());
-					}*/
-
-					ItemStack wool = VersionIndependentUtils.get().getColoredItem(color, ColoredBlockType.WOOL);
-					wool.setAmount(16);
-
-					player.getInventory().addItem(wool);
+				if (itemEnum.isColored()) {
+					inventory.addItem(itemEnum.asColoredNormalItem(player));
 				} else {
 					inventory.addItem(itemEnum.asNormalItem());
 				}
-				// player.sendMessage(ChatColor.GREEN + "Success: normal item bought");
 				reason = Reason.NORMAL_ITEM_BOUGHT;
-
 			}
 		} else {
 			bought = false;

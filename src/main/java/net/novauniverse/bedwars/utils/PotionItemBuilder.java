@@ -6,6 +6,7 @@ import net.zeeraa.novacore.spigot.utils.ItemBuilder;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.potion.Potion;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
@@ -61,7 +62,7 @@ public class PotionItemBuilder extends ItemBuilder {
 			}
 		}
 		if (potionType == null) {
-			throw new TypeNotPresentException("Could not find PotionType for " + type.toString(), new Throwable());
+			throw new TypeNotPresentException(type.toString(), new Throwable());
 		}
 		return potionType;
 	}

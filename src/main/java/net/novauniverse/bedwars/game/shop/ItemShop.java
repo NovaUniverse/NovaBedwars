@@ -20,10 +20,7 @@ import net.zeeraa.novacore.spigot.tasks.SimpleTask;
 import net.zeeraa.novacore.spigot.teams.Team;
 import net.zeeraa.novacore.spigot.teams.TeamManager;
 import net.zeeraa.novacore.spigot.utils.ItemBuilder;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.DyeColor;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -40,8 +37,8 @@ public class ItemShop {
 
 	private Task task;
 
-	public ItemShop() {
-		task = new SimpleTask(() -> Bukkit.getServer().getOnlinePlayers().forEach(player -> {
+	public void updateHypixelAPIButton(Player player) {
+		if (NovaBedwars.getInstance().hasHypixelAPI()) {
 			Inventory inventory = player.getOpenInventory().getTopInventory();
 			if (inventory.getHolder() instanceof ItemShopHolder) {
 				ItemShopHolder holder = (ItemShopHolder) inventory.getHolder();
@@ -59,9 +56,14 @@ public class ItemShop {
 				}
 
 			}
-		}), 5L);
-		
-		Task.tryStartTask(task);
+		}
+	}
+
+	public ItemShop() {
+		if (NovaBedwars.getInstance().hasHypixelAPI()) {
+			task = new SimpleTask(() -> Bukkit.getServer().getOnlinePlayers().forEach(this::updateHypixelAPIButton), 5L);
+			Task.tryStartTask(task);
+		}
 	}
 	
 	public void destroy() {
@@ -116,8 +118,11 @@ public class ItemShop {
 							}
 							inventory.addItem(item);
 						} else {
-							inventory.addItem(items.asShopItem());
-
+							if (items.isColored()) {
+								inventory.addItem(items.asColoredShopItem(player));
+							} else {
+								inventory.addItem(items.asShopItem());
+							}
 						}
 					}
 				}
@@ -155,10 +160,13 @@ public class ItemShop {
 
 			for (int i = 21; i <= 26; i++) {
 				try {
-					ItemStack sword = swordList.get(i - 21).asShopItem().clone();
+					ItemStack sword = swordList.get(i - 21).asShopItem();
 					Team team = TeamManager.getTeamManager().getPlayerTeam(player.getUniqueId());
 					if (NovaBedwars.getInstance().getGame().getBases().stream().filter(baseData -> baseData.getOwner().equals(team)).findFirst().get().hasSharpness()) {
-						sword.addEnchantment(Enchantment.DAMAGE_ALL, 1);
+						if (swordList.get(i-21).isSword()) {
+							sword.addUnsafeEnchantment(Enchantment.DAMAGE_ALL, 1);
+						}
+
 					}
 					inventory.setItem(i, sword);
 				} catch (IndexOutOfBoundsException e) {
@@ -169,11 +177,11 @@ public class ItemShop {
 			inventory.setItem(29, blackbg);
 			for (int i = 30; i <= 34; i++) {
 				try {
-					ItemStack armor = armorList.get(i - 30).asShopItem().clone();
+					ItemStack armor = armorList.get(i - 30).asShopItem();
 					Team team = TeamManager.getTeamManager().getPlayerTeam(player.getUniqueId());
 					BaseData data = NovaBedwars.getInstance().getGame().getBases().stream().filter(baseData -> baseData.getOwner().equals(team)).findFirst().get();
 					if (!(data.getProtectionLevel() == 0)) {
-						armor.addEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, data.getProtectionLevel());
+						armor.addUnsafeEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, data.getProtectionLevel());
 					}
 					inventory.setItem(i, armorList.get(i - 30).asShopItem());
 				} catch (IndexOutOfBoundsException e) {
@@ -216,9 +224,10 @@ public class ItemShop {
 							}
 						}
 						inventory.addItem(item);
+					} else if (items.isColored()) {
+						inventory.addItem(items.asColoredShopItem(player));
 					} else {
 						inventory.addItem(items.asShopItem());
-
 					}
 				}
 			});
@@ -237,12 +246,10 @@ public class ItemShop {
 				}
 				Price.buyItem(item, e.getWhoClicked().getInventory(), e.getCurrentItem(), p);
 				this.display(category, player);
-			} else {
-				// e.getWhoClicked().sendMessage(ChatColor.RED + "Fail: not shop item");
-				return GUIAction.CANCEL_INTERACTION;
 			}
 			return GUIAction.NONE;
 		});
+		updateHypixelAPIButton(player);
 		player.openInventory(inventory);
 	}
 	private void addMaxTierLore(ItemMeta meta) {
@@ -250,6 +257,7 @@ public class ItemShop {
 		lore.add(ChatColor.RED + "Max tier reached");
 		meta.setLore(lore);
 	}
+
 
 	private void placeRemainingOnes(Inventory inventory, ItemStack defaultItem) {
 		if (inventory.getItem(0).getItemMeta().equals(defaultItem.getItemMeta())) {

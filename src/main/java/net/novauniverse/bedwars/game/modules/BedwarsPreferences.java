@@ -45,7 +45,7 @@ public class BedwarsPreferences {
 				items.add(null);
 			} else {
 				try {
-					Items item = Items.valueOf(itemName);
+					Items item = itemName.equals("null") ? Items.NO_ITEM : Items.valueOf(itemName);
 					items.add(item);
 				} catch (IllegalArgumentException e) {
 					Log.warn("BedwarsPreferences", "Unknown item " + itemName);

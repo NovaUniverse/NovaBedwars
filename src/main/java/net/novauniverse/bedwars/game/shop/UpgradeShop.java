@@ -54,7 +54,7 @@ public class UpgradeShop {
 						finalData.setSharpness(true);
 						finalData.getOwner().getOnlinePlayers().forEach(p -> {
 							VersionIndependentSound.NOTE_PLING.play(player);
-							p.sendMessage(ChatColor.AQUA + player.getName() + " bought sharpness");
+							p.sendMessage(ChatColor.AQUA + player.getName() + " bought Sharpness");
 						});
 						success = true;
 					}
@@ -68,7 +68,7 @@ public class UpgradeShop {
 						success = true;
 						finalData.getOwner().getOnlinePlayers().forEach(p -> {
 							VersionIndependentSound.NOTE_PLING.play(player);
-							p.sendMessage(ChatColor.AQUA + player.getName() + " bought protection " + finalData.getProtectionLevel());
+							p.sendMessage(ChatColor.AQUA + player.getName() + " bought Protection " + finalData.getProtectionLevel());
 						});
 					}
 				}
@@ -82,7 +82,7 @@ public class UpgradeShop {
 						NovaBedwars.getInstance().getGame().buyForgeUpgrade(player, finalData.getForgeLevel());
 						finalData.getOwner().getOnlinePlayers().forEach(p -> {
 							VersionIndependentSound.NOTE_PLING.play(player);
-							p.sendMessage(ChatColor.AQUA + player.getName() + " bought forge upgrade " + finalData.getForgeLevel());
+							p.sendMessage(ChatColor.AQUA + player.getName() + " bought Forge Upgrade " + finalData.getForgeLevel());
 						});
 					}
 				}

@@ -12,7 +12,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.permissions.PermissionDefault;
 
 public class UUIDGetter {
-    public static  void register() {
+    public static void register() {
         DebugCommandRegistrator.getInstance().addDebugTrigger(new DebugTrigger() {
             @Override
             public String getName() {
