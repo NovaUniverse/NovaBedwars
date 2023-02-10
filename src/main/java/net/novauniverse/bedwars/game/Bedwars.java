@@ -2,12 +2,10 @@ package net.novauniverse.bedwars.game;
 
 import com.gmail.filoghost.holographicdisplays.api.Hologram;
 import com.gmail.filoghost.holographicdisplays.api.HologramsAPI;
-import io.github.bananapuncher714.nbteditor.NBTEditor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
-import net.minecraft.server.v1_8_R3.EntityFireball;
 import net.novauniverse.bedwars.NovaBedwars;
 import net.novauniverse.bedwars.game.commands.ImportBedwarsPreferences;
 import net.novauniverse.bedwars.game.config.BedwarsConfig;
@@ -72,7 +70,6 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.craftbukkit.v1_8_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftFireball;
-import org.bukkit.craftbukkit.v1_8_R3.entity.CraftLivingEntity;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
@@ -99,7 +96,6 @@ import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.ItemDespawnEvent;
 import org.bukkit.event.entity.ItemMergeEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
-import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType.SlotType;
@@ -117,6 +113,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -182,9 +179,7 @@ public class Bedwars extends MapGame implements Listener {
 	private Task tntParticleTask;
 	private Task teamWinTask;
 	private Task itemUpdateTask;
-
 	private Task spectatorUpdateTask;
-
 	public Map<Player, ArmorType> getAllPlayersArmor() {
 		return hasArmor;
 	}
@@ -307,9 +302,11 @@ public class Bedwars extends MapGame implements Listener {
 			generatorUpgrades.removeIf(GeneratorUpgrade::isFinished);
 		}, 20L);
 		itemUpdateTask = new SimpleTask(getPlugin(), () -> players.forEach(uuid -> {
-			if (!CustomSpectatorManager.isSpectator(Bukkit.getPlayer(uuid))) {
-				updateEnchantment(Bukkit.getPlayer(uuid));
-				addWoodSword(Bukkit.getPlayer(uuid));
+			if (Bukkit.getOfflinePlayer(uuid).isOnline()) {
+				if (!CustomSpectatorManager.isSpectator(Bukkit.getPlayer(uuid))) {
+					updateEnchantment(Bukkit.getPlayer(uuid));
+					addWoodSword(Bukkit.getPlayer(uuid));
+				}
 			}
 		}), 2L);
 
@@ -374,7 +371,7 @@ public class Bedwars extends MapGame implements Listener {
 
 	@Override
 	public boolean autoEndGame() {
-		return false;
+		return true;
 	}
 
 	@Override
@@ -634,6 +631,7 @@ public class Bedwars extends MapGame implements Listener {
 				player.setFoodLevel(20);
 				PlayerUtils.clearPotionEffects(player);
 				PlayerUtils.clearPlayerInventory(player);
+				player.setFlySpeed(0.1f);
 				VersionIndependentUtils.get().setCustomSpectator(player, false);
 				player.setVelocity(new Vector(0,0,0));
 				player.teleport(base.getSpawnLocation());
@@ -688,6 +686,7 @@ public class Bedwars extends MapGame implements Listener {
 	public void setSpectator(Player player) {
 		PlayerUtils.clearPlayerInventory(player);
 		tpToSpectator(player);
+		player.setFlySpeed(0.2f);
 		VersionIndependentUtils.get().setCustomSpectator(player, true, Bukkit.getOnlinePlayers().stream().filter(pl -> !CustomSpectatorManager.isSpectator(pl)).collect(Collectors.toList()));
 		lastDamager.put(player, null);
 	}
@@ -738,6 +737,9 @@ public class Bedwars extends MapGame implements Listener {
 
 	public void handlePlayerRespawnOrJoin(Player player) {
 		setSpectator(player);
+		if (!players.contains(player.getUniqueId())) {
+			players.add(player.getUniqueId());
+		}
 		Team team = TeamManager.getTeamManager().getPlayerTeam(player);
 		if (team != null) {
 			BaseData base = bases.stream().filter(b -> b.getOwner().equals(team)).findFirst().orElse(null);
@@ -817,9 +819,14 @@ public class Bedwars extends MapGame implements Listener {
 	}
 
 	public boolean handleDamage(Player damaged, Entity entityHitter, double damage, DeathType deathType) {
+		if (CustomSpectatorManager.isSpectator(damaged)) {
+			return true;
+		}
+
 		if (invencibility.get(damaged) != 0) {
 			return true;
 		}
+
 		if (CountdownTaskManager.getTasks().stream().filter(task -> task.getPlayer().equals(damaged)).findFirst().orElse(null) != null) {
 			CountdownTaskManager.remove(damaged);
 		}
@@ -1016,55 +1023,7 @@ public class Bedwars extends MapGame implements Listener {
 				killer.sendMessage(message);
 			}
 		} else {
-			for (ItemStack item : player.getInventory().getContents()) {
-				if (item != null) {
-					if (item.getType() == Material.EMERALD) {
-						emeraldCollected += item.getAmount();
-					} else if (item.getType() == Material.DIAMOND) {
-						diamondCollected += item.getAmount();
-					} else if (item.getType() == Material.GOLD_INGOT) {
-						goldCollected += item.getAmount();
-					} else if (item.getType() == Material.IRON_INGOT) {
-						ironCollected += item.getAmount();
-					}
-				}
-			}
-			if (ironCollected != 0) {
-				ItemStack iron = new ItemStack(Material.IRON_INGOT);
-				int value = (int) Math.floor(ironCollected/64d);
-				for (int i = 0; i <= value; i++) {
-					ItemStack clone = iron.clone();
-					clone.setAmount(ironCollected % 64 == 0 ? 64 : ironCollected % 64);
-					player.getWorld().dropItemNaturally(player.getLocation(), clone);
-				}
-			}
-			if (goldCollected != 0) {
-				ItemStack gold = new ItemStack(Material.GOLD_INGOT);
-				int value = (int) Math.floor(goldCollected/64d);
-				for (int i = 0; i <= value; i++) {
-					ItemStack clone = gold.clone();
-					clone.setAmount(goldCollected % 64 == 0 ? 64 : goldCollected % 64);
-					player.getWorld().dropItemNaturally(player.getLocation(), clone);
-				}
-			}
-			if (diamondCollected != 0) {
-				ItemStack diamond = new ItemStack(Material.DIAMOND);
-				int value = (int) Math.floor(diamondCollected/64d);
-				for (int i = 0; i <= value; i++) {
-					ItemStack clone = diamond.clone();
-					clone.setAmount(diamondCollected % 64 == 0 ? 64 : diamondCollected % 64);
-					player.getWorld().dropItemNaturally(player.getLocation(), clone);
-				}
-			}
-			if (emeraldCollected != 0) {
-				ItemStack emerald = new ItemStack(Material.EMERALD);
-				int value = (int) Math.floor(emeraldCollected/64d);
-				for (int i = 0; i <= value; i++) {
-					ItemStack clone = emerald.clone();
-					clone.setAmount(emeraldCollected % 64 == 0 ? 64 : emeraldCollected % 64);
-					player.getWorld().dropItemNaturally(player.getLocation(), clone);
-				}
-			}
+			dropItems(player);
 		}
 		PlayerUtils.clearPlayerInventory(player);
 
@@ -1091,6 +1050,77 @@ public class Bedwars extends MapGame implements Listener {
 		}
 	}
 
+	public void dropItems(Player player) {
+		int ironCollected = 0;
+		int goldCollected = 0;
+		int diamondCollected = 0;
+		int emeraldCollected = 0;
+		for (ItemStack item : player.getInventory().getContents()) {
+			if (item != null) {
+				if (item.getType() == Material.EMERALD) {
+					emeraldCollected += item.getAmount();
+				} else if (item.getType() == Material.DIAMOND) {
+					diamondCollected += item.getAmount();
+				} else if (item.getType() == Material.GOLD_INGOT) {
+					goldCollected += item.getAmount();
+				} else if (item.getType() == Material.IRON_INGOT) {
+					ironCollected += item.getAmount();
+				}
+			}
+		}
+		if (ironCollected != 0) {
+			ItemStack iron = new ItemStack(Material.IRON_INGOT);
+			int value = (int) Math.floor(ironCollected/64d) - (ironCollected % 64 == 0 ? 1 : 0);
+			for (int i = 0; i <= value; i++) {
+				ItemStack clone = iron.clone();
+				if (i != value) {
+					clone.setAmount(64);
+				} else {
+					clone.setAmount(ironCollected % 64 == 0 ? 64 : ironCollected % 64);
+				}
+				player.getWorld().dropItemNaturally(player.getLocation(), clone);
+			}
+		}
+		if (goldCollected != 0) {
+			ItemStack gold = new ItemStack(Material.GOLD_INGOT);
+			int value = (int) Math.floor(goldCollected/64d) - (goldCollected % 64 == 0 ? 1 : 0);
+			for (int i = 0; i <= value; i++) {
+				ItemStack clone = gold.clone();
+				if (i != value) {
+					clone.setAmount(64);
+				} else {
+					clone.setAmount(goldCollected % 64 == 0 ? 64 : goldCollected % 64);
+				}
+				player.getWorld().dropItemNaturally(player.getLocation(), clone);
+			}
+		}
+		if (diamondCollected != 0) {
+			ItemStack diamond = new ItemStack(Material.DIAMOND);
+			int value = (int) Math.floor(diamondCollected/64d) - (diamondCollected % 64 == 0 ? 1 : 0);
+			for (int i = 0; i <= value; i++) {
+				ItemStack clone = diamond.clone();
+				if (i != value) {
+					clone.setAmount(64);
+				} else {
+					clone.setAmount(diamondCollected % 64 == 0 ? 64 : diamondCollected % 64);
+				}
+				player.getWorld().dropItemNaturally(player.getLocation(), clone);
+			}
+		}
+		if (emeraldCollected != 0) {
+			ItemStack emerald = new ItemStack(Material.EMERALD);
+			int value = (int) Math.floor(emeraldCollected/64d) - (emeraldCollected % 64 == 0 ? 1 : 0);
+			for (int i = 0; i <= value; i++) {
+				ItemStack clone = emerald.clone();
+				if (i != value) {
+					clone.setAmount(64);
+				} else {
+					clone.setAmount(emeraldCollected % 64 == 0 ? 64 : emeraldCollected % 64);
+				}
+				player.getWorld().dropItemNaturally(player.getLocation(), clone);
+			}
+		}
+	}
 	@EventHandler(priority = EventPriority.NORMAL)
 	public void onPlayerDeath(PlayerKilledEvent e) {
 		if (!started && ended) {
@@ -1160,7 +1190,7 @@ public class Bedwars extends MapGame implements Listener {
 		if (started && !ended) {
 			if (e.getTo().getY() <= 0) {
 				if (CustomSpectatorManager.isSpectator(e.getPlayer())) {
-					tpToSpectator(e.getPlayer());
+					e.getPlayer().teleport(getActiveMap().getSpectatorLocation());
 				} else {
 					DeathType dt = lastDamager.get(e.getPlayer()) != null && !lastDamager.get(e.getPlayer()).getUniqueId().equals(e.getPlayer().getUniqueId()) ? DeathType.VOID_COMBAT : DeathType.VOID;
 					e.getPlayer().playEffect(EntityEffect.HURT);
@@ -1607,6 +1637,7 @@ public class Bedwars extends MapGame implements Listener {
 
 	@EventHandler(priority = EventPriority.NORMAL)
 	public void onPlayerQuit(PlayerQuitEvent e) {
+		dropItems(e.getPlayer());
 		tryCancelRespawn(e.getPlayer());
 		CustomSpectatorManager.setSpectator(e.getPlayer(), false);
 		PlayerUtils.clearPlayerInventory(e.getPlayer());
@@ -1623,9 +1654,10 @@ public class Bedwars extends MapGame implements Listener {
 		if (started && !ended) {
 			Team team = TeamManager.getTeamManager().getPlayerTeam(e.getPlayer());
 			BaseData base = bases.stream().filter(b -> b.getOwner().equals(team)).findFirst().orElse(null);
-			if (team == null || !base.hasBed() || !players.contains(player.getUniqueId())) {
+			if (team == null || !base.hasBed()) {
 				setEliminatedSpectator(e.getPlayer());
 			} else {
+				System.out.println("test");
 				handlePlayerRespawnOrJoin(player);
 			}
 		}
