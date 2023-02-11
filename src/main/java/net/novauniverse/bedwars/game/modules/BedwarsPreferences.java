@@ -6,14 +6,14 @@ import java.util.UUID;
 
 import org.json.JSONArray;
 
-import net.novauniverse.bedwars.game.enums.Items;
+import net.novauniverse.bedwars.game.enums.ShopItem;
 import net.zeeraa.novacore.commons.log.Log;
 
 public class BedwarsPreferences {
 	private final UUID uuid;
-	private List<Items> items;
+	private List<ShopItem> items;
 
-	public BedwarsPreferences(UUID uuid, List<Items> items) {
+	public BedwarsPreferences(UUID uuid, List<ShopItem> items) {
 		this.uuid = uuid;
 		this.items = items;
 	}
@@ -22,11 +22,11 @@ public class BedwarsPreferences {
 		return uuid;
 	}
 
-	public List<Items> getItems() {
+	public List<ShopItem> getItems() {
 		return items;
 	}
 
-	public void setItems(List<Items> items) {
+	public void setItems(List<ShopItem> items) {
 		this.items = items;
 	}
 
@@ -36,8 +36,8 @@ public class BedwarsPreferences {
 		return json;
 	}
 
-	public static List<Items> parseItems(JSONArray jsonArray) {
-		List<Items> items = new ArrayList<>();
+	public static List<ShopItem> parseItems(JSONArray jsonArray) {
+		List<ShopItem> items = new ArrayList<>();
 
 		for (int i = 0; i < jsonArray.length(); i++) {
 			String itemName = jsonArray.getString(i);
@@ -45,7 +45,7 @@ public class BedwarsPreferences {
 				items.add(null);
 			} else {
 				try {
-					Items item = itemName.equals("null") ? Items.NO_ITEM : Items.valueOf(itemName);
+					ShopItem item = itemName.equals("null") ? ShopItem.NO_ITEM : ShopItem.valueOf(itemName);
 					items.add(item);
 				} catch (IllegalArgumentException e) {
 					Log.warn("BedwarsPreferences", "Unknown item " + itemName);
@@ -57,7 +57,7 @@ public class BedwarsPreferences {
 	}
 
 	public static BedwarsPreferences fromJSON(UUID uuid, JSONArray jsonArray) {
-		List<Items> items = BedwarsPreferences.parseItems(jsonArray);
+		List<ShopItem> items = BedwarsPreferences.parseItems(jsonArray);
 		return new BedwarsPreferences(uuid, items);
 	}
 
@@ -66,23 +66,23 @@ public class BedwarsPreferences {
 	}
 
 	public static BedwarsPreferences defaultPreferences(UUID uuid) {
-		List<Items> defaults = new ArrayList<>();
+		List<ShopItem> defaults = new ArrayList<>();
 
-		defaults.add(Items.WOOL);
-		defaults.add(Items.STONE_SWORD);
-		defaults.add(Items.CHAINMAIL_ARMOR);
-		defaults.add(Items.NO_ITEM);
-		defaults.add(Items.BOW);
-		defaults.add(Items.SPEED);
-		defaults.add(Items.TNT);
-		defaults.add(Items.ENDER_PEARL);
-		defaults.add(Items.WOOD);
-		defaults.add(Items.IRON_SWORD);
-		defaults.add(Items.IRON_ARMOR);
-		defaults.add(Items.SHEARS);
-		defaults.add(Items.ARROW);
-		defaults.add(Items.INVISIBLE);
-		defaults.add(Items.WATER_BUCKET);
+		defaults.add(ShopItem.WOOL);
+		defaults.add(ShopItem.STONE_SWORD);
+		defaults.add(ShopItem.CHAINMAIL_ARMOR);
+		defaults.add(ShopItem.NO_ITEM);
+		defaults.add(ShopItem.BOW);
+		defaults.add(ShopItem.SPEED);
+		defaults.add(ShopItem.TNT);
+		defaults.add(ShopItem.ENDER_PEARL);
+		defaults.add(ShopItem.WOOD);
+		defaults.add(ShopItem.IRON_SWORD);
+		defaults.add(ShopItem.IRON_ARMOR);
+		defaults.add(ShopItem.SHEARS);
+		defaults.add(ShopItem.ARROW);
+		defaults.add(ShopItem.INVISIBLE);
+		defaults.add(ShopItem.WATER_BUCKET);
 
 		return new BedwarsPreferences(uuid, defaults);
 	}

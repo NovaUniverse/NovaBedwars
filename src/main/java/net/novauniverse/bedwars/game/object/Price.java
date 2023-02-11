@@ -1,7 +1,7 @@
 package net.novauniverse.bedwars.game.object;
 
 import net.novauniverse.bedwars.NovaBedwars;
-import net.novauniverse.bedwars.game.enums.Items;
+import net.novauniverse.bedwars.game.enums.ShopItem;
 import net.novauniverse.bedwars.game.enums.Reason;
 import net.novauniverse.bedwars.game.events.AttemptItemBuyEvent;
 import net.novauniverse.bedwars.utils.InventoryUtils;
@@ -42,14 +42,14 @@ public class Price {
 		return amountLeft <= 0;
 	}
 
-	public static boolean canBuy(Player player, Items item) {
+	public static boolean canBuy(Player player, ShopItem item) {
 		if (item.getPrice() == null) {
 			return false;
 		}
 		Price price = item.getPrice();
-		if (item == Items.WOOD_AXE) {
+		if (item == ShopItem.WOOD_AXE) {
 			price = item.getItemTier(NovaBedwars.getInstance().getGame().getPlayerAxeTier(player) + 1).getPrice();
-		} else if (item == Items.WOOD_PICKAXE) {
+		} else if (item == ShopItem.WOOD_PICKAXE) {
 			price = item.getItemTier(NovaBedwars.getInstance().getGame().getPlayerPickaxeTier(player) + 1).getPrice();
 		}
 		int amountLeft = price.getValue();
@@ -60,7 +60,7 @@ public class Price {
 		return amountLeft <= 0;
 	}
 
-	public static void buyItem(Items itemEnum, PlayerInventory inventory, ItemStack item, Player player) {
+	public static void buyItem(ShopItem itemEnum, PlayerInventory inventory, ItemStack item, Player player) {
 		boolean bought = true;
 		Reason reason = null;
 		if (canBuy(player, itemEnum)) {
@@ -70,22 +70,22 @@ public class Price {
 				reason = Reason.NOT_ENOUGH_SPACE;
 			} else if (itemEnum.isArmor()) {
 				if (NovaBedwars.getInstance().getGame().getPlayerArmor(player) == itemEnum.getArmorType()) {
-					player.sendMessage(ChatColor.RED + "You already have this armor."); // Fail silent
+					// player.sendMessage(ChatColor.RED + "You already have this armor."); // Fail silent
 					bought = false;
 					reason = Reason.ALREADY_HAS_ARMOR;
 				} else if (NovaBedwars.getInstance().getGame().getPlayerArmor(player).getTier() > itemEnum.getArmorType().getTier()) {
-					player.sendMessage(ChatColor.RED + "You already have a better armor tier."); // Fail silent
+					// player.sendMessage(ChatColor.RED + "You already have a better armor tier."); // Fail silent
 					bought = false;
 					reason = Reason.ALREADY_HAS_HIGHER_TIER_ARMOR;
 				} else {
 					NovaBedwars.getInstance().getGame().getAllPlayersArmor().putIfAbsent(player, itemEnum.getArmorType());
 					NovaBedwars.getInstance().getGame().getAllPlayersArmor().put(player, itemEnum.getArmorType());
-					player.sendMessage(ChatColor.GREEN + "Success: armor bought");
+					// player.sendMessage(ChatColor.GREEN + "Success: armor bought");
 					reason = Reason.ARMOR_BOUGHT;
 				}
 
 			} else if (itemEnum.isTiered()) {
-				if (itemEnum == Items.WOOD_PICKAXE) {
+				if (itemEnum == ShopItem.WOOD_PICKAXE) {
 					for (int i = 0; i < itemEnum.getTieredItems().size(); i++) {
 						if (itemEnum.getTieredItems().size() == NovaBedwars.getInstance().getGame().getPlayerPickaxeTier(player) - 1) {
 							player.sendMessage(ChatColor.RED + "You already have the max tier for this item");
@@ -93,24 +93,24 @@ public class Price {
 							reason = Reason.ALREADY_HAS_PICKAXE_MAX_TIER;
 							break;
 						} else {
-							if (item.equals(itemEnum.getTieredItems().get(i).asShopItem())) {
+							if (item.equals(itemEnum.getTieredItems().get(i).getShopItem())) {
 								NovaBedwars.getInstance().getGame().getAllPlayersPickaxeTier().put(player, i + 1);
-								player.sendMessage(ChatColor.GREEN + "Pickaxe upgraded");
+								// player.sendMessage(ChatColor.GREEN + "Pickaxe upgraded");
 								reason = Reason.PICKAXE_UPGRADE;
 							}
 						}
 
 					}
-				} else if (itemEnum == Items.WOOD_AXE) {
+				} else if (itemEnum == ShopItem.WOOD_AXE) {
 					for (int i = 0; i < itemEnum.getTieredItems().size(); i++) {
 						if (itemEnum.getTieredItems().size() == NovaBedwars.getInstance().getGame().getPlayerAxeTier(player) - 1) {
-							player.sendMessage(ChatColor.RED + "You already have the max tier for this item");
+							// player.sendMessage(ChatColor.RED + "You already have the max tier for this item");
 							bought = false;
 							reason = Reason.ALREADY_HAS_AXE_MAX_TIER;
 						} else {
-							if (item.equals(itemEnum.getTieredItems().get(i).asShopItem())) {
+							if (item.equals(itemEnum.getTieredItems().get(i).getShopItem())) {
 								NovaBedwars.getInstance().getGame().getAllPlayersAxeTier().put(player, i + 1);
-								player.sendMessage(ChatColor.GREEN + "Axe upgraded");
+								// player.sendMessage(ChatColor.GREEN + "Axe upgraded");
 								reason = Reason.AXE_UPGRADE;
 							}
 						}
@@ -141,10 +141,13 @@ public class Price {
 		}
 		if (bought) {
 			Price price = itemEnum.getPrice();
-			if (itemEnum == Items.WOOD_AXE) {
+			ItemStack tieredItemBuy = new ItemStack(Material.AIR);
+			if (itemEnum == ShopItem.WOOD_AXE) {
 				price = itemEnum.getItemTier(NovaBedwars.getInstance().getGame().getPlayerAxeTier(player)).getPrice();
-			} else if (itemEnum == Items.WOOD_PICKAXE) {
+				tieredItemBuy = itemEnum.getItemTier(NovaBedwars.getInstance().getGame().getPlayerAxeTier(player)).getItemStack();
+			} else if (itemEnum == ShopItem.WOOD_PICKAXE) {
 				price = itemEnum.getItemTier(NovaBedwars.getInstance().getGame().getPlayerPickaxeTier(player)).getPrice();
+				tieredItemBuy = itemEnum.getItemTier(NovaBedwars.getInstance().getGame().getPlayerPickaxeTier(player)).getItemStack();
 			}
 			int amountLeft = price.getValue();
 
@@ -163,6 +166,12 @@ public class Price {
 				}
 			}
 			NovaBedwars.getInstance().getGame().updatePlayerItems(player);
+			if (itemEnum.isTiered()) {
+				player.sendMessage(ChatColor.GREEN + "bought " + tieredItemBuy.getItemMeta().getDisplayName());
+			} else {
+				player.sendMessage(ChatColor.GREEN + "bought" + itemEnum.asNormalItem().getItemMeta().getDisplayName());
+			}
+
 		}
 		Bukkit.getPluginManager().callEvent(new AttemptItemBuyEvent(itemEnum, player, bought, reason));
 	}

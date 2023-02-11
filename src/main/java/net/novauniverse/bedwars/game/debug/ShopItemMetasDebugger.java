@@ -1,6 +1,6 @@
 package net.novauniverse.bedwars.game.debug;
 
-import net.novauniverse.bedwars.game.enums.Items;
+import net.novauniverse.bedwars.game.enums.ShopItem;
 import net.zeeraa.novacore.spigot.command.AllowedSenders;
 import net.zeeraa.novacore.spigot.debug.DebugCommandRegistrator;
 import net.zeeraa.novacore.spigot.debug.DebugTrigger;
@@ -34,11 +34,11 @@ public class ShopItemMetasDebugger {
 
             @Override
             public void onExecute(CommandSender commandSender, String s, String[] strings) {
-                Arrays.stream(Items.values()).forEach(items -> commandSender.sendMessage("ITEM META: " + (items.asShopItem().getItemMeta())));
+                Arrays.stream(ShopItem.values()).forEach(items -> commandSender.sendMessage("ITEM META: " + (items.asShopItem().getItemMeta())));
                 commandSender.sendMessage("------------------------------");
                 commandSender.sendMessage("");
                 commandSender.sendMessage("------------------------------");
-                Arrays.stream(Items.values()).forEach(items -> commandSender.sendMessage("ITEM: " + (items.asShopItem())));
+                Arrays.stream(ShopItem.values()).forEach(items -> commandSender.sendMessage("ITEM: " + (items.asShopItem())));
             }
         });
     }

@@ -160,17 +160,20 @@ public class SpectatorHolder extends GUIReadOnlyHolder {
 
         player.openInventory(inventory);
         this.addClickCallback(e -> {
-            if (e.getCurrentItem().getItemMeta().equals(RIGHT.getItemMeta())) {
-                addPage(player);
-            } else if (e.getCurrentItem().getItemMeta().equals(LEFT.getItemMeta())) {
-                decreasePage(player);
-            } else if (e.getCurrentItem().getType() == Material.SKULL_ITEM) {
-                player.closeInventory();
-                Player clicked = Bukkit.getPlayerExact(((SkullMeta) e.getCurrentItem().getItemMeta()).getOwner());
-                player.teleport(clicked);
-            } else {
-                return GUIAction.CANCEL_INTERACTION;
+            if (e.getCurrentItem() != null && e.getCurrentItem().getItemMeta() != null) {
+                if (e.getCurrentItem().getItemMeta().equals(RIGHT.getItemMeta())) {
+                    addPage(player);
+                } else if (e.getCurrentItem().getItemMeta().equals(LEFT.getItemMeta())) {
+                    decreasePage(player);
+                } else if (e.getCurrentItem().getType() == Material.SKULL_ITEM) {
+                    player.closeInventory();
+                    Player clicked = Bukkit.getPlayerExact(((SkullMeta) e.getCurrentItem().getItemMeta()).getOwner());
+                    player.teleport(clicked);
+                } else {
+                    return GUIAction.CANCEL_INTERACTION;
+                }
             }
+
             return GUIAction.NONE;
         });
 

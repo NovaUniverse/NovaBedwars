@@ -3,7 +3,7 @@ package net.novauniverse.bedwars.game.shop;
 import net.novauniverse.bedwars.NovaBedwars;
 import net.novauniverse.bedwars.game.entity.BedwarsNPC;
 import net.novauniverse.bedwars.game.enums.ItemCategory;
-import net.novauniverse.bedwars.game.enums.Items;
+import net.novauniverse.bedwars.game.enums.ShopItem;
 import net.novauniverse.bedwars.game.holder.ItemShopHolder;
 import net.novauniverse.bedwars.game.modules.BedwarsPreferenceManager;
 import net.novauniverse.bedwars.game.modules.BedwarsPreferences;
@@ -94,10 +94,10 @@ public class ItemShop {
 			BedwarsPreferences preferences = BedwarsPreferenceManager.getInstance().getPlayerPreferences(player);
 			preferences.getItems().forEach(items -> {
 				if (items != null) {
-					if (!items.equals(Items.NO_ITEM)) {
+					if (!items.equals(ShopItem.NO_ITEM)) {
 						if (items.isTiered()) {
 							ItemStack item = null;
-							if (items == Items.WOOD_PICKAXE) {
+							if (items == ShopItem.WOOD_PICKAXE) {
 								if (NovaBedwars.getInstance().getGame().getPlayerPickaxeTier(player)  == items.getTieredItems().size()) {
 									item = items.asShopItem(NovaBedwars.getInstance().getGame().getPlayerPickaxeTier(player)).clone();
 									ItemMeta itemMeta = item.getItemMeta();
@@ -106,7 +106,7 @@ public class ItemShop {
 								} else {
 									item = items.asShopItem(NovaBedwars.getInstance().getGame().getPlayerPickaxeTier(player) + 1).clone();
 								}
-							} else if (items == Items.WOOD_AXE) {
+							} else if (items == ShopItem.WOOD_AXE) {
 								if (NovaBedwars.getInstance().getGame().getPlayerAxeTier(player) == items.getTieredItems().size()) {
 									item = items.asShopItem(NovaBedwars.getInstance().getGame().getPlayerAxeTier(player)).clone();
 									ItemMeta itemMeta = item.getItemMeta();
@@ -128,7 +128,7 @@ public class ItemShop {
 				}
 			});
 
-			InventoryUtils.slotsWith(inventory, (Collection<Material>) null).forEach(integer -> inventory.setItem(integer, Items.NO_ITEM.asShopItem()));
+			InventoryUtils.slotsWith(inventory, (Collection<Material>) null).forEach(integer -> inventory.setItem(integer, ShopItem.NO_ITEM.asShopItem()));
 
 			if (NovaBedwars.getInstance().hasHypixelAPI()) {
 				ItemBuilder builder = ItemBuilder.getPlayerSkullWithBase64TextureAsBuilder(BedwarsTextures.IMPORT_HYPIXEL_PREFERENCES_BUTTON);
@@ -154,9 +154,9 @@ public class ItemShop {
 			inventory.setItem(19, defaultSword);
 			inventory.setItem(20, blackbg);
 
-			List<Items> swordList = Arrays.stream(Items.values()).filter(i -> i.asShopItem().getType().name().contains("SWORD") || i.asShopItem().getType() == Material.STICK).collect(Collectors.toList());
-			List<Items> bowList = Arrays.stream(Items.values()).filter(i -> i.asShopItem().getType() == Material.BOW || i.asShopItem().getType() == Material.ARROW).collect(Collectors.toList());
-			List<Items> armorList = Arrays.stream(Items.values()).filter(i -> i.asShopItem().getType().name().contains("BOOTS")).collect(Collectors.toList());
+			List<ShopItem> swordList = Arrays.stream(ShopItem.values()).filter(i -> i.asShopItem().getType().name().contains("SWORD") || i.asShopItem().getType() == Material.STICK).collect(Collectors.toList());
+			List<ShopItem> bowList = Arrays.stream(ShopItem.values()).filter(i -> i.asShopItem().getType() == Material.BOW || i.asShopItem().getType() == Material.ARROW).collect(Collectors.toList());
+			List<ShopItem> armorList = Arrays.stream(ShopItem.values()).filter(i -> i.asShopItem().getType().name().contains("BOOTS")).collect(Collectors.toList());
 
 			for (int i = 21; i <= 26; i++) {
 				try {
@@ -199,20 +199,21 @@ public class ItemShop {
 			inventory.setItem(38, blackbg);
 
 		} else {
-			Arrays.stream(Items.values()).forEach(items -> {
+			Arrays.stream(ShopItem.values()).forEach(items -> {
 				if (items.getCategory() == category) {
 					if (items.isTiered()) {
 						ItemStack item = null;
-						if (items == Items.WOOD_PICKAXE) {
+						if (items == ShopItem.WOOD_PICKAXE) {
 							if (NovaBedwars.getInstance().getGame().getPlayerPickaxeTier(player)  == items.getTieredItems().size()) {
 								item = items.asShopItem(NovaBedwars.getInstance().getGame().getPlayerPickaxeTier(player)).clone();
 								ItemMeta itemMeta = item.getItemMeta();
 								addMaxTierLore(itemMeta);
 								item.setItemMeta(itemMeta);
 							} else {
+								System.out.println(items.asShopItem(NovaBedwars.getInstance().getGame().getPlayerPickaxeTier(player) + 1));
 								item = items.asShopItem(NovaBedwars.getInstance().getGame().getPlayerPickaxeTier(player) + 1).clone();
 							}
-						} else if (items == Items.WOOD_AXE) {
+						} else if (items == ShopItem.WOOD_AXE) {
 
 							if (NovaBedwars.getInstance().getGame().getPlayerAxeTier(player) == items.getTieredItems().size()) {
 								item = items.asShopItem(NovaBedwars.getInstance().getGame().getPlayerAxeTier(player)).clone();
@@ -237,11 +238,11 @@ public class ItemShop {
 				ItemCategory itemCategory = ItemCategory.toItemCategoryEnum(e.getCurrentItem());
 				this.display(itemCategory, (Player) e.getWhoClicked());
 
-			} else if (Items.isItemShopItem(e.getCurrentItem())) {
+			} else if (ShopItem.isItemShopItem(e.getCurrentItem())) {
 				Player p = (Player) e.getWhoClicked();
 
-				Items item = Items.toItemEnum(e.getCurrentItem());
-				if (item == Items.NO_ITEM) {
+				ShopItem item = ShopItem.toItemEnum(e.getCurrentItem());
+				if (item == ShopItem.NO_ITEM) {
 					return GUIAction.CANCEL_INTERACTION;
 				}
 				Price.buyItem(item, e.getWhoClicked().getInventory(), e.getCurrentItem(), p);

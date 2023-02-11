@@ -24,12 +24,13 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
-public enum Items {
+public enum ShopItem {
     WOOL(VersionIndependentMaterial.WOOL.toBukkitVersion(),ColoredBlockType.WOOL,16, ItemCategory.BLOCK, new Price(Material.IRON_INGOT, 4), "wool"),
     CLAY(Material.STAINED_CLAY,ColoredBlockType.CLAY, 16, ItemCategory.BLOCK, new Price(Material.IRON_INGOT, 12), "hardened_clay"),
     ENDSTONE(VersionIndependentMaterial.END_STONE, 12, ItemCategory.BLOCK, new Price(Material.IRON_INGOT, 24), "end_stone"),
@@ -76,6 +77,8 @@ public enum Items {
     // for quick buy
     NO_ITEM(new ItemBuilder(VersionIndependentUtils.getInstance().getColoredItem(DyeColor.RED, ColoredBlockType.GLASS_PANE)).setAmount(1).build(),ItemCategory.QUICK_BUY);
 
+
+
     private ColoredBlockType coloredBlockType = null;
     private final ArmorType armorType;
     private int amount = 0;
@@ -88,7 +91,7 @@ public enum Items {
     private final ItemStack shopItem;
 
     private boolean sword = false;
-    Items(Material material, ColoredBlockType colorMaterial, int amount, ItemCategory category, Price price, String hypixelCounterpart) {
+    ShopItem(Material material, ColoredBlockType colorMaterial, int amount, ItemCategory category, Price price, String hypixelCounterpart) {
         this.coloredBlockType = colorMaterial;
         this.material = material;
         this.amount = amount;
@@ -100,7 +103,7 @@ public enum Items {
         this.tieredItems = null;
         this.armorType = ArmorType.NO_ARMOR;
     }
-    Items(ItemStack item, ItemCategory category) {
+    ShopItem(ItemStack item, ItemCategory category) {
         // NO ITEM ENUM
         this.category = category;
         this.material = item.getType();
@@ -115,10 +118,10 @@ public enum Items {
         this.shopItem = shopItem;
         this.tieredItems = null;
     }
-    Items(VersionIndependentMaterial material, int amount, ItemCategory category, Price price, String hypixelCounterpart) {
+    ShopItem(VersionIndependentMaterial material, int amount, ItemCategory category, Price price, String hypixelCounterpart) {
         this(material.toBukkitVersion(),amount,category, price, hypixelCounterpart);
     }
-    Items(Material material, int amount, ItemCategory category, Price price, String hypixelCounterpart) {
+    ShopItem(Material material, int amount, ItemCategory category, Price price, String hypixelCounterpart) {
         this.material = material;
         this.amount = amount;
         this.category = category;
@@ -131,7 +134,7 @@ public enum Items {
 
     }
 
-    Items(Material material, int amount, ItemCategory category, Price price, boolean sword, String hypixelCounterpart) {
+    ShopItem(Material material, int amount, ItemCategory category, Price price, boolean sword, String hypixelCounterpart) {
         this.material = material;
         this.amount = amount;
         this.category = category;
@@ -144,7 +147,7 @@ public enum Items {
         this.sword = sword;
 
     }
-    Items(ItemStack itemStack, ItemCategory category, Price price, String hypixelCounterpart) {
+    ShopItem(ItemStack itemStack, ItemCategory category, Price price, String hypixelCounterpart) {
         this.material = itemStack.getType();
         this.amount = itemStack.getAmount();
         this.category = category;
@@ -155,7 +158,7 @@ public enum Items {
         this.tieredItems = null;
         this.armorType = ArmorType.NO_ARMOR;
     }
-    Items(ArmorType type, ItemCategory category, Price price, String hypixelCounterpart) {
+    ShopItem(ArmorType type, ItemCategory category, Price price, String hypixelCounterpart) {
         this.armorType = type;
         this.category = category;
         this.price = price;
@@ -166,7 +169,7 @@ public enum Items {
         this.tieredItems = null;
     }
 
-    Items(ItemCategory category, String hypixelCounterpart, TieredItem... tieredItems) {
+    ShopItem(ItemCategory category, String hypixelCounterpart, TieredItem... tieredItems) {
         this.tieredItems = new ArrayList<>();
         this.tieredItems.addAll(Arrays.asList(tieredItems));
         this.category = category;
@@ -181,23 +184,37 @@ public enum Items {
     public static boolean isItemShopItem(ItemStack item) {
         return NBTEditor.contains(item, "bedwars", "isshopitem");
     }
-    private static ItemStack asColoredShopItem(DyeColor color, Items items) {
-        ItemStack colored = VersionIndependentUtils.get().getColoredItem(color, items.getColoredBlockType());
+    private static ItemStack asColoredShopItem(DyeColor color, ShopItem shopItem) {
+        ItemStack colored = VersionIndependentUtils.get().getColoredItem(color, shopItem.getColoredBlockType());
         ItemMeta meta = colored.getItemMeta();
-        meta.setLore(items.toShopItem().getItemMeta().getLore());
-        colored.setAmount(items.getAmount());
+        meta.setLore(shopItem.toShopItem().getItemMeta().getLore());
+        colored.setAmount(shopItem.getAmount());
         colored.setItemMeta(meta);
         return colored;
     }
 
-    public static Items toItemEnum(ItemStack item) {
-        return Items.valueOf(NBTEditor.getString(item, "bedwars", "shopenumname"));
+    public static ShopItem toItemEnum(ItemStack item) {
+        ShopItem value;
+        try {
+            value = ShopItem.valueOf(NBTEditor.getString(item, "bedwars", "shopenumname"));
+        } catch (Exception e) {
+            if (NBTEditor.contains(item, "bedwars", "istiereditem")) {
+                try {
+                    value = ShopItem.valueOf(NBTEditor.getString(item, "bedwars", "tiereditemname"));
+                } catch (Exception e1) {
+                    value = null;
+                }
+            } else {
+                value = null;
+            }
+        }
+        return value;
     }
 
     public void maxValueLore(TieredItem item) {
-        List<String> lore = item.asShopItem().getItemMeta().getLore();
+        List<String> lore = item.getShopItem().getItemMeta().getLore();
         lore.add(ChatColor.RED + "Max tier reached");
-        item.asShopItem().getItemMeta().setLore(lore);
+        item.getShopItem().getItemMeta().setLore(lore);
     }
     private ItemStack asColoredBlock(Player player) {
         Team team = TeamManager.getTeamManager().getPlayerTeam(player.getUniqueId());
@@ -242,7 +259,7 @@ public enum Items {
         }
         String type = itemStack.getType().name();
         if (type.contains("SWORD") || type.contains("BOW") || type.contains("BOOTS") || type.contains("LEGGINGS") || type.contains("CHESTPLATE") || type.contains("HELMET")
-        || type.contains("PICKAXE") || type.contains("AXE") || type.contains("SHEARS")) {
+                || type.contains("PICKAXE") || type.contains("AXE") || type.contains("SHEARS")) {
             meta.spigot().setUnbreakable(true);
         }
         itemStack.setItemMeta(meta);
@@ -301,34 +318,34 @@ public enum Items {
     }
 
     private ItemStack toShopItem() {
-            ItemStack item = asNormalItem().clone();
-            ItemMeta meta = item.getItemMeta();
+        ItemStack item = asNormalItem().clone();
+        ItemMeta meta = item.getItemMeta();
 
-            if (getCategory() == ItemCategory.POTIONS) {
-                meta.setDisplayName(potionTypeToName(((PotionMeta) meta).getCustomEffects().get(0)));
-                item.setItemMeta(meta);
-            }
-            if (getPrice() != null) {
-                meta.setLore(addLore(getPrice()));
-            }
+        if (getCategory() == ItemCategory.POTIONS) {
+            meta.setDisplayName(potionTypeToName(((PotionMeta) meta).getCustomEffects().get(0)));
             item.setItemMeta(meta);
-            item = NBTEditor.set(item, 1, "bedwars", "isshopitem");
-            item = NBTEditor.set(item, name(), "bedwars", "shopenumname");
-            return item;
+        }
+        if (getPrice() != null) {
+            meta.setLore(addLore(getPrice()));
+        }
+        item.setItemMeta(meta);
+        item = NBTEditor.set(item, 1, "bedwars", "isshopitem");
+        item = NBTEditor.set(item, name(), "bedwars", "shopenumname");
+        return item;
     }
-    
+
     public ItemStack asShopItem(int tier) {
         if (this.isTiered()) {
             if (getItemTier(tier) != null) {
-                return getItemTier(tier).asShopItem();
+                return getItemTier(tier).getShopItem();
             } else {
-                return new ItemStack(Material.AIR, 0);
+                return new ItemStack(Material.AIR, 1);
             }
         } else {
             return null;
         }
     }
-    
+
     private List<String> addLore(Price price) {
         ChatColor color = null;
         if (price.getMaterial() == Material.EMERALD) {
@@ -346,11 +363,11 @@ public enum Items {
         lore.add(color + "" + ChatColor.BOLD + "" + price.getValue() + " " + stringified);
         return lore;
     }
-    
+
     private String convertToSeconds(int duration) {
         return " (" + duration / 20 + " Seconds)";
     }
-    
+
     private String potionTypeToName(PotionEffect effect) {
         String roman = "";
         if (effect.getAmplifier() >= 1) {
@@ -366,7 +383,7 @@ public enum Items {
             return ChatColor.RED + "POTION EFFECT COULD NOT BE FOUND";
         }
     }
-    
+
     public String intToRoman(int num) {
         //System.out.println("Integer: " + num);
         int[] values = {1000,900,500,400,100,90,50,40,10,9,5,4,1};

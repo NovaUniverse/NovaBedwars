@@ -16,7 +16,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import net.novauniverse.bedwars.NovaBedwars;
-import net.novauniverse.bedwars.game.enums.Items;
+import net.novauniverse.bedwars.game.enums.ShopItem;
 import net.novauniverse.bedwars.utils.HypixelAPI;
 import net.zeeraa.novacore.commons.async.AsyncManager;
 import net.zeeraa.novacore.commons.log.Log;
@@ -99,13 +99,13 @@ public class BedwarsPreferenceManager extends NovaModule implements Listener {
 					if (hypixelData == null) {
 						callback.onResult(false, null);
 					} else {
-						final List<Items> items = new ArrayList<>();
+						final List<ShopItem> items = new ArrayList<>();
 
 						hypixelData.forEach(h -> {
 							if (Objects.equals(h, "null")) {
 								items.add(null);
 							} else {
-								Items item = Arrays.stream(Items.values()).filter(i -> i.getHypixelCounterpart() != null).filter(i -> i.getHypixelCounterpart().equalsIgnoreCase(h)).findFirst().orElse(null);
+								ShopItem item = Arrays.stream(ShopItem.values()).filter(i -> i.getHypixelCounterpart() != null).filter(i -> i.getHypixelCounterpart().equalsIgnoreCase(h)).findFirst().orElse(null);
 								if (item == null) {
 									Log.trace("BedwarsPreferenceManager", "Could not map hypixel item " + h + " to NovaBedwars item");
 									items.add(null);
@@ -116,7 +116,7 @@ public class BedwarsPreferenceManager extends NovaModule implements Listener {
 							}
 						});
 						while (items.size() < 21) {
-							items.add(Items.NO_ITEM);
+							items.add(ShopItem.NO_ITEM);
 						}
 
 						preferences.put(player.getUniqueId(), new BedwarsPreferences(player.getUniqueId(), items));

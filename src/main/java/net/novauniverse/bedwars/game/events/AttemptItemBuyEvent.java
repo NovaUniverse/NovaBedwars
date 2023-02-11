@@ -1,6 +1,6 @@
 package net.novauniverse.bedwars.game.events;
 
-import net.novauniverse.bedwars.game.enums.Items;
+import net.novauniverse.bedwars.game.enums.ShopItem;
 import net.novauniverse.bedwars.game.enums.Reason;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -9,14 +9,14 @@ import org.bukkit.event.HandlerList;
 public class AttemptItemBuyEvent extends Event {
 	private static final HandlerList HANDLERS_LIST = new HandlerList();
 
-	private final Items item;
+	private final ShopItem item;
 	private final Player player;
 	private final boolean bought;
 	private final Reason reason;
 
 	private boolean disableBuiltInMessage;
 
-	public AttemptItemBuyEvent(Items item, Player player, boolean bought, Reason reason) {
+	public AttemptItemBuyEvent(ShopItem item, Player player, boolean bought, Reason reason) {
 		this.item = item;
 		this.player = player;
 		this.bought = bought;
@@ -38,7 +38,7 @@ public class AttemptItemBuyEvent extends Event {
 		return player;
 	}
 
-	public Items getItem() {
+	public ShopItem getItem() {
 		return item;
 	}
 

@@ -14,7 +14,7 @@ import net.novauniverse.bedwars.game.entity.BedwarsNPC;
 import net.novauniverse.bedwars.game.entity.CustomFireball;
 import net.novauniverse.bedwars.game.entity.NPCType;
 import net.novauniverse.bedwars.game.enums.ArmorType;
-import net.novauniverse.bedwars.game.enums.Items;
+import net.novauniverse.bedwars.game.enums.ShopItem;
 import net.novauniverse.bedwars.game.enums.Reason;
 import net.novauniverse.bedwars.game.events.AttemptItemBuyEvent;
 import net.novauniverse.bedwars.game.events.AttemptUpgradeBuyEvent;
@@ -113,7 +113,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -167,6 +166,8 @@ public class Bedwars extends MapGame implements Listener {
 	private List<GeneratorUpgrade> generatorUpgrades;
 	private List<Hologram> baseNameHolograms;
 	private List<UUID> armorHidden;
+
+	private List<UUID> haveWeClearedThisMF;
 
 	private ItemShop itemShop;
 	private UpgradeShop upgradeShop;
@@ -238,6 +239,8 @@ public class Bedwars extends MapGame implements Listener {
 		armorHidden = new ArrayList<>();
 
 		baseNameHolograms = new ArrayList<>();
+
+		haveWeClearedThisMF = new ArrayList<>();
 
 		itemShop = new ItemShop();
 		upgradeShop = new UpgradeShop();
@@ -420,6 +423,13 @@ public class Bedwars extends MapGame implements Listener {
 		int diamondGeneratorTime = config.getInitialDiamondTime();
 		int emeraldGeneratorTime = config.getInitialEmeraldTime();
 
+		for (Player player : Bukkit.getOnlinePlayers()) {
+			if (!haveWeClearedThisMF.contains(player.getUniqueId())) {
+				player.getEnderChest().clear();
+				haveWeClearedThisMF.add(player.getUniqueId());
+			}
+		}
+
 		List<Team> teamsToSetup = new ArrayList<>(TeamManager.getTeamManager().getTeams());
 		config.getBases().forEach(cfgBase -> {
 			Team team = null;
@@ -468,7 +478,7 @@ public class Bedwars extends MapGame implements Listener {
 		Bukkit.getServer().getOnlinePlayers().forEach(this::tpToSpectator);
 
 		Bukkit.getServer().getOnlinePlayers().stream().filter(p -> players.contains(p.getUniqueId())).forEach(this::tpToBase);
-
+		Bukkit.getServer().getOnlinePlayers().stream().filter(p -> !players.contains(p.getUniqueId())).forEach(this::setEliminatedSpectator);
 		Task.tryStartTask(countdownTask);
 		Task.tryStartTask(npcFixTask);
 		Task.tryStartTask(particleTask);
@@ -793,11 +803,15 @@ public class Bedwars extends MapGame implements Listener {
 				if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
 					e.setCancelled(true);
 				}
-
 				if (e.getClickedInventory() != null) {
 					if (!(e.getClickedInventory() instanceof PlayerInventory)) {
 						e.setCancelled(true);
 					}
+				}
+			} else if (e.getCurrentItem().getType() == VersionIndependentMaterial.WOODEN_SWORD.toBukkitVersion()) {
+				if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
+					e.setCancelled(true);
+					return;
 				}
 			}
 		}
@@ -1348,19 +1362,19 @@ public class Bedwars extends MapGame implements Listener {
 		List<Integer> pickaxeSlot = InventoryUtils.slotsWith(player.getInventory(), Material.DIAMOND_PICKAXE, Material.IRON_PICKAXE, Material.STONE_PICKAXE, VersionIndependentMaterial.GOLDEN_PICKAXE.toBukkitVersion(), VersionIndependentMaterial.WOODEN_PICKAXE.toBukkitVersion());
 		List<Integer> axeSlot = InventoryUtils.slotsWith(player.getInventory(), Material.DIAMOND_AXE, Material.IRON_AXE, Material.STONE_AXE, VersionIndependentMaterial.GOLDEN_AXE.toBukkitVersion(), VersionIndependentMaterial.WOODEN_AXE.toBukkitVersion());
 
-		if (Items.WOOD_PICKAXE.getItemTier(pickaxeTier) != null) {
+		if (ShopItem.WOOD_PICKAXE.getItemTier(pickaxeTier) != null) {
 			if (pickaxeSlot.size() == 0) {
-				player.getInventory().addItem(Items.WOOD_PICKAXE.getItemTier(pickaxeTier).getItemStack());
+				player.getInventory().addItem(ShopItem.WOOD_PICKAXE.getItemTier(pickaxeTier).getItemStack());
 			} else {
-				player.getInventory().setItem(pickaxeSlot.stream().findFirst().get(), Items.WOOD_PICKAXE.getItemTier(pickaxeTier).getItemStack());
+				player.getInventory().setItem(pickaxeSlot.stream().findFirst().get(), ShopItem.WOOD_PICKAXE.getItemTier(pickaxeTier).getItemStack());
 			}
 		}
 
-		if (Items.WOOD_AXE.getItemTier(axeTier) != null) {
+		if (ShopItem.WOOD_AXE.getItemTier(axeTier) != null) {
 			if (axeSlot.size() == 0) {
-				player.getInventory().addItem(Items.WOOD_AXE.getItemTier(axeTier).getItemStack());
+				player.getInventory().addItem(ShopItem.WOOD_AXE.getItemTier(axeTier).getItemStack());
 			} else {
-				player.getInventory().setItem(axeSlot.stream().findFirst().get(), Items.WOOD_AXE.getItemTier(axeTier).getItemStack());
+				player.getInventory().setItem(axeSlot.stream().findFirst().get(), ShopItem.WOOD_AXE.getItemTier(axeTier).getItemStack());
 			}
 		}
 
@@ -1657,8 +1671,11 @@ public class Bedwars extends MapGame implements Listener {
 			if (team == null || !base.hasBed()) {
 				setEliminatedSpectator(e.getPlayer());
 			} else {
-				System.out.println("test");
 				handlePlayerRespawnOrJoin(player);
+			}
+			if (!haveWeClearedThisMF.contains(player.getUniqueId())) {
+				player.getEnderChest().clear();
+				haveWeClearedThisMF.add(player.getUniqueId());
 			}
 		}
 	}

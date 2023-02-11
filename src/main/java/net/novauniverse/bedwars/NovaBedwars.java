@@ -1,32 +1,5 @@
 package net.novauniverse.bedwars;
 
-import java.io.File;
-import java.io.IOException;
-
-import javax.annotation.Nullable;
-
-import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
-import net.zeeraa.novacore.spigot.abstraction.manager.CustomSpectatorManager;
-import net.zeeraa.novacore.spigot.command.AllowedSenders;
-import net.zeeraa.novacore.spigot.debug.DebugCommandRegistrator;
-import net.zeeraa.novacore.spigot.debug.DebugTrigger;
-import net.zeeraa.novacore.spigot.utils.PlayerUtils;
-import org.apache.commons.io.FileUtils;
-import org.bukkit.Bukkit;
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.TNTPrimed;
-import org.bukkit.event.HandlerList;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerCommandPreprocessEvent;
-import org.bukkit.event.player.PlayerTeleportEvent;
-import org.bukkit.permissions.PermissionDefault;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.java.JavaPlugin;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import net.novauniverse.bedwars.game.Bedwars;
 import net.novauniverse.bedwars.game.commands.ImportBedwarsPreferences;
 import net.novauniverse.bedwars.game.config.BedwarsConfig;
@@ -44,7 +17,12 @@ import net.novauniverse.bedwars.utils.preferences.api.PreferenceAPI;
 import net.novauniverse.bedwars.utils.preferences.api.PreferenceAPISettings;
 import net.zeeraa.novacore.commons.log.Log;
 import net.zeeraa.novacore.commons.utils.JSONFileUtils;
+import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
+import net.zeeraa.novacore.spigot.abstraction.manager.CustomSpectatorManager;
+import net.zeeraa.novacore.spigot.command.AllowedSenders;
 import net.zeeraa.novacore.spigot.command.CommandRegistry;
+import net.zeeraa.novacore.spigot.debug.DebugCommandRegistrator;
+import net.zeeraa.novacore.spigot.debug.DebugTrigger;
 import net.zeeraa.novacore.spigot.gameengine.NovaCoreGameEngine;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.GameManager;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.map.mapmodule.MapModuleManager;
@@ -52,6 +30,25 @@ import net.zeeraa.novacore.spigot.gameengine.module.modules.game.mapselector.sel
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.mapselector.selectors.guivoteselector.GUIMapVote;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.gamelobby.GameLobby;
 import net.zeeraa.novacore.spigot.module.ModuleManager;
+import org.apache.commons.io.FileUtils;
+import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.TNTPrimed;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.permissions.PermissionDefault;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import javax.annotation.Nullable;
+import java.io.File;
+import java.io.IOException;
 
 public final class NovaBedwars extends JavaPlugin implements Listener {
 	private static NovaBedwars instance;
@@ -203,9 +200,6 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 			getGame().getAllPlayersAxeTier().putIfAbsent(player, 0);
 			getGame().getAllPlayersArmor().putIfAbsent(player, ArmorType.NO_ARMOR);
 		});
-
-		CustomSpectatorManager.addPermittedEvent(PlayerTeleportEvent.class);
-		CustomSpectatorManager.addPermittedEvent(PlayerCommandPreprocessEvent.class);
 
 		DebugCommandRegistrator.getInstance().addDebugTrigger(new DebugTrigger() {
 			@Override
