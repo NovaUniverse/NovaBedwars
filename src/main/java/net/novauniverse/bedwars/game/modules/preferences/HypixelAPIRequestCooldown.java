@@ -1,4 +1,4 @@
-package net.novauniverse.bedwars.game.modules;
+package net.novauniverse.bedwars.game.modules.preferences;
 
 public class HypixelAPIRequestCooldown {
 	private final String name;

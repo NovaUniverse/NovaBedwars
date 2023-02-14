@@ -5,8 +5,8 @@ import net.novauniverse.bedwars.game.entity.BedwarsNPC;
 import net.novauniverse.bedwars.game.enums.ItemCategory;
 import net.novauniverse.bedwars.game.enums.ShopItem;
 import net.novauniverse.bedwars.game.holder.ItemShopHolder;
-import net.novauniverse.bedwars.game.modules.BedwarsPreferenceManager;
-import net.novauniverse.bedwars.game.modules.BedwarsPreferences;
+import net.novauniverse.bedwars.game.modules.preferences.BedwarsPreferenceManager;
+import net.novauniverse.bedwars.game.modules.preferences.BedwarsPreferences;
 import net.novauniverse.bedwars.game.object.Price;
 import net.novauniverse.bedwars.game.object.base.BaseData;
 import net.novauniverse.bedwars.utils.BedwarsTextures;
@@ -210,7 +210,6 @@ public class ItemShop {
 								addMaxTierLore(itemMeta);
 								item.setItemMeta(itemMeta);
 							} else {
-								System.out.println(items.asShopItem(NovaBedwars.getInstance().getGame().getPlayerPickaxeTier(player) + 1));
 								item = items.asShopItem(NovaBedwars.getInstance().getGame().getPlayerPickaxeTier(player) + 1).clone();
 							}
 						} else if (items == ShopItem.WOOD_AXE) {
@@ -245,7 +244,7 @@ public class ItemShop {
 				if (item == ShopItem.NO_ITEM) {
 					return GUIAction.CANCEL_INTERACTION;
 				}
-				Price.buyItem(item, e.getWhoClicked().getInventory(), e.getCurrentItem(), p);
+				Price.buyItem(item, e.getWhoClicked().getInventory(), e.getCurrentItem(), p, e.getClick(), e.getHotbarButton());
 				this.display(category, player);
 			}
 			return GUIAction.NONE;

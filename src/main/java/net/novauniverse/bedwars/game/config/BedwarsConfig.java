@@ -21,12 +21,10 @@ public class BedwarsConfig extends MapModule {
 	private int initialGoldTime;
 	private int initialDiamondTime;
 	private int initialEmeraldTime;
-	
-	private int emeraldForgeTime;
-	
-	private int bedDestructionTime;
 
-	private List<GeneratorUpgrade> upgrades;
+	private int emeraldForgeTime;
+
+	private List<BedwarsEvent> events;
 
 	public BedwarsConfig(JSONObject json) {
 		super(json);
@@ -34,7 +32,7 @@ public class BedwarsConfig extends MapModule {
 		this.upgradeTime = json.getInt("upgrade_time");
 		this.generatorSpeed = json.getInt("generator_speed");
 
-		this.upgrades = new ArrayList<>();
+		this.events = new ArrayList<>();
 
 		this.bases = new ArrayList<>();
 		this.diamondGenerators = new ArrayList<>();
@@ -61,17 +59,23 @@ public class BedwarsConfig extends MapModule {
 		initialEmeraldTime = json.getInt("initial_emerald_time");
 		
 		emeraldForgeTime = json.getInt("emerald_forge_time");
-
-		bedDestructionTime = json.getInt("bed_destruction_timer");
 		
-		JSONArray upgrades = json.getJSONArray("upgrades");
+		JSONArray upgrades = json.getJSONArray("events");
 		for (int i = 0; i < upgrades.length(); i++) {
-			this.upgrades.add(GeneratorUpgrade.fromJSON(upgrades.getJSONObject(i)));
+			EventType type = upgrades.getJSONObject(i).getEnum(EventType.class, "event");
+			if (type == EventType.UPGRADE) {
+				this.events.add(GeneratorUpgrade.fromJSON(upgrades.getJSONObject(i)));
+			} else if (type == EventType.BED_BREAK) {
+				this.events.add(BedBreak.fromJSON(upgrades.getJSONObject(i)));
+			} else if (type == EventType.END_GAME) {
+				this.events.add(EndGame.fromJSON(upgrades.getJSONObject(i)));
+			}
+
 		}
 	}
 
-	public List<GeneratorUpgrade> getUpgrades() {
-		return upgrades;
+	public List<BedwarsEvent> getEvents() {
+		return events;
 	}
 
 	public int getUpgradeTime() {
@@ -113,8 +117,5 @@ public class BedwarsConfig extends MapModule {
 	public int getEmeraldForgeTime() {
 		return emeraldForgeTime;
 	}
-	
-	public int getBedDestructionTime() {
-		return bedDestructionTime;
-	}
+
 }

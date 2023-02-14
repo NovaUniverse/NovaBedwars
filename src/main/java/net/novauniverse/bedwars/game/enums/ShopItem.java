@@ -179,18 +179,13 @@ public enum ShopItem {
         this.hypixelCounterpart = hypixelCounterpart;
         this.shopItem = toShopItem();
         this.armorType = ArmorType.NO_ARMOR;
+        for (TieredItem ti : this.tieredItems) {
+            ti.setItem(this);
+        }
     }
 
     public static boolean isItemShopItem(ItemStack item) {
         return NBTEditor.contains(item, "bedwars", "isshopitem");
-    }
-    private static ItemStack asColoredShopItem(DyeColor color, ShopItem shopItem) {
-        ItemStack colored = VersionIndependentUtils.get().getColoredItem(color, shopItem.getColoredBlockType());
-        ItemMeta meta = colored.getItemMeta();
-        meta.setLore(shopItem.toShopItem().getItemMeta().getLore());
-        colored.setAmount(shopItem.getAmount());
-        colored.setItemMeta(meta);
-        return colored;
     }
 
     public static ShopItem toItemEnum(ItemStack item) {

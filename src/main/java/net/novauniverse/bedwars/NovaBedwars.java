@@ -30,6 +30,7 @@ import net.zeeraa.novacore.spigot.gameengine.module.modules.game.mapselector.sel
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.mapselector.selectors.guivoteselector.GUIMapVote;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.gamelobby.GameLobby;
 import net.zeeraa.novacore.spigot.module.ModuleManager;
+import net.zeeraa.novacore.spigot.module.modules.cooldown.CooldownManager;
 import org.apache.commons.io.FileUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -92,6 +93,8 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 		return preferenceAPI != null;
 	}
 
+	// TODO: ender dragon end game
+	// TODO: add netherboard info (next event, like gen upgrade)
 	@Override
 	public void onEnable() {
 		NovaBedwars.instance = this;
@@ -164,6 +167,8 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 		if (!disableNovaCoreGameLobby) {
 			ModuleManager.enable(GameLobby.class);
 		}
+
+		ModuleManager.enable(CooldownManager.class);
 
 		MapModuleManager.addMapModule("bedwars.config", BedwarsConfig.class);
 

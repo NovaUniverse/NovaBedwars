@@ -4,6 +4,7 @@ import net.novauniverse.bedwars.NovaBedwars;
 import net.novauniverse.bedwars.game.object.Price;
 import net.novauniverse.bedwars.game.object.TieredUpgrade;
 import net.novauniverse.bedwars.game.object.base.BaseData;
+import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependentMaterial;
 import net.zeeraa.novacore.spigot.teams.Team;
 import net.zeeraa.novacore.spigot.utils.ItemBuilder;
 import org.bukkit.Bukkit;
@@ -18,11 +19,11 @@ import java.util.List;
 import java.util.Locale;
 
 public enum Upgrades {
-	PROTECTION(new ItemBuilder(Material.IRON_CHESTPLATE).setAmount(1).setName(ChatColor.GRAY + "Protection").build(), new TieredUpgrade(new Price(Material.DIAMOND, 2)), new TieredUpgrade(new Price(Material.DIAMOND, 4)), new TieredUpgrade(new Price(Material.DIAMOND, 8)), new TieredUpgrade(new Price(Material.DIAMOND, 16))),
-	HASTE,
+	PROTECTION(new ItemBuilder(Material.IRON_CHESTPLATE).setAmount(1).setName(ChatColor.BLUE + "" + ChatColor.BOLD + "Protection").build(), new TieredUpgrade(new Price(Material.DIAMOND, 2)), new TieredUpgrade(new Price(Material.DIAMOND, 4)), new TieredUpgrade(new Price(Material.DIAMOND, 8)), new TieredUpgrade(new Price(Material.DIAMOND, 16))),
+	HASTE(new ItemBuilder(VersionIndependentMaterial.GOLDEN_PICKAXE).setAmount(1).setName(ChatColor.GOLD + "" + ChatColor.BOLD + "Haste").build(), new TieredUpgrade(new Price(Material.DIAMOND, 2)), new TieredUpgrade(new Price(Material.DIAMOND, 4))),
 	FORGE(new ItemBuilder(Material.FURNACE).setAmount(1).setName(ChatColor.GRAY + "" + ChatColor.BOLD +  "Forge Upgrade").build(), new TieredUpgrade(new Price(Material.DIAMOND, 2)), new TieredUpgrade(new Price(Material.DIAMOND, 4)), new TieredUpgrade(new Price(Material.DIAMOND, 6)), new TieredUpgrade(new Price(Material.DIAMOND, 8))),
-	SHARPNESS(new ItemBuilder(Material.IRON_SWORD).setAmount(1).setName(ChatColor.GRAY + "" + ChatColor.BOLD + "Sharpness").build(), new Price(Material.DIAMOND, 4)),
-	HEALPOOL, TRAP_BLIND, TRAP_FATIGUE, TRAP_COUNTER, TRAP_ALARM;
+	SHARPNESS(new ItemBuilder(Material.IRON_SWORD).setAmount(1).setName(ChatColor.RED + "" + ChatColor.BOLD + "Sharpness").build(), new Price(Material.DIAMOND, 4)),
+	HEALPOOL(new ItemBuilder(Material.BEACON).setAmount(1).setName(ChatColor.GREEN + "" + ChatColor.BOLD + "Heal Pool").build(), new Price(Material.DIAMOND, 1));
 
 	private ItemStack displayItem;
 	private List<TieredUpgrade> tieredUpgrade;
@@ -76,7 +77,7 @@ public enum Upgrades {
 					stringified.append("s");
 				}
 				if (i < data.getDataFromUpgrade(this)) {
-					lore.add(ChatColor.GRAY + "Tier " + (i + 1) + ": " + ChatColor.GREEN + tieredUpgrade.get(i).getPrice().getValue() + " " + stringified);
+					lore.add(ChatColor.GREEN + "Tier " + (i + 1) + ": " + ChatColor.BOLD + tieredUpgrade.get(i).getPrice().getValue() + " " + stringified);
 				} else if (i == data.getDataFromUpgrade(this)) {
 					lore.add(ChatColor.WHITE + "> " + ChatColor.GRAY + "Tier " + (i + 1) + ": " + ChatColor.WHITE + tieredUpgrade.get(i).getPrice().getValue() + " " + stringified);
 				} else {
@@ -92,10 +93,10 @@ public enum Upgrades {
 				stringified += "s";
 			}
 			if (data.getDataFromUpgrade(this) == 1) {
-				lore.add(ChatColor.GRAY + "Price: " + ChatColor.GREEN + price.getValue() + " " + stringified);
-				lore.add(ChatColor.RED + "You can only buy this once.");
+				lore.add(ChatColor.GREEN + "Price: " + ChatColor.BOLD + price.getValue() + " " + stringified);
+				lore.add(ChatColor.RED + "" + ChatColor.BOLD +  "You can only buy this once.");
 			} else {
-				lore.add(ChatColor.GRAY + "Price: " + ChatColor.DARK_GRAY + price.getValue() + " " + stringified);
+				lore.add(ChatColor.WHITE + "> " + ChatColor.GRAY + "Price: " + ChatColor.WHITE + price.getValue() + " " + stringified);
 			}
 
 		}

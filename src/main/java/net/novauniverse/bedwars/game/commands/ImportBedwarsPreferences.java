@@ -1,7 +1,7 @@
 package net.novauniverse.bedwars.game.commands;
 
 import net.novauniverse.bedwars.NovaBedwars;
-import net.novauniverse.bedwars.game.modules.BedwarsPreferenceManager;
+import net.novauniverse.bedwars.game.modules.preferences.BedwarsPreferenceManager;
 import net.zeeraa.novacore.commons.log.Log;
 import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependentSound;
 import net.zeeraa.novacore.spigot.command.AllowedSenders;

@@ -1,6 +1,6 @@
 package net.novauniverse.bedwars.game.debug;
 
-import net.novauniverse.bedwars.game.modules.BedwarsPreferenceManager;
+import net.novauniverse.bedwars.game.modules.preferences.BedwarsPreferenceManager;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;

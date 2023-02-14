@@ -5,10 +5,10 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
+import net.novauniverse.bedwars.game.enums.Trap;
 import net.novauniverse.bedwars.game.enums.Upgrades;
 import org.bukkit.Location;
 
-import net.novauniverse.bedwars.game.object.Trap;
 import net.zeeraa.novacore.spigot.teams.Team;
 
 public class BaseData {
@@ -95,6 +95,10 @@ public class BaseData {
 				return protectionLevel;
 			case FORGE:
 				return forgeLevel;
+			case HASTE:
+				return hasteLevel;
+			case HEALPOOL:
+				return healPool ? 1 : 0;
 			default:
 				return 0;
 		}
@@ -126,10 +130,6 @@ public class BaseData {
 
 	public void setBed(boolean bed) {
 		this.hasBed = bed;
-	}
-
-	public void setTraps(List<Trap> traps) {
-		this.traps = traps;
 	}
 
 	public void addTrap(Trap trap) {
