@@ -187,7 +187,6 @@ public class Bedwars extends MapGame implements Listener {
 	private Task armorCheckTask;
 	private Task compassTask;
 	private Task tntParticleTask;
-	private Task teamWinTask;
 	private Task playerUpdateTask;
 	private Task spectatorUpdateTask;
 	private Task baseTask;
@@ -224,6 +223,7 @@ public class Bedwars extends MapGame implements Listener {
 	}
 
 
+	@SuppressWarnings("deprecation")
 	public Bedwars() {
 		super(NovaBedwars.getInstance());
 
@@ -305,9 +305,6 @@ public class Bedwars extends MapGame implements Listener {
 		}), 5L);
 
 		countdownTask = new SimpleTask(getPlugin(), () -> {
-			teamWinTask = new SimpleTask(getPlugin(), () -> {
-			}, 5);
-
 			generators.forEach(ItemGenerator::countdown);
 			generatorUpgrades.forEach(BedwarsEvent::decrement);
 			generatorUpgrades.stream().filter(BedwarsEvent::isFinished).forEach(event -> {
