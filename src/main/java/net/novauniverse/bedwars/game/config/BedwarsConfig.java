@@ -22,11 +22,6 @@ public class BedwarsConfig extends MapModule {
 	private List<XYZLocation> diamondGenerators;
 	private List<XYZLocation> emeraldGenerators;
 
-	private int initialIronTime;
-	private int initialGoldTime;
-	private int initialDiamondTime;
-	private int initialEmeraldTime;
-
 	private int emeraldForgeTime;
 
 	private List<BedwarsEvent> events;
@@ -57,11 +52,6 @@ public class BedwarsConfig extends MapModule {
 		for (int i = 0; i < emeraldGenJson.length(); i++) {
 			emeraldGenerators.add(XYZLocation.fromJSON(emeraldGenJson.getJSONObject(i)));
 		}
-
-		initialIronTime = json.getInt("initial_iron_time");
-		initialGoldTime = json.getInt("initial_gold_time");
-		initialDiamondTime = json.getInt("initial_diamond_time");
-		initialEmeraldTime = json.getInt("initial_emerald_time");
 
 		emeraldForgeTime = json.getInt("emerald_forge_time");
 
@@ -103,24 +93,7 @@ public class BedwarsConfig extends MapModule {
 		return emeraldGenerators;
 	}
 
-	public int getInitialIronTime() {
-		return initialIronTime;
-	}
-
-	public int getInitialGoldTime() {
-		return initialGoldTime;
-	}
-
-	public int getInitialDiamondTime() {
-		return initialDiamondTime;
-	}
-
-	public int getInitialEmeraldTime() {
-		return initialEmeraldTime;
-	}
-
 	public int getEmeraldForgeTime() {
 		return emeraldForgeTime;
 	}
-
 }
