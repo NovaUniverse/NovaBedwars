@@ -8,7 +8,6 @@ import net.novauniverse.bedwars.utils.InventoryUtils;
 import net.zeeraa.novacore.commons.utils.Callback;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Instrument;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -183,7 +182,7 @@ public class Price {
 				};
 
 			}
-				reason = Reason.NORMAL_ITEM_BOUGHT;
+			reason = Reason.NORMAL_ITEM_BOUGHT;
 		} else {
 			bought = false;
 			reason = Reason.NOT_ENOUGHT_MATERIALS;
@@ -218,7 +217,7 @@ public class Price {
 				callback.execute();
 			}
 			NovaBedwars.getInstance().getGame().updatePlayerItems(player);
-			player.playSound(player.getLocation(), Sound.ORB_PICKUP, 0.75f,2);
+			player.playSound(player.getLocation(), Sound.ORB_PICKUP, 0.75f, 2);
 			if (itemEnum.isTiered()) {
 				player.sendMessage(ChatColor.GREEN + "Bought " + ChatColor.BOLD + (tieredItemBuy.getItemMeta().getDisplayName() != null ? tieredItemBuy.getItemMeta().getDisplayName() : getMaterialName(tieredItemBuy.getType())));
 			} else if (itemEnum.isArmor()) {
@@ -231,7 +230,6 @@ public class Price {
 		Bukkit.getPluginManager().callEvent(new AttemptItemBuyEvent(itemEnum, player, bought, reason));
 	}
 
-
 	private static String getMaterialName(Material material) {
 		String s = material.name().toLowerCase().replace("_", " ");
 		String build = "";
@@ -239,7 +237,7 @@ public class Price {
 			if (build.length() == 0) {
 				build += (c + "").toUpperCase();
 			} else {
-				if (build.charAt(build.length()-1) == ' ') {
+				if (build.charAt(build.length() - 1) == ' ') {
 					build += (c + "").toUpperCase();
 				} else {
 					build += c;

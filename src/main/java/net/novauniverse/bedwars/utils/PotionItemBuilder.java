@@ -6,13 +6,11 @@ import net.zeeraa.novacore.spigot.utils.ItemBuilder;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.PotionMeta;
-import org.bukkit.potion.Potion;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
 
 public class PotionItemBuilder extends ItemBuilder {
-
 	public PotionItemBuilder(Material material) {
 		super(material);
 	}
@@ -66,5 +64,4 @@ public class PotionItemBuilder extends ItemBuilder {
 		}
 		return potionType;
 	}
-
 }

@@ -40,8 +40,6 @@ public class BaseData {
 		this.traps = new ArrayList<>();
 	}
 
-
-
 	@Nullable
 	public Team getOwner() {
 		return owner;
@@ -89,18 +87,18 @@ public class BaseData {
 
 	public int getDataFromUpgrade(Upgrades upgrades) {
 		switch (upgrades) {
-			case SHARPNESS:
-				return sharpness ? 1: 0;
-			case PROTECTION:
-				return protectionLevel;
-			case FORGE:
-				return forgeLevel;
-			case HASTE:
-				return hasteLevel;
-			case HEALPOOL:
-				return healPool ? 1 : 0;
-			default:
-				return 0;
+		case SHARPNESS:
+			return sharpness ? 1 : 0;
+		case PROTECTION:
+			return protectionLevel;
+		case FORGE:
+			return forgeLevel;
+		case HASTE:
+			return hasteLevel;
+		case HEALPOOL:
+			return healPool ? 1 : 0;
+		default:
+			return 0;
 		}
 	}
 

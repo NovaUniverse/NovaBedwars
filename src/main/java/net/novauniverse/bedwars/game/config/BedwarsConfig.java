@@ -1,5 +1,10 @@
 package net.novauniverse.bedwars.game.config;
 
+import net.novauniverse.bedwars.game.config.event.BedBreak;
+import net.novauniverse.bedwars.game.config.event.BedwarsEvent;
+import net.novauniverse.bedwars.game.config.event.EndGame;
+import net.novauniverse.bedwars.game.config.event.EventType;
+import net.novauniverse.bedwars.game.config.event.GeneratorUpgrade;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.map.mapmodule.MapModule;
 import net.zeeraa.novacore.spigot.utils.XYZLocation;
 
@@ -57,9 +62,9 @@ public class BedwarsConfig extends MapModule {
 		initialGoldTime = json.getInt("initial_gold_time");
 		initialDiamondTime = json.getInt("initial_diamond_time");
 		initialEmeraldTime = json.getInt("initial_emerald_time");
-		
+
 		emeraldForgeTime = json.getInt("emerald_forge_time");
-		
+
 		JSONArray upgrades = json.getJSONArray("events");
 		for (int i = 0; i < upgrades.length(); i++) {
 			EventType type = upgrades.getJSONObject(i).getEnum(EventType.class, "event");
@@ -113,7 +118,7 @@ public class BedwarsConfig extends MapModule {
 	public int getInitialEmeraldTime() {
 		return initialEmeraldTime;
 	}
-	
+
 	public int getEmeraldForgeTime() {
 		return emeraldForgeTime;
 	}

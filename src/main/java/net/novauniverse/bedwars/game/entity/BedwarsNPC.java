@@ -93,7 +93,7 @@ public class BedwarsNPC {
 				return;
 			}
 		}
-		//Log.trace("BedwarsNPC", "Villager seems to be dead, spawning a new one");
+		// Log.trace("BedwarsNPC", "Villager seems to be dead, spawning a new one");
 		spawnVillager();
 	}
 

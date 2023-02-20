@@ -15,6 +15,7 @@ public class TieredItem {
 	private final Price price;
 	private ItemStack shopItem;
 	private ShopItem item;
+
 	public TieredItem(ItemStack itemStack, Price price) {
 		this.itemStack = itemStack;
 		this.price = price;

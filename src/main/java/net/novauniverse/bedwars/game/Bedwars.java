@@ -9,11 +9,11 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.minecraft.server.v1_8_R3.PacketPlayOutEntityEquipment;
 import net.novauniverse.bedwars.NovaBedwars;
 import net.novauniverse.bedwars.game.commands.ImportBedwarsPreferences;
-import net.novauniverse.bedwars.game.config.BedBreak;
 import net.novauniverse.bedwars.game.config.BedwarsConfig;
-import net.novauniverse.bedwars.game.config.BedwarsEvent;
-import net.novauniverse.bedwars.game.config.EndGame;
-import net.novauniverse.bedwars.game.config.GeneratorUpgrade;
+import net.novauniverse.bedwars.game.config.event.BedBreak;
+import net.novauniverse.bedwars.game.config.event.BedwarsEvent;
+import net.novauniverse.bedwars.game.config.event.EndGame;
+import net.novauniverse.bedwars.game.config.event.GeneratorUpgrade;
 import net.novauniverse.bedwars.game.entity.BedwarsNPC;
 import net.novauniverse.bedwars.game.entity.CustomFireball;
 import net.novauniverse.bedwars.game.entity.NPCType;
@@ -151,11 +151,10 @@ public class Bedwars extends MapGame implements Listener {
 	public static final int KILL_CREDIT_TIMER_SECONDS = 30;
 
 	public static final int MAX_TRAP_AMOUNT = 3;
-	public static final ItemStack TELEPORT_COMPASS = new ItemBuilder(Material.COMPASS).setName(ChatColor.GOLD + "" +ChatColor.BOLD + "Teleport to player").build();
+	public static final ItemStack TELEPORT_COMPASS = new ItemBuilder(Material.COMPASS).setName(ChatColor.GOLD + "" + ChatColor.BOLD + "Teleport to player").build();
 
 	private boolean started;
 	private boolean ended;
-
 
 	private BedwarsConfig config;
 
@@ -167,12 +166,11 @@ public class Bedwars extends MapGame implements Listener {
 	private Map<UUID, BukkitTask> respawnTasks;
 	private Map<Player, Entity> lastDamager;
 
-
 	private List<Location> allowBreak;
 	private List<BedwarsNPC> npcs;
 	private List<BaseData> bases;
 	private List<ItemGenerator> generators;
-	private List<BedwarsEvent> generatorUpgrades;
+	private List<BedwarsEvent> events;
 	private List<Hologram> baseNameHolograms;
 	private List<UUID> armorHidden;
 
@@ -190,6 +188,7 @@ public class Bedwars extends MapGame implements Listener {
 	private Task playerUpdateTask;
 	private Task spectatorUpdateTask;
 	private Task baseTask;
+
 	public Map<Player, ArmorType> getAllPlayersArmor() {
 		return hasArmor;
 	}
@@ -218,16 +217,15 @@ public class Bedwars extends MapGame implements Listener {
 		return axeTier.get(player);
 	}
 
-	public List<BedwarsEvent> getGeneratorUpgrades() {
-		return generatorUpgrades;
+	public List<BedwarsEvent> getEvents() {
+		return events;
 	}
-
 
 	@SuppressWarnings("deprecation")
 	public Bedwars() {
 		super(NovaBedwars.getInstance());
 
-		generatorUpgrades = new ArrayList<>();
+		events = new ArrayList<>();
 
 		bases = new ArrayList<>();
 		allowBreak = new ArrayList<>();
@@ -252,7 +250,6 @@ public class Bedwars extends MapGame implements Listener {
 		itemShop = new ItemShop();
 		upgradeShop = new UpgradeShop();
 
-
 		npcFixTask = new SimpleTask(getPlugin(), () -> npcs.forEach(BedwarsNPC::checkVillager), 20L);
 		tntParticleTask = new SimpleTask(getPlugin(), () -> Bukkit.getServer().getOnlinePlayers().stream().filter(p -> p.getInventory().contains(Material.TNT)).forEach(player -> ParticleEffect.REDSTONE.display(player.getLocation().clone().add(0D, 2D, 0D))), 3L);
 		particleTask = new SimpleTask(getPlugin(), () -> Bukkit.getServer().getOnlinePlayers().stream().filter(p -> p.hasPotionEffect(PotionEffectType.INVISIBILITY) && !CustomSpectatorManager.isSpectator(p) && p.isOnGround()).forEach(p -> ParticleEffect.FOOTSTEP.display(p.getLocation().clone().add(0D, 0.05D, 0D))), 5L);
@@ -265,7 +262,6 @@ public class Bedwars extends MapGame implements Listener {
 			}
 		}), 10L);
 
-
 		armorCheckTask = new SimpleTask(getPlugin(), () -> Bukkit.getServer().getOnlinePlayers().stream().filter(this::isPlayerInGame).forEach(player -> {
 
 			if (!CustomSpectatorManager.isSpectator(player)) {
@@ -273,10 +269,10 @@ public class Bedwars extends MapGame implements Listener {
 					if (!player.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
 						armorHidden.remove(player.getUniqueId());
 						giveArmorAndTools(player);
-						PacketPlayOutEntityEquipment helmetPacket = new PacketPlayOutEntityEquipment(player.getEntityId(),1, CraftItemStack.asNMSCopy(player.getInventory().getHelmet()));
-						PacketPlayOutEntityEquipment chestplatePacket = new PacketPlayOutEntityEquipment(player.getEntityId(),2, CraftItemStack.asNMSCopy(player.getInventory().getChestplate()));
-						PacketPlayOutEntityEquipment leggingsPacket = new PacketPlayOutEntityEquipment(player.getEntityId(),3, CraftItemStack.asNMSCopy(player.getInventory().getLeggings()));
-						PacketPlayOutEntityEquipment bootsPacket = new PacketPlayOutEntityEquipment(player.getEntityId(),4, CraftItemStack.asNMSCopy(player.getInventory().getBoots()));
+						PacketPlayOutEntityEquipment helmetPacket = new PacketPlayOutEntityEquipment(player.getEntityId(), 1, CraftItemStack.asNMSCopy(player.getInventory().getHelmet()));
+						PacketPlayOutEntityEquipment chestplatePacket = new PacketPlayOutEntityEquipment(player.getEntityId(), 2, CraftItemStack.asNMSCopy(player.getInventory().getChestplate()));
+						PacketPlayOutEntityEquipment leggingsPacket = new PacketPlayOutEntityEquipment(player.getEntityId(), 3, CraftItemStack.asNMSCopy(player.getInventory().getLeggings()));
+						PacketPlayOutEntityEquipment bootsPacket = new PacketPlayOutEntityEquipment(player.getEntityId(), 4, CraftItemStack.asNMSCopy(player.getInventory().getBoots()));
 						for (Player online : Bukkit.getOnlinePlayers()) {
 							if (!CustomSpectatorManager.isSpectator(online) && !TeamManager.getTeamManager().isInSameTeam(player.getUniqueId(), online.getUniqueId())) {
 								VersionIndependentUtils.get().sendPacket(online, helmetPacket);
@@ -288,10 +284,10 @@ public class Bedwars extends MapGame implements Listener {
 					}
 				} else if (player.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
 					armorHidden.add(player.getUniqueId());
-					PacketPlayOutEntityEquipment helmetPacket = new PacketPlayOutEntityEquipment(player.getEntityId(),1, null);
-					PacketPlayOutEntityEquipment chestplatePacket = new PacketPlayOutEntityEquipment(player.getEntityId(),2, null);
-					PacketPlayOutEntityEquipment leggingsPacket = new PacketPlayOutEntityEquipment(player.getEntityId(),3, null);
-					PacketPlayOutEntityEquipment bootsPacket = new PacketPlayOutEntityEquipment(player.getEntityId(),4, null);
+					PacketPlayOutEntityEquipment helmetPacket = new PacketPlayOutEntityEquipment(player.getEntityId(), 1, null);
+					PacketPlayOutEntityEquipment chestplatePacket = new PacketPlayOutEntityEquipment(player.getEntityId(), 2, null);
+					PacketPlayOutEntityEquipment leggingsPacket = new PacketPlayOutEntityEquipment(player.getEntityId(), 3, null);
+					PacketPlayOutEntityEquipment bootsPacket = new PacketPlayOutEntityEquipment(player.getEntityId(), 4, null);
 					for (Player online : Bukkit.getOnlinePlayers()) {
 						if (!CustomSpectatorManager.isSpectator(online) && !TeamManager.getTeamManager().isInSameTeam(player.getUniqueId(), online.getUniqueId())) {
 							VersionIndependentUtils.get().sendPacket(online, helmetPacket);
@@ -306,8 +302,8 @@ public class Bedwars extends MapGame implements Listener {
 
 		countdownTask = new SimpleTask(getPlugin(), () -> {
 			generators.forEach(ItemGenerator::countdown);
-			generatorUpgrades.forEach(BedwarsEvent::decrement);
-			generatorUpgrades.stream().filter(BedwarsEvent::isFinished).forEach(event -> {
+			events.forEach(BedwarsEvent::decrement);
+			events.stream().filter(BedwarsEvent::isFinished).forEach(event -> {
 				VersionIndependentSound.NOTE_PLING.broadcast();
 				if (event instanceof GeneratorUpgrade) {
 					GeneratorUpgrade gu = (GeneratorUpgrade) event;
@@ -327,13 +323,13 @@ public class Bedwars extends MapGame implements Listener {
 				} else if (event instanceof EndGame) {
 					Bukkit.broadcastMessage(ChatColor.DARK_RED + "" + ChatColor.BOLD + "The End Game has STARTED!");
 					for (Player player : Bukkit.getOnlinePlayers()) {
-						player.playSound(player.getLocation(), Sound.ENDERDRAGON_GROWL, 1,1);
+						player.playSound(player.getLocation(), Sound.ENDERDRAGON_GROWL, 1, 1);
 					}
 					startEndGame();
 				}
 
 			});
-			generatorUpgrades.removeIf(BedwarsEvent::isFinished);
+			events.removeIf(BedwarsEvent::isFinished);
 		}, 20L);
 		playerUpdateTask = new SimpleTask(getPlugin(), () -> players.forEach(uuid -> {
 			if (Bukkit.getOfflinePlayer(uuid).isOnline()) {
@@ -367,14 +363,13 @@ public class Bedwars extends MapGame implements Listener {
 			for (BaseData data : getBases()) {
 				if (data.hasHealPool()) {
 					for (int i = 0; i < 50; i++) {
-						Location location = data.getSpawnLocation().clone().add(RandomGenerator.generateDouble(-10,10), RandomGenerator.generateDouble(-10,10), RandomGenerator.generateDouble(-10,10));
+						Location location = data.getSpawnLocation().clone().add(RandomGenerator.generateDouble(-10, 10), RandomGenerator.generateDouble(-10, 10), RandomGenerator.generateDouble(-10, 10));
 						data.getSpawnLocation().getWorld().playEffect(location, Effect.HAPPY_VILLAGER, 0);
 					}
 				}
 			}
 		}, 40);
 	}
-
 
 	public Map<Player, Integer> getAllPlayersInvencibility() {
 		return invencibility;
@@ -387,6 +382,7 @@ public class Bedwars extends MapGame implements Listener {
 	public Map<Player, Entity> getAllPlayersLastDamager() {
 		return lastDamager;
 	}
+
 	public Entity getPlayerLastDamager(Player player) {
 		return lastDamager.get(player);
 	}
@@ -462,7 +458,7 @@ public class Bedwars extends MapGame implements Listener {
 		}
 		this.config = config;
 
-		generatorUpgrades = new ArrayList<>(config.getEvents());
+		events = new ArrayList<>(config.getEvents());
 
 		int ironGeneratorTime = config.getInitialIronTime();
 		int goldGeneratorTime = config.getInitialGoldTime();
@@ -540,7 +536,6 @@ public class Bedwars extends MapGame implements Listener {
 		getWorld().setDifficulty(Difficulty.HARD);
 		VersionIndependentUtils.get().setGameRule(getWorld(), "doMobSpawning", "false");
 
-
 		started = true;
 
 		// set up locations that cannot be broken
@@ -549,21 +544,21 @@ public class Bedwars extends MapGame implements Listener {
 			for (int x = data.getSpawnLocation().getBlockX() - SPAWN_PROTECTION_RADIUS; x <= data.getSpawnLocation().getBlockX() + SPAWN_PROTECTION_RADIUS; x++) {
 				for (int y = data.getSpawnLocation().getBlockY() - SPAWN_PROTECTION_RADIUS; y <= data.getSpawnLocation().getBlockY() + SPAWN_PROTECTION_RADIUS; y++) {
 					for (int z = data.getSpawnLocation().getBlockZ() - SPAWN_PROTECTION_RADIUS; z <= data.getSpawnLocation().getBlockZ() + SPAWN_PROTECTION_RADIUS; z++) {
-						safeLocations.add(new XYZLocation(x,y,z));
+						safeLocations.add(new XYZLocation(x, y, z));
 					}
 				}
 			}
 			for (int x = data.getItemShopLocation().getBlockX() - SPAWN_PROTECTION_RADIUS; x <= data.getItemShopLocation().getBlockX() + SPAWN_PROTECTION_RADIUS; x++) {
 				for (int y = data.getItemShopLocation().getBlockY() - SPAWN_PROTECTION_RADIUS; y <= data.getItemShopLocation().getBlockY() + SPAWN_PROTECTION_RADIUS; y++) {
 					for (int z = data.getItemShopLocation().getBlockZ() - SPAWN_PROTECTION_RADIUS; z <= data.getItemShopLocation().getBlockZ() + SPAWN_PROTECTION_RADIUS; z++) {
-						safeLocations.add(new XYZLocation(x,y,z));
+						safeLocations.add(new XYZLocation(x, y, z));
 					}
 				}
 			}
 			for (int x = data.getUpgradeShopLocation().getBlockX() - SPAWN_PROTECTION_RADIUS; x <= data.getUpgradeShopLocation().getBlockX() + SPAWN_PROTECTION_RADIUS; x++) {
 				for (int y = data.getUpgradeShopLocation().getBlockY() - SPAWN_PROTECTION_RADIUS; y <= data.getUpgradeShopLocation().getBlockY() + SPAWN_PROTECTION_RADIUS; y++) {
 					for (int z = data.getUpgradeShopLocation().getBlockZ() - SPAWN_PROTECTION_RADIUS; z <= data.getUpgradeShopLocation().getBlockZ() + SPAWN_PROTECTION_RADIUS; z++) {
-						safeLocations.add(new XYZLocation(x,y,z));
+						safeLocations.add(new XYZLocation(x, y, z));
 					}
 				}
 			}
@@ -572,7 +567,7 @@ public class Bedwars extends MapGame implements Listener {
 			for (int x = generator.getLocation().getBlockX() - SPAWN_PROTECTION_RADIUS; x <= generator.getLocation().getBlockX() + SPAWN_PROTECTION_RADIUS; x++) {
 				for (int y = generator.getLocation().getBlockY() - SPAWN_PROTECTION_RADIUS; y <= generator.getLocation().getBlockY() + SPAWN_PROTECTION_RADIUS; y++) {
 					for (int z = generator.getLocation().getBlockZ() - SPAWN_PROTECTION_RADIUS; z <= generator.getLocation().getBlockZ() + SPAWN_PROTECTION_RADIUS; z++) {
-						safeLocations.add(new XYZLocation(x,y,z));
+						safeLocations.add(new XYZLocation(x, y, z));
 					}
 				}
 			}
@@ -691,7 +686,7 @@ public class Bedwars extends MapGame implements Listener {
 				PlayerUtils.clearPlayerInventory(player);
 				player.setFlySpeed(0.1f);
 				VersionIndependentUtils.get().setCustomSpectator(player, false);
-				player.setVelocity(new Vector(0,0,0));
+				player.setVelocity(new Vector(0, 0, 0));
 				player.teleport(base.getSpawnLocation());
 
 				player.getInventory().setItem(Bedwars.WEAPON_SLOT_DEFAULT, new ItemBuilder(VersionIndependentMaterial.WOODEN_SWORD).setUnbreakable(true).build());
@@ -720,17 +715,16 @@ public class Bedwars extends MapGame implements Listener {
 			Team team = TeamManager.getTeamManager().getPlayerTeam(player);
 			BaseData baseData = bases.stream().filter(base -> base.getOwner().equals(team)).findFirst().orElse(null);
 			if (baseData.getHasteLevel() != 0) {
-				player.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, Integer.MAX_VALUE, baseData.getHasteLevel()-1, false, false), true);
+				player.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, Integer.MAX_VALUE, baseData.getHasteLevel() - 1, false, false), true);
 			}
 			if (baseData.hasHealPool()) {
 				if (baseData.getSpawnLocation().distance(player.getLocation()) <= 10) {
-					player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 5*20, 0, false, false), true);
+					player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 5 * 20, 0, false, false), true);
 				}
 			}
 
 		}
 	}
-
 
 	public void giveArmorAndTools(Player player) {
 		Color color = Color.WHITE;
@@ -787,7 +781,6 @@ public class Bedwars extends MapGame implements Listener {
 		return null;
 	}
 
-
 	public void trap(Player player) {
 		if (getTrappingBase(player) != null) {
 			BaseData baseData = getTrappingBase(player);
@@ -800,7 +793,7 @@ public class Bedwars extends MapGame implements Listener {
 		Team team = TeamManager.getTeamManager().getPlayerTeam(player);
 		BaseData data = bases.stream().filter(b -> b.getOwner().equals(team)).findFirst().orElse(null);
 		if (InventoryUtils.slotsWith(player.getInventory(), Material.DIAMOND_SWORD, Material.STONE_SWORD, Material.IRON_SWORD, VersionIndependentMaterial.WOODEN_SWORD.toBukkitVersion()).isEmpty()) {
-			if (!InventoryUtils.hasOnCursor(player,  Material.DIAMOND_SWORD, Material.STONE_SWORD, Material.IRON_SWORD, VersionIndependentMaterial.WOODEN_SWORD.toBukkitVersion())) {
+			if (!InventoryUtils.hasOnCursor(player, Material.DIAMOND_SWORD, Material.STONE_SWORD, Material.IRON_SWORD, VersionIndependentMaterial.WOODEN_SWORD.toBukkitVersion())) {
 				ItemStack woodSword = new ItemStack(VersionIndependentMaterial.WOODEN_SWORD.toBukkitVersion());
 				if (data.hasSharpness()) {
 					woodSword.addEnchantment(Enchantment.DAMAGE_ALL, 1);
@@ -809,6 +802,7 @@ public class Bedwars extends MapGame implements Listener {
 			}
 		}
 	}
+
 	public void updateEnchantment(Player player) {
 		Team team = TeamManager.getTeamManager().getPlayerTeam(player);
 		BaseData data = bases.stream().filter(b -> b.getOwner().equals(team)).findFirst().orElse(null);
@@ -847,7 +841,7 @@ public class Bedwars extends MapGame implements Listener {
 				if (base.hasBed()) {
 					if (players.contains(player.getUniqueId())) {
 						tryCancelRespawn(player);
-						final int[] timePassed = {RESPAWN_TIME_SECONDS};
+						final int[] timePassed = { RESPAWN_TIME_SECONDS };
 						BukkitTask task = new BukkitRunnable() {
 							@Override
 							public void run() {
@@ -1009,30 +1003,30 @@ public class Bedwars extends MapGame implements Listener {
 			e.setCancelled(true);
 		}
 	}
+
 	@EventHandler
 	public void onPlayerDamaged(EntityDamageEvent e) {
-			if (started && !ended) {
-				if (e.getEntity() instanceof Player) {
-					Entity lastDamager;
-					if (e instanceof EntityDamageByEntityEvent)
-						lastDamager = ((EntityDamageByEntityEvent) e).getDamager();
-					else
-						lastDamager = this.lastDamager.get((Player) e.getEntity());
+		if (started && !ended) {
+			if (e.getEntity() instanceof Player) {
+				Entity lastDamager;
+				if (e instanceof EntityDamageByEntityEvent)
+					lastDamager = ((EntityDamageByEntityEvent) e).getDamager();
+				else
+					lastDamager = this.lastDamager.get((Player) e.getEntity());
 
+				if (e instanceof EntityDamageByEntityEvent) {
+					EntityDamageByEntityEvent edbee = (EntityDamageByEntityEvent) e;
 
-					if (e instanceof EntityDamageByEntityEvent) {
-						EntityDamageByEntityEvent edbee = (EntityDamageByEntityEvent) e;
-
-						if (((CraftEntity) edbee.getDamager()).getHandle() instanceof CustomFireball) {
-							if (!((CustomFireball)((CraftEntity) edbee.getDamager()).getHandle()).isAllowDamage()) {
-								e.setCancelled(true);
-								return;
-							}
+					if (((CraftEntity) edbee.getDamager()).getHandle() instanceof CustomFireball) {
+						if (!((CustomFireball) ((CraftEntity) edbee.getDamager()).getHandle()).isAllowDamage()) {
+							e.setCancelled(true);
+							return;
 						}
 					}
-					e.setCancelled(handleDamage((Player) e.getEntity(), lastDamager, e.getDamage(), VersionIndependentUtils.getInstance().getDeathTypeFromDamage(e, lastDamager)));
 				}
+				e.setCancelled(handleDamage((Player) e.getEntity(), lastDamager, e.getDamage(), VersionIndependentUtils.getInstance().getDeathTypeFromDamage(e, lastDamager)));
 			}
+		}
 	}
 
 	public void deathHandle(Player player, Player killer, DeathType type) {
@@ -1046,69 +1040,70 @@ public class Bedwars extends MapGame implements Listener {
 
 		if (killer != null) {
 			switch (type) {
-				case COMBAT_NORMAL:
-					deathMessage = "%s"+ ChatColor.RED + " was killed by %s.";
-					break;
-				case FALL_SMALL_COMBAT:
-					deathMessage = "%s"+ ChatColor.RED + " fell from a high place whilst fighting %s.";
-					break;
-				case EXPLOSION_COMBAT:
-					deathMessage = "%s"+ ChatColor.RED + " exploded whilst fighting %s.";
-					break;
-				case COMBAT_FIREBALL:
-					deathMessage = "%s"+ ChatColor.RED + " was fireballed to death by %s.";
-					break;
-				case DROWN_COMBAT:
-					deathMessage = "%s"+ ChatColor.RED + " drowned while fighting %s" + ChatColor.RED + "... brutal.";
-					break;
-				case SUFFOCATION_COMBAT:
-					deathMessage = "%s"+ ChatColor.RED + " got stuck in a wall fighting  %s.";
-					break;
-				case PROJECTILE_ARROW:
-					deathMessage = "%s"+ ChatColor.RED + " was shot by %s.";
-					break;
-				case VOID_COMBAT:
-					deathMessage = "%s" + ChatColor.RED + " fell into the void fighting %s.";
-					break;
-				case FIRE_SOURCE_COMBAT:
-				case FIRE_NATURAL_COMBAT:
-					deathMessage = "%s"+ ChatColor.RED + "burnt to death fighting %s.";
-					break;
-				case PROJECTILE_OTHER:
-					deathMessage = "%s" + ChatColor.RED + " died by a projectile in the face from %s";
-					break;
-				default:
-					deathMessage = "%s"+ ChatColor.RED + " died because of %s";
-					break;
+			case COMBAT_NORMAL:
+				deathMessage = "%s" + ChatColor.RED + " was killed by %s.";
+				break;
+			case FALL_SMALL_COMBAT:
+				deathMessage = "%s" + ChatColor.RED + " fell from a high place whilst fighting %s.";
+				break;
+			case EXPLOSION_COMBAT:
+				deathMessage = "%s" + ChatColor.RED + " exploded whilst fighting %s.";
+				break;
+			case COMBAT_FIREBALL:
+				deathMessage = "%s" + ChatColor.RED + " was fireballed to death by %s.";
+				break;
+			case DROWN_COMBAT:
+				deathMessage = "%s" + ChatColor.RED + " drowned while fighting %s" + ChatColor.RED + "... brutal.";
+				break;
+			case SUFFOCATION_COMBAT:
+				deathMessage = "%s" + ChatColor.RED + " got stuck in a wall fighting  %s.";
+				break;
+			case PROJECTILE_ARROW:
+				deathMessage = "%s" + ChatColor.RED + " was shot by %s.";
+				break;
+			case VOID_COMBAT:
+				deathMessage = "%s" + ChatColor.RED + " fell into the void fighting %s.";
+				break;
+			case FIRE_SOURCE_COMBAT:
+			case FIRE_NATURAL_COMBAT:
+				deathMessage = "%s" + ChatColor.RED + "burnt to death fighting %s.";
+				break;
+			case PROJECTILE_OTHER:
+				deathMessage = "%s" + ChatColor.RED + " died by a projectile in the face from %s";
+				break;
+			default:
+				deathMessage = "%s" + ChatColor.RED + " died because of %s";
+				break;
 			}
 		} else {
 			switch (type) {
-				case FALL_BIG:
-				case FALL_SMALL:
-					deathMessage = "%s"+ ChatColor.RED + " fell from a high place.";
-					break;
-				case EXPLOSION:
-					deathMessage = "%s" + ChatColor.RED + " exploded.";
-					break;
-				case DROWN:
-					deathMessage = "%s" + ChatColor.RED + " drowned. Why?";
-					break;
-				case SUFFOCATION:
-					deathMessage = "%s" + ChatColor.RED + " got stuck in a wall.";
-					break;
-				case VOID:
-					deathMessage = "%s" + ChatColor.RED + " fell into the void.";
-					break;
-				case FIRE_NATURAL:
-				case FIRE_SOURCE:;
-					deathMessage = "%s" + ChatColor.RED + " burnt to death.";
-					break;
-				default:
-					deathMessage = "%s" + ChatColor.RED + " died.";
-					break;
+			case FALL_BIG:
+			case FALL_SMALL:
+				deathMessage = "%s" + ChatColor.RED + " fell from a high place.";
+				break;
+			case EXPLOSION:
+				deathMessage = "%s" + ChatColor.RED + " exploded.";
+				break;
+			case DROWN:
+				deathMessage = "%s" + ChatColor.RED + " drowned. Why?";
+				break;
+			case SUFFOCATION:
+				deathMessage = "%s" + ChatColor.RED + " got stuck in a wall.";
+				break;
+			case VOID:
+				deathMessage = "%s" + ChatColor.RED + " fell into the void.";
+				break;
+			case FIRE_NATURAL:
+			case FIRE_SOURCE:
+				;
+				deathMessage = "%s" + ChatColor.RED + " burnt to death.";
+				break;
+			default:
+				deathMessage = "%s" + ChatColor.RED + " died.";
+				break;
 			}
 		}
-		deathMessage = String.format(deathMessage, ChatColor.AQUA + player.getName() + ChatColor.RESET, ChatColor.RESET + "" + ChatColor.AQUA + (killer != null ? killer.getName(): "") + ChatColor.RESET);
+		deathMessage = String.format(deathMessage, ChatColor.AQUA + player.getName() + ChatColor.RESET, ChatColor.RESET + "" + ChatColor.AQUA + (killer != null ? killer.getName() : "") + ChatColor.RESET);
 		Bukkit.getServer().broadcastMessage(deathMessage);
 
 		int ironCollected = 0;
@@ -1214,7 +1209,7 @@ public class Bedwars extends MapGame implements Listener {
 		}
 		if (ironCollected != 0) {
 			ItemStack iron = new ItemStack(Material.IRON_INGOT);
-			int value = (int) Math.floor(ironCollected/64d) - (ironCollected % 64 == 0 ? 1 : 0);
+			int value = (int) Math.floor(ironCollected / 64d) - (ironCollected % 64 == 0 ? 1 : 0);
 			for (int i = 0; i <= value; i++) {
 				ItemStack clone = iron.clone();
 				if (i != value) {
@@ -1227,7 +1222,7 @@ public class Bedwars extends MapGame implements Listener {
 		}
 		if (goldCollected != 0) {
 			ItemStack gold = new ItemStack(Material.GOLD_INGOT);
-			int value = (int) Math.floor(goldCollected/64d) - (goldCollected % 64 == 0 ? 1 : 0);
+			int value = (int) Math.floor(goldCollected / 64d) - (goldCollected % 64 == 0 ? 1 : 0);
 			for (int i = 0; i <= value; i++) {
 				ItemStack clone = gold.clone();
 				if (i != value) {
@@ -1240,7 +1235,7 @@ public class Bedwars extends MapGame implements Listener {
 		}
 		if (diamondCollected != 0) {
 			ItemStack diamond = new ItemStack(Material.DIAMOND);
-			int value = (int) Math.floor(diamondCollected/64d) - (diamondCollected % 64 == 0 ? 1 : 0);
+			int value = (int) Math.floor(diamondCollected / 64d) - (diamondCollected % 64 == 0 ? 1 : 0);
 			for (int i = 0; i <= value; i++) {
 				ItemStack clone = diamond.clone();
 				if (i != value) {
@@ -1253,7 +1248,7 @@ public class Bedwars extends MapGame implements Listener {
 		}
 		if (emeraldCollected != 0) {
 			ItemStack emerald = new ItemStack(Material.EMERALD);
-			int value = (int) Math.floor(emeraldCollected/64d) - (emeraldCollected % 64 == 0 ? 1 : 0);
+			int value = (int) Math.floor(emeraldCollected / 64d) - (emeraldCollected % 64 == 0 ? 1 : 0);
 			for (int i = 0; i <= value; i++) {
 				ItemStack clone = emerald.clone();
 				if (i != value) {
@@ -1265,6 +1260,7 @@ public class Bedwars extends MapGame implements Listener {
 			}
 		}
 	}
+
 	@EventHandler(priority = EventPriority.NORMAL)
 	public void onPlayerDeath(PlayerKilledEvent e) {
 		if (!started && ended) {
@@ -1280,7 +1276,6 @@ public class Bedwars extends MapGame implements Listener {
 		}
 		deathHandle(e.getPlayer(), killer, e.getDeathType());
 	}
-
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onBlockPlace(BlockPlaceEvent e) {
@@ -1424,7 +1419,6 @@ public class Bedwars extends MapGame implements Listener {
 		}
 	}
 
-
 	@EventHandler(priority = EventPriority.NORMAL)
 	public void onPlayerInteract(PlayerInteractEvent e) {
 		if (e.getAction() == Action.RIGHT_CLICK_BLOCK || e.getAction() == Action.RIGHT_CLICK_AIR) {
@@ -1537,7 +1531,6 @@ public class Bedwars extends MapGame implements Listener {
 		}
 	}
 
-
 	public void buyForgeUpgrade(Player player, int tier) {
 		Team team = TeamManager.getTeamManager().getPlayerTeam(player);
 		if (team == null) {
@@ -1553,12 +1546,12 @@ public class Bedwars extends MapGame implements Listener {
 		switch (tier) {
 		case 1:
 
-			case 2:
-				generators.stream().filter(g -> g.isOwnedBy(team)).filter(g -> g.getType() == GeneratorType.IRON).forEach(g -> g.decreaseDefaultTime(1));
+		case 2:
+			generators.stream().filter(g -> g.isOwnedBy(team)).filter(g -> g.getType() == GeneratorType.IRON).forEach(g -> g.decreaseDefaultTime(1));
 			generators.stream().filter(g -> g.isOwnedBy(team)).filter(g -> g.getType() == GeneratorType.GOLD).forEach(g -> g.decreaseDefaultTime(2));
 			break;
 
-			case 3:
+		case 3:
 			generators.stream().filter(g -> g.isOwnedBy(team)).filter(g -> g.getType() == GeneratorType.GOLD).forEach(g -> g.decreaseDefaultTime(2));
 			break;
 
@@ -1583,6 +1576,7 @@ public class Bedwars extends MapGame implements Listener {
 	public List<XYZLocation> getSafeLocations() {
 		return safeLocations;
 	}
+
 	@EventHandler(priority = EventPriority.NORMAL)
 	public void onBlockPlaced(BlockPlaceEvent e) {
 		XYZLocation location = XYZLocation.fromVector(e.getBlock().getLocation());
@@ -1602,102 +1596,98 @@ public class Bedwars extends MapGame implements Listener {
 
 	public void explode(Explosive explosive, int radius, double knockbackMultiplier, double damageMultiplier, boolean silent, boolean particle, Collection<? extends Entity> allowedUpdate, Collection<Block> allowedBreak) {
 		for (Entity entity : explosive.getWorld().getEntities().stream().filter(entity -> explosive.getLocation().distance(entity.getLocation()) <= radius).collect(Collectors.toList())) {
-				if (!entity.getUniqueId().equals(explosive.getUniqueId())) {
-					if (allowedUpdate.stream().anyMatch(ent -> ent.getUniqueId().equals(entity.getUniqueId()))) {
-						Location loc = entity.getLocation();
-						Vector vector = loc.clone().toVector().subtract(explosive.getLocation().toVector());
-						double xz = pos(vector.getX()) + pos(vector.getZ());
-						double mod = ((radius * 2) - xz) / (radius * 2);
+			if (!entity.getUniqueId().equals(explosive.getUniqueId())) {
+				if (allowedUpdate.stream().anyMatch(ent -> ent.getUniqueId().equals(entity.getUniqueId()))) {
+					Location loc = entity.getLocation();
+					Vector vector = loc.clone().toVector().subtract(explosive.getLocation().toVector());
+					double xz = pos(vector.getX()) + pos(vector.getZ());
+					double mod = ((radius * 2) - xz) / (radius * 2);
 
+					if (vector.getY() < 0) {
+						vector.setY(0);
+					}
 
+					if (vector.getX() != 0 || vector.getY() != 0 || vector.getZ() != 0) {
+						vector.normalize();
+					}
 
-						if (vector.getY() < 0) {
-							vector.setY(0);
-						}
+					Entity source;
 
-						if (vector.getX() != 0 || vector.getY() != 0 || vector.getZ() != 0) {
-							vector.normalize();
-						}
-
-						Entity source;
-
-						if (explosive instanceof Fireball) {
-							if (((Fireball) explosive).getShooter() instanceof Entity) {
-								source = (Entity) ((Fireball) explosive).getShooter();
-							} else {
-								source = null;
-							}
-						} else if (explosive instanceof TNTPrimed) {
-							source = ((TNTPrimed) explosive).getSource();
+					if (explosive instanceof Fireball) {
+						if (((Fireball) explosive).getShooter() instanceof Entity) {
+							source = (Entity) ((Fireball) explosive).getShooter();
 						} else {
 							source = null;
 						}
+					} else if (explosive instanceof TNTPrimed) {
+						source = ((TNTPrimed) explosive).getSource();
+					} else {
+						source = null;
+					}
 
-						vector.setY(vector.getY() + 0.6);
-						if (source == null || !entity.getUniqueId().equals(source.getUniqueId())) {
-							vector.multiply(knockbackMultiplier/4);
-						} else {
-							vector.multiply(knockbackMultiplier);
-						}
-						vector.multiply(mod);
-						vector.setY(Math.min(vector.getY(), knockbackMultiplier / 4));
+					vector.setY(vector.getY() + 0.6);
+					if (source == null || !entity.getUniqueId().equals(source.getUniqueId())) {
+						vector.multiply(knockbackMultiplier / 4);
+					} else {
+						vector.multiply(knockbackMultiplier);
+					}
+					vector.multiply(mod);
+					vector.setY(Math.min(vector.getY(), knockbackMultiplier / 4));
 
-						entity.setVelocity(vector);
+					entity.setVelocity(vector);
 
+					if (damageMultiplier > 0) {
+						double damageMod = damageMultiplier * mod;
+						if (explosive instanceof TNTPrimed) {
+							TNTPrimed tnt = (TNTPrimed) explosive;
+							if (entity instanceof LivingEntity) {
+								LivingEntity living = (LivingEntity) entity;
+								if (living.getUniqueId().equals(tnt.getSource().getUniqueId())) {
+									if (!handleDamage((Player) living, tnt, 1d, DeathType.EXPLOSION_COMBAT)) {
+										living.playEffect(EntityEffect.HURT);
+										living.damage(1d, tnt);
+									}
+								} else {
+									if (!handleDamage((Player) living, tnt, damageMod, DeathType.EXPLOSION_COMBAT)) {
+										living.playEffect(EntityEffect.HURT);
+										living.damage(damageMod, tnt);
+									}
+								}
+							}
+						} else if (explosive instanceof Fireball) {
 
-						if (damageMultiplier > 0) {
-							double damageMod = damageMultiplier * mod;
-							if (explosive instanceof TNTPrimed) {
-								TNTPrimed tnt = (TNTPrimed) explosive;
+							Fireball fireball = (Fireball) explosive;
+							if (((CraftFireball) fireball).getHandle() instanceof CustomFireball) {
+								CustomFireball cf = (CustomFireball) ((CraftFireball) fireball).getHandle();
+								cf.setAllowDamage(true);
+							}
+
+							if (fireball.getShooter() instanceof Entity) {
+								Entity shooter = (Entity) fireball.getShooter();
 								if (entity instanceof LivingEntity) {
 									LivingEntity living = (LivingEntity) entity;
-									if (living.getUniqueId().equals(tnt.getSource().getUniqueId())) {
-										if (!handleDamage((Player) living, tnt, 1d, DeathType.EXPLOSION_COMBAT)) {
+									if (living.getUniqueId().equals(shooter.getUniqueId())) {
+										if (!handleDamage((Player) living, fireball, 1d, DeathType.EXPLOSION_COMBAT)) {
+
 											living.playEffect(EntityEffect.HURT);
-											living.damage(1d, tnt);
+											living.damage(1d, fireball);
 										}
+
 									} else {
-										if (!handleDamage((Player) living, tnt, damageMod, DeathType.EXPLOSION_COMBAT)) {
+										if (!handleDamage((Player) living, fireball, damageMod, DeathType.EXPLOSION_COMBAT)) {
 											living.playEffect(EntityEffect.HURT);
-											living.damage(damageMod, tnt);
+											living.damage(damageMod, fireball);
 										}
 									}
 								}
-							} else if (explosive instanceof Fireball) {
-
-								Fireball fireball = (Fireball) explosive;
-								if (((CraftFireball) fireball).getHandle() instanceof CustomFireball) {
-									CustomFireball cf = (CustomFireball) ((CraftFireball) fireball).getHandle();
-									cf.setAllowDamage(true);
-								}
-
-								if (fireball.getShooter() instanceof Entity) {
-									Entity shooter = (Entity) fireball.getShooter();
-									if (entity instanceof LivingEntity) {
-										LivingEntity living = (LivingEntity) entity;
-										if (living.getUniqueId().equals(shooter.getUniqueId())) {
-											if (!handleDamage((Player) living, fireball, 1d, DeathType.EXPLOSION_COMBAT)) {
-
-												living.playEffect(EntityEffect.HURT);
-												living.damage(1d, fireball);
-											}
-
-										} else {
-											if (!handleDamage((Player) living, fireball, damageMod, DeathType.EXPLOSION_COMBAT)) {
-												living.playEffect(EntityEffect.HURT);
-												living.damage(damageMod, fireball);
-											}
-										}
-									}
-								}
-
 							}
 
 						}
 
-
 					}
+
 				}
+			}
 		}
 		explosive.remove();
 
@@ -1705,7 +1695,7 @@ public class Bedwars extends MapGame implements Listener {
 			explosive.getWorld().playSound(explosive.getLocation(), Sound.EXPLODE, 4.0f, RandomGenerator.generateFloat(0.56f, 0.84f));
 		}
 		if (particle) {
-			new ParticleBuilder(ParticleEffect.EXPLOSION_HUGE, explosive.getLocation().clone().add(0,1,0)).setSpeed(0.5f).display();
+			new ParticleBuilder(ParticleEffect.EXPLOSION_HUGE, explosive.getLocation().clone().add(0, 1, 0)).setSpeed(0.5f).display();
 		}
 
 		if (allowedBreak != null) {
@@ -1734,7 +1724,6 @@ public class Bedwars extends MapGame implements Listener {
 
 			}
 		}
-
 
 	}
 
@@ -1855,6 +1844,7 @@ public class Bedwars extends MapGame implements Listener {
 			});
 		}
 	}
+
 	@EventHandler
 	public void onRainStart(WeatherChangeEvent e) {
 		if (e.toWeatherState()) {
@@ -1886,14 +1876,15 @@ public class Bedwars extends MapGame implements Listener {
 	}
 
 	public void setLastDamager(Player player, Entity damager) {
-			lastDamager.putIfAbsent(player, damager);
-			lastDamager.put(player, damager);
+		lastDamager.putIfAbsent(player, damager);
+		lastDamager.put(player, damager);
 		CountdownTaskManager.addTask(new CountdownTask(() -> {
 			lastDamager.putIfAbsent(player, null);
 			lastDamager.put(player, null);
 			CountdownTaskManager.remove(player);
 		}, KILL_CREDIT_TIMER_SECONDS * 20, player));
 	}
+
 	public ArrayList<Block> generateSphere(final Location center, final int radius) {
 		ArrayList<Block> sphere = new ArrayList<>();
 		for (int Y = -radius; Y < radius; Y++)

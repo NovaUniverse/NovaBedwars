@@ -72,16 +72,16 @@ public class UpgradeShop {
 		holder.addClickCallback(inventoryClickEvent -> {
 			if (inventoryClickEvent.getSlot() == 10) {
 				if (!finalData.hasSharpness()) {
-						if (Price.canBuy(player, Upgrades.SHARPNESS.getPrice())) {
-							Price.buyUpgrade(player, Upgrades.SHARPNESS.getPrice());
-							finalData.setSharpness(true);
-							finalData.getOwner().getOnlinePlayers().forEach(p -> {
-								VersionIndependentSound.NOTE_PLING.play(player);
-								p.sendMessage(ChatColor.AQUA + player.getName() + " bought Sharpness");
-							});
-						} else {
-							player.sendMessage(ChatColor.RED + "You dont have enough materials to buy this upgrade.");
-						}
+					if (Price.canBuy(player, Upgrades.SHARPNESS.getPrice())) {
+						Price.buyUpgrade(player, Upgrades.SHARPNESS.getPrice());
+						finalData.setSharpness(true);
+						finalData.getOwner().getOnlinePlayers().forEach(p -> {
+							VersionIndependentSound.NOTE_PLING.play(player);
+							p.sendMessage(ChatColor.AQUA + player.getName() + " bought Sharpness");
+						});
+					} else {
+						player.sendMessage(ChatColor.RED + "You dont have enough materials to buy this upgrade.");
+					}
 				}
 			} else if (inventoryClickEvent.getSlot() == 11) {
 				if (finalData.getProtectionLevel() < 4) {

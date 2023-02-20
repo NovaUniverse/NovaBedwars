@@ -65,11 +65,11 @@ public class ItemShop {
 			Task.tryStartTask(task);
 		}
 	}
-	
+
 	public void destroy() {
 		Task.tryStopTask(task);
 	}
-	
+
 	public void display(Player player) {
 		this.display(ItemCategory.QUICK_BUY, player);
 	}
@@ -98,7 +98,7 @@ public class ItemShop {
 						if (items.isTiered()) {
 							ItemStack item = null;
 							if (items == ShopItem.WOOD_PICKAXE) {
-								if (NovaBedwars.getInstance().getGame().getPlayerPickaxeTier(player)  == items.getTieredItems().size()) {
+								if (NovaBedwars.getInstance().getGame().getPlayerPickaxeTier(player) == items.getTieredItems().size()) {
 									item = items.asShopItem(NovaBedwars.getInstance().getGame().getPlayerPickaxeTier(player)).clone();
 									ItemMeta itemMeta = item.getItemMeta();
 									addMaxTierLore(itemMeta);
@@ -163,7 +163,7 @@ public class ItemShop {
 					ItemStack sword = swordList.get(i - 21).asShopItem();
 					Team team = TeamManager.getTeamManager().getPlayerTeam(player.getUniqueId());
 					if (NovaBedwars.getInstance().getGame().getBases().stream().filter(baseData -> baseData.getOwner().equals(team)).findFirst().get().hasSharpness()) {
-						if (swordList.get(i-21).isSword()) {
+						if (swordList.get(i - 21).isSword()) {
 							sword.addUnsafeEnchantment(Enchantment.DAMAGE_ALL, 1);
 						}
 
@@ -204,7 +204,7 @@ public class ItemShop {
 					if (items.isTiered()) {
 						ItemStack item = null;
 						if (items == ShopItem.WOOD_PICKAXE) {
-							if (NovaBedwars.getInstance().getGame().getPlayerPickaxeTier(player)  == items.getTieredItems().size()) {
+							if (NovaBedwars.getInstance().getGame().getPlayerPickaxeTier(player) == items.getTieredItems().size()) {
 								item = items.asShopItem(NovaBedwars.getInstance().getGame().getPlayerPickaxeTier(player)).clone();
 								ItemMeta itemMeta = item.getItemMeta();
 								addMaxTierLore(itemMeta);
@@ -252,12 +252,12 @@ public class ItemShop {
 		updateHypixelAPIButton(player);
 		player.openInventory(inventory);
 	}
+
 	private void addMaxTierLore(ItemMeta meta) {
 		List<String> lore = meta.getLore();
 		lore.add(ChatColor.RED + "Max tier reached");
 		meta.setLore(lore);
 	}
-
 
 	private void placeRemainingOnes(Inventory inventory, ItemStack defaultItem) {
 		if (inventory.getItem(0).getItemMeta().equals(defaultItem.getItemMeta())) {

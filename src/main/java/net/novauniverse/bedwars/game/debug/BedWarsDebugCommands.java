@@ -11,17 +11,17 @@ import net.zeeraa.novacore.spigot.command.AllowedSenders;
 import net.zeeraa.novacore.spigot.debug.DebugCommandRegistrator;
 import net.zeeraa.novacore.spigot.debug.DebugTrigger;
 
-public class MissileWarsDebugCommands {
+public class BedWarsDebugCommands {
 	public static final void register() {
 		DebugCommandRegistrator.getInstance().addDebugTrigger(new DebugTrigger() {
 			@Override
 			public void onExecute(CommandSender sender, String commandLabel, String[] args) {
 				Player player = (Player) sender;
-				if(BedwarsPreferenceManager.getInstance().tryImportHypixelPreferences(player, (success, exception) -> {
-					if(success) {
+				if (BedwarsPreferenceManager.getInstance().tryImportHypixelPreferences(player, (success, exception) -> {
+					if (success) {
 						sender.sendMessage(ChatColor.GREEN + "Preferences imported!");
 					} else {
-						if(exception == null) {
+						if (exception == null) {
 							sender.sendMessage(ChatColor.RED + "Failed to import");
 						} else {
 							sender.sendMessage(ChatColor.RED + "Failed to import. " + exception.getClass().getName() + " " + exception.getMessage());

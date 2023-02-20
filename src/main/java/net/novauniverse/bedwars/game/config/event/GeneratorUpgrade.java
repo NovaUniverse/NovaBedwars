@@ -1,4 +1,4 @@
-package net.novauniverse.bedwars.game.config;
+package net.novauniverse.bedwars.game.config.event;
 
 import org.json.JSONObject;
 
@@ -7,6 +7,7 @@ import net.novauniverse.bedwars.game.generator.GeneratorType;
 public class GeneratorUpgrade extends BedwarsEvent {
 	private GeneratorType type;
 	private int speedIncrement;
+
 	public GeneratorUpgrade(EventType eventType, GeneratorType type, int timeLeft, int speedIncrement, String name) {
 		super(eventType, timeLeft, name);
 		this.type = type;
@@ -30,5 +31,4 @@ public class GeneratorUpgrade extends BedwarsEvent {
 	public int getSpeedIncrement() {
 		return speedIncrement;
 	}
-
 }
