@@ -5,3 +5,5 @@ main: net.novauniverse.bedwars.NovaBedwars
 depend: [NovaCore, NovaCoreGameEngine, HolographicDisplays]
 softdepend: [NovaGamesTarget]
 api-version: 1.13
+
+authors: [Bruno__Gamer, Zeeraa, NovaUniverse]
