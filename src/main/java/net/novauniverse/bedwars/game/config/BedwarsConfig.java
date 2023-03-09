@@ -18,14 +18,23 @@ public class BedwarsConfig extends MapModule {
 	private int upgradeTime;
 	private int generatorSpeed;
 
+	private XYZLocation mapCenter;
+
 	private List<ConfiguredBaseData> bases;
 	private List<XYZLocation> diamondGenerators;
 	private List<XYZLocation> emeraldGenerators;
+
+	private int buildMin;
+	private int buildMax;
+
+	private int borderRadius;
 
 	private int initialIronTime;
 	private int initialGoldTime;
 	private int initialDiamondTime;
 	private int initialEmeraldTime;
+
+	private double dragonRadius;
 
 	private int emeraldForgeTime;
 
@@ -33,6 +42,13 @@ public class BedwarsConfig extends MapModule {
 
 	public BedwarsConfig(JSONObject json) {
 		super(json);
+
+		this.mapCenter = XYZLocation.fromJSON(json.getJSONObject("center"));
+
+		this.buildMax = json.getInt("build_max");
+		this.buildMin = json.getInt("build_min");
+
+		this.borderRadius = json.getInt("border_radius");
 
 		this.upgradeTime = json.getInt("upgrade_time");
 		this.generatorSpeed = json.getInt("generator_speed");
@@ -65,6 +81,8 @@ public class BedwarsConfig extends MapModule {
 
 		emeraldForgeTime = json.getInt("emerald_forge_time");
 
+		dragonRadius = json.getDouble("dragon_radius");
+
 		JSONArray upgrades = json.getJSONArray("events");
 		for (int i = 0; i < upgrades.length(); i++) {
 			EventType type = upgrades.getJSONObject(i).getEnum(EventType.class, "event");
@@ -77,6 +95,22 @@ public class BedwarsConfig extends MapModule {
 			}
 
 		}
+	}
+
+	public int getBuildMax() {
+		return buildMax;
+	}
+
+	public int getBuildMin() {
+		return buildMin;
+	}
+
+	public int getBorderRadius() {
+		return borderRadius;
+	}
+
+	public XYZLocation getMapCenter() {
+		return mapCenter;
 	}
 
 	public List<BedwarsEvent> getEvents() {
@@ -123,4 +157,7 @@ public class BedwarsConfig extends MapModule {
 		return emeraldForgeTime;
 	}
 
+	public double getDragonRadius() {
+		return dragonRadius;
+	}
 }

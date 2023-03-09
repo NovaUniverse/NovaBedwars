@@ -7,6 +7,7 @@ import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.minecraft.server.v1_8_R3.PacketPlayOutEntityEquipment;
+import net.minecraft.server.v1_8_R3.World;
 import net.novauniverse.bedwars.NovaBedwars;
 import net.novauniverse.bedwars.game.commands.ImportBedwarsPreferences;
 import net.novauniverse.bedwars.game.config.BedwarsConfig;
@@ -17,6 +18,7 @@ import net.novauniverse.bedwars.game.config.event.GeneratorUpgrade;
 import net.novauniverse.bedwars.game.entity.BedwarsNPC;
 import net.novauniverse.bedwars.game.entity.CustomFireball;
 import net.novauniverse.bedwars.game.entity.NPCType;
+import net.novauniverse.bedwars.game.entity.dragon.BedwarsDragon;
 import net.novauniverse.bedwars.game.enums.ArmorType;
 import net.novauniverse.bedwars.game.enums.Reason;
 import net.novauniverse.bedwars.game.enums.ShopItem;
@@ -37,19 +39,24 @@ import net.zeeraa.novacore.commons.log.Log;
 import net.zeeraa.novacore.commons.tasks.Task;
 import net.zeeraa.novacore.commons.utils.RandomGenerator;
 import net.zeeraa.novacore.commons.utils.TextUtils;
+import net.zeeraa.novacore.spigot.abstraction.ChunkLoader;
 import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
 import net.zeeraa.novacore.spigot.abstraction.enums.DeathType;
 import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependentMaterial;
 import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependentSound;
 import net.zeeraa.novacore.spigot.abstraction.manager.CustomSpectatorManager;
+import net.zeeraa.novacore.spigot.abstraction.particle.NovaParticleProvider;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.GameEndReason;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.MapGame;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.elimination.PlayerEliminationReason;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.elimination.PlayerQuitEliminationAction;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.events.PlayerEliminatedEvent;
+import net.zeeraa.novacore.spigot.gameengine.module.modules.game.triggers.GameTrigger;
+import net.zeeraa.novacore.spigot.gameengine.module.modules.game.triggers.TriggerFlag;
 import net.zeeraa.novacore.spigot.module.ModuleManager;
 import net.zeeraa.novacore.spigot.module.modules.compass.CompassTracker;
 import net.zeeraa.novacore.spigot.module.modules.cooldown.CooldownManager;
+import net.zeeraa.novacore.spigot.module.modules.multiverse.MultiverseManager;
 import net.zeeraa.novacore.spigot.tasks.SimpleTask;
 import net.zeeraa.novacore.spigot.teams.Team;
 import net.zeeraa.novacore.spigot.teams.TeamManager;
@@ -59,9 +66,9 @@ import net.zeeraa.novacore.spigot.utils.ItemUtils;
 import net.zeeraa.novacore.spigot.utils.LocationUtils;
 import net.zeeraa.novacore.spigot.utils.PlayerUtils;
 import net.zeeraa.novacore.spigot.utils.RandomFireworkEffect;
-import net.zeeraa.novacore.spigot.utils.XYZLocation;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Chunk;
 import org.bukkit.Color;
 import org.bukkit.Difficulty;
 import org.bukkit.Effect;
@@ -79,15 +86,18 @@ import org.bukkit.craftbukkit.v1_8_R3.entity.CraftFireball;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_8_R3.inventory.CraftItemStack;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.EnderDragon;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Explosive;
 import org.bukkit.entity.Fireball;
 import org.bukkit.entity.Firework;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.entity.TNTPrimed;
+import org.bukkit.entity.Zombie;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -143,6 +153,8 @@ public class Bedwars extends MapGame implements Listener {
 
 	public static final int SPAWN_PROTECTION_RADIUS = 4;
 
+	public static final int CHARGE_TIME_TICKS = 500;
+
 	public static final float FIREBALL_YIELD = 2F;
 	public static final float TNT_YIELD = 4F;
 
@@ -150,11 +162,17 @@ public class Bedwars extends MapGame implements Listener {
 	public static final int INVENCIBILITY_TIME_SECONDS = 3;
 	public static final int KILL_CREDIT_TIMER_SECONDS = 30;
 
+	public static final double HEAL_POOL_DISTANCE = 20;
+
 	public static final int MAX_TRAP_AMOUNT = 3;
 	public static final ItemStack TELEPORT_COMPASS = new ItemBuilder(Material.COMPASS).setName(ChatColor.GOLD + "" + ChatColor.BOLD + "Teleport to player").build();
 
+	public static final String FIREBALL_COOLDOWN_ID = "fireball_cooldown";
+
 	private boolean started;
 	private boolean ended;
+
+	private boolean endGameEnabled;
 
 	private BedwarsConfig config;
 
@@ -176,6 +194,10 @@ public class Bedwars extends MapGame implements Listener {
 
 	private List<UUID> haveWeClearedThisMF;
 
+	private List<UUID> eliminatedPlayers;
+
+	private List<Entity> dragons;
+
 	private ItemShop itemShop;
 	private UpgradeShop upgradeShop;
 
@@ -187,6 +209,8 @@ public class Bedwars extends MapGame implements Listener {
 	private Task tntParticleTask;
 	private Task playerUpdateTask;
 	private Task spectatorUpdateTask;
+
+	private Task worldUpdateTask;
 	private Task baseTask;
 
 	public Map<Player, ArmorType> getAllPlayersArmor() {
@@ -221,10 +245,10 @@ public class Bedwars extends MapGame implements Listener {
 		return events;
 	}
 
+
 	@SuppressWarnings("deprecation")
 	public Bedwars() {
 		super(NovaBedwars.getInstance());
-
 		events = new ArrayList<>();
 
 		bases = new ArrayList<>();
@@ -246,6 +270,10 @@ public class Bedwars extends MapGame implements Listener {
 		baseNameHolograms = new ArrayList<>();
 
 		haveWeClearedThisMF = new ArrayList<>();
+
+		eliminatedPlayers = new ArrayList<>();
+
+		dragons = new ArrayList<>();
 
 		itemShop = new ItemShop();
 		upgradeShop = new UpgradeShop();
@@ -299,6 +327,30 @@ public class Bedwars extends MapGame implements Listener {
 				}
 			}
 		}), 5L);
+		/*
+		chargeTask = new SimpleTask(getPlugin(), () -> world.getEntities().stream().filter(entity -> ((CraftEntity) entity).getHandle() instanceof BedwarsDragon).forEach(entity -> {
+			BedwarsDragon dragon = (BedwarsDragon) ((CraftEntity) entity).getHandle();
+			if (!dragon.isCharging()) {
+				dragon.setTarget(null);
+			}
+			if (dragon.getChargeTime() <= 0) {
+				if (dragon.target != null) {
+					if (!dragon.isCharging()) {
+						dragon.resetCharge();
+						dragon.setTarget(null);
+						return;
+					}
+				} else {
+					double toCheck = RandomGenerator.generateDouble(0,200);
+					if (toCheck <= dragon.getChargeTime()*-1) {
+						dragon.chargePlayer(ListUtils.shuffleWithRandom(world.getPlayers(), new Random()).get(0));
+					}
+				}
+			}
+				dragon.decreaseCharge();
+		}), 1L);
+
+		*/
 
 		countdownTask = new SimpleTask(getPlugin(), () -> {
 			generators.forEach(ItemGenerator::countdown);
@@ -359,11 +411,22 @@ public class Bedwars extends MapGame implements Listener {
 			}
 
 		}, 2L);
+
+		worldUpdateTask = new SimpleTask(getPlugin(), () -> {
+			for (Entity e : getWorld().getEntities()) {
+				if (e.getType() == EntityType.DROPPED_ITEM) {
+					Item i = (Item) e;
+					if (i.getItemStack().getType() == Material.BED) {
+						i.remove();
+					}
+				}
+			}
+		}, 20L);
 		baseTask = new SimpleTask(getPlugin(), () -> {
 			for (BaseData data : getBases()) {
 				if (data.hasHealPool()) {
-					for (int i = 0; i < 50; i++) {
-						Location location = data.getSpawnLocation().clone().add(RandomGenerator.generateDouble(-10, 10), RandomGenerator.generateDouble(-10, 10), RandomGenerator.generateDouble(-10, 10));
+					for (int i = 0; i < 500; i++) {
+						Location location = data.getSpawnLocation().clone().add(RandomGenerator.generateDouble(-HEAL_POOL_DISTANCE, HEAL_POOL_DISTANCE), RandomGenerator.generateDouble(-HEAL_POOL_DISTANCE, HEAL_POOL_DISTANCE), RandomGenerator.generateDouble(-HEAL_POOL_DISTANCE, HEAL_POOL_DISTANCE));
 						data.getSpawnLocation().getWorld().playEffect(location, Effect.HAPPY_VILLAGER, 0);
 					}
 				}
@@ -447,6 +510,16 @@ public class Bedwars extends MapGame implements Listener {
 			return;
 		}
 
+		getWorld().getWorldBorder().reset();
+
+		GameTrigger trigger = new GameTrigger("startendgame", (gameTrigger, triggerFlag) -> {
+			startEndGame();
+		});
+		trigger.setDescription("Start the sudden death event.");
+		trigger.addFlag(TriggerFlag.RUN_ONLY_ONCE);
+		addTrigger(trigger);
+
+
 		ModuleManager.disable(CompassTracker.class);
 
 		BedwarsConfig config = (BedwarsConfig) getActiveMap().getMapData().getMapModule(BedwarsConfig.class);
@@ -470,6 +543,7 @@ public class Bedwars extends MapGame implements Listener {
 				player.getEnderChest().clear();
 				haveWeClearedThisMF.add(player.getUniqueId());
 			}
+			setUpPlayer(player);
 		}
 
 		List<Team> teamsToSetup = new ArrayList<>(TeamManager.getTeamManager().getTeams());
@@ -478,6 +552,7 @@ public class Bedwars extends MapGame implements Listener {
 			if (teamsToSetup.size() > 0) {
 				team = teamsToSetup.remove(0);
 			}
+
 
 			BaseData base = cfgBase.toBaseData(getWorld(), team);
 
@@ -529,6 +604,7 @@ public class Bedwars extends MapGame implements Listener {
 		Task.tryStartTask(tntParticleTask);
 		Task.tryStartTask(playerUpdateTask);
 		Task.tryStartTask(spectatorUpdateTask);
+		Task.tryStartTask(worldUpdateTask);
 		Task.tryStartTask(baseTask);
 
 		sendStartMessage();
@@ -538,27 +614,29 @@ public class Bedwars extends MapGame implements Listener {
 
 		started = true;
 
+		endGameEnabled = false;
+
 		// set up locations that cannot be broken
 
 		for (BaseData data : getBases()) {
 			for (int x = data.getSpawnLocation().getBlockX() - SPAWN_PROTECTION_RADIUS; x <= data.getSpawnLocation().getBlockX() + SPAWN_PROTECTION_RADIUS; x++) {
 				for (int y = data.getSpawnLocation().getBlockY() - SPAWN_PROTECTION_RADIUS; y <= data.getSpawnLocation().getBlockY() + SPAWN_PROTECTION_RADIUS; y++) {
 					for (int z = data.getSpawnLocation().getBlockZ() - SPAWN_PROTECTION_RADIUS; z <= data.getSpawnLocation().getBlockZ() + SPAWN_PROTECTION_RADIUS; z++) {
-						safeLocations.add(new XYZLocation(x, y, z));
+						safeLocations.add(world.getBlockAt(x,y,z).getLocation());
 					}
 				}
 			}
 			for (int x = data.getItemShopLocation().getBlockX() - SPAWN_PROTECTION_RADIUS; x <= data.getItemShopLocation().getBlockX() + SPAWN_PROTECTION_RADIUS; x++) {
 				for (int y = data.getItemShopLocation().getBlockY() - SPAWN_PROTECTION_RADIUS; y <= data.getItemShopLocation().getBlockY() + SPAWN_PROTECTION_RADIUS; y++) {
 					for (int z = data.getItemShopLocation().getBlockZ() - SPAWN_PROTECTION_RADIUS; z <= data.getItemShopLocation().getBlockZ() + SPAWN_PROTECTION_RADIUS; z++) {
-						safeLocations.add(new XYZLocation(x, y, z));
+						safeLocations.add(world.getBlockAt(x,y,z).getLocation());
 					}
 				}
 			}
 			for (int x = data.getUpgradeShopLocation().getBlockX() - SPAWN_PROTECTION_RADIUS; x <= data.getUpgradeShopLocation().getBlockX() + SPAWN_PROTECTION_RADIUS; x++) {
 				for (int y = data.getUpgradeShopLocation().getBlockY() - SPAWN_PROTECTION_RADIUS; y <= data.getUpgradeShopLocation().getBlockY() + SPAWN_PROTECTION_RADIUS; y++) {
 					for (int z = data.getUpgradeShopLocation().getBlockZ() - SPAWN_PROTECTION_RADIUS; z <= data.getUpgradeShopLocation().getBlockZ() + SPAWN_PROTECTION_RADIUS; z++) {
-						safeLocations.add(new XYZLocation(x, y, z));
+						safeLocations.add(world.getBlockAt(x,y,z).getLocation());
 					}
 				}
 			}
@@ -567,7 +645,7 @@ public class Bedwars extends MapGame implements Listener {
 			for (int x = generator.getLocation().getBlockX() - SPAWN_PROTECTION_RADIUS; x <= generator.getLocation().getBlockX() + SPAWN_PROTECTION_RADIUS; x++) {
 				for (int y = generator.getLocation().getBlockY() - SPAWN_PROTECTION_RADIUS; y <= generator.getLocation().getBlockY() + SPAWN_PROTECTION_RADIUS; y++) {
 					for (int z = generator.getLocation().getBlockZ() - SPAWN_PROTECTION_RADIUS; z <= generator.getLocation().getBlockZ() + SPAWN_PROTECTION_RADIUS; z++) {
-						safeLocations.add(new XYZLocation(x, y, z));
+						safeLocations.add(world.getBlockAt(x,y,z).getLocation());
 					}
 				}
 			}
@@ -636,6 +714,7 @@ public class Bedwars extends MapGame implements Listener {
 		Task.tryStopTask(tntParticleTask);
 		Task.tryStopTask(playerUpdateTask);
 		Task.tryStopTask(spectatorUpdateTask);
+		Task.tryStopTask(worldUpdateTask);
 		Task.tryStopTask(baseTask);
 
 		baseNameHolograms.forEach(Hologram::delete);
@@ -682,6 +761,7 @@ public class Bedwars extends MapGame implements Listener {
 				player.setHealth(player.getMaxHealth());
 				player.setSaturation(20);
 				player.setFoodLevel(20);
+				player.setFallDistance(0);
 				PlayerUtils.clearPotionEffects(player);
 				PlayerUtils.clearPlayerInventory(player);
 				player.setFlySpeed(0.1f);
@@ -718,8 +798,8 @@ public class Bedwars extends MapGame implements Listener {
 				player.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, Integer.MAX_VALUE, baseData.getHasteLevel() - 1, false, false), true);
 			}
 			if (baseData.hasHealPool()) {
-				if (baseData.getSpawnLocation().distance(player.getLocation()) <= 10) {
-					player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 5 * 20, 0, false, false), true);
+				if (baseData.getSpawnLocation().distance(player.getLocation()) <= HEAL_POOL_DISTANCE) {
+					player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, (5 * 20) + 2, 0, false, false), true);
 				}
 			}
 
@@ -755,6 +835,7 @@ public class Bedwars extends MapGame implements Listener {
 		PlayerUtils.clearPlayerInventory(player);
 		tpToSpectator(player);
 		player.setFlySpeed(0.2f);
+		player.setGameMode(GameMode.SURVIVAL);
 		VersionIndependentUtils.get().setCustomSpectator(player, true, Bukkit.getOnlinePlayers().stream().filter(pl -> !CustomSpectatorManager.isSpectator(pl)).collect(Collectors.toList()));
 		lastDamager.put(player, null);
 	}
@@ -972,12 +1053,18 @@ public class Bedwars extends MapGame implements Listener {
 			} else if (entityHitter instanceof TNTPrimed) {
 				hitter = (Player) ((TNTPrimed) entityHitter).getSource();
 				mainHitter = entityHitter;
-			} else {
+			} else if (entityHitter instanceof Player) {
 				hitter = (Player) entityHitter;
+			} else {
+				hitter = null;
+				mainHitter = entityHitter;
 			}
-			if (invencibility.get(hitter) != 0) {
-				invencibility.put(hitter, 0);
+			if (hitter != null) {
+				if (invencibility.get(hitter) != 0) {
+					invencibility.put(hitter, 0);
+				}
 			}
+
 
 			if (mainHitter == null) {
 				setLastDamager(damaged, hitter);
@@ -1005,15 +1092,21 @@ public class Bedwars extends MapGame implements Listener {
 	}
 
 	@EventHandler
-	public void onPlayerDamaged(EntityDamageEvent e) {
+	public void onEntityDamage(EntityDamageEvent e) {
 		if (started && !ended) {
+			if (((CraftEntity) e.getEntity()).getHandle() instanceof BedwarsDragon) {
+				if (((Zombie) e.getEntity()).getHealth() - e.getFinalDamage() <= 0) {
+					e.setCancelled(true);
+					e.getEntity().remove();
+					return;
+				}
+			}
 			if (e.getEntity() instanceof Player) {
 				Entity lastDamager;
 				if (e instanceof EntityDamageByEntityEvent)
 					lastDamager = ((EntityDamageByEntityEvent) e).getDamager();
 				else
 					lastDamager = this.lastDamager.get((Player) e.getEntity());
-
 				if (e instanceof EntityDamageByEntityEvent) {
 					EntityDamageByEntityEvent edbee = (EntityDamageByEntityEvent) e;
 
@@ -1040,67 +1133,67 @@ public class Bedwars extends MapGame implements Listener {
 
 		if (killer != null) {
 			switch (type) {
-			case COMBAT_NORMAL:
-				deathMessage = "%s" + ChatColor.RED + " was killed by %s.";
-				break;
-			case FALL_SMALL_COMBAT:
-				deathMessage = "%s" + ChatColor.RED + " fell from a high place whilst fighting %s.";
-				break;
-			case EXPLOSION_COMBAT:
-				deathMessage = "%s" + ChatColor.RED + " exploded whilst fighting %s.";
-				break;
-			case COMBAT_FIREBALL:
-				deathMessage = "%s" + ChatColor.RED + " was fireballed to death by %s.";
-				break;
-			case DROWN_COMBAT:
-				deathMessage = "%s" + ChatColor.RED + " drowned while fighting %s" + ChatColor.RED + "... brutal.";
-				break;
-			case SUFFOCATION_COMBAT:
-				deathMessage = "%s" + ChatColor.RED + " got stuck in a wall fighting  %s.";
-				break;
-			case PROJECTILE_ARROW:
-				deathMessage = "%s" + ChatColor.RED + " was shot by %s.";
-				break;
-			case VOID_COMBAT:
-				deathMessage = "%s" + ChatColor.RED + " fell into the void fighting %s.";
-				break;
-			case FIRE_SOURCE_COMBAT:
-			case FIRE_NATURAL_COMBAT:
-				deathMessage = "%s" + ChatColor.RED + "burnt to death fighting %s.";
-				break;
-			case PROJECTILE_OTHER:
-				deathMessage = "%s" + ChatColor.RED + " died by a projectile in the face from %s";
-				break;
-			default:
-				deathMessage = "%s" + ChatColor.RED + " died because of %s";
-				break;
+				case COMBAT_NORMAL:
+					deathMessage = "%s" + ChatColor.RED + " was killed by %s.";
+					break;
+				case FALL_SMALL_COMBAT:
+					deathMessage = "%s" + ChatColor.RED + " fell from a high place whilst fighting %s.";
+					break;
+				case EXPLOSION_COMBAT:
+					deathMessage = "%s" + ChatColor.RED + " exploded whilst fighting %s.";
+					break;
+				case COMBAT_FIREBALL:
+					deathMessage = "%s" + ChatColor.RED + " was fireballed to death by %s.";
+					break;
+				case DROWN_COMBAT:
+					deathMessage = "%s" + ChatColor.RED + " drowned while fighting %s" + ChatColor.RED + "... brutal.";
+					break;
+				case SUFFOCATION_COMBAT:
+					deathMessage = "%s" + ChatColor.RED + " got stuck in a wall fighting  %s.";
+					break;
+				case PROJECTILE_ARROW:
+					deathMessage = "%s" + ChatColor.RED + " was shot by %s.";
+					break;
+				case VOID_COMBAT:
+					deathMessage = "%s" + ChatColor.RED + " fell into the void fighting %s.";
+					break;
+				case FIRE_SOURCE_COMBAT:
+				case FIRE_NATURAL_COMBAT:
+					deathMessage = "%s" + ChatColor.RED + "burnt to death fighting %s.";
+					break;
+				case PROJECTILE_OTHER:
+					deathMessage = "%s" + ChatColor.RED + " died by a projectile in the face from %s";
+					break;
+				default:
+					deathMessage = "%s" + ChatColor.RED + " died because of %s";
+					break;
 			}
 		} else {
 			switch (type) {
-			case FALL_BIG:
-			case FALL_SMALL:
-				deathMessage = "%s" + ChatColor.RED + " fell from a high place.";
-				break;
-			case EXPLOSION:
-				deathMessage = "%s" + ChatColor.RED + " exploded.";
-				break;
-			case DROWN:
-				deathMessage = "%s" + ChatColor.RED + " drowned. Why?";
-				break;
-			case SUFFOCATION:
-				deathMessage = "%s" + ChatColor.RED + " got stuck in a wall.";
-				break;
-			case VOID:
-				deathMessage = "%s" + ChatColor.RED + " fell into the void.";
-				break;
-			case FIRE_NATURAL:
-			case FIRE_SOURCE:
-				;
-				deathMessage = "%s" + ChatColor.RED + " burnt to death.";
-				break;
-			default:
-				deathMessage = "%s" + ChatColor.RED + " died.";
-				break;
+				case FALL_BIG:
+				case FALL_SMALL:
+					deathMessage = "%s" + ChatColor.RED + " fell from a high place.";
+					break;
+				case EXPLOSION:
+					deathMessage = "%s" + ChatColor.RED + " exploded.";
+					break;
+				case DROWN:
+					deathMessage = "%s" + ChatColor.RED + " drowned. Why?";
+					break;
+				case SUFFOCATION:
+					deathMessage = "%s" + ChatColor.RED + " got stuck in a wall.";
+					break;
+				case VOID:
+					deathMessage = "%s" + ChatColor.RED + " fell into the void.";
+					break;
+				case FIRE_NATURAL:
+				case FIRE_SOURCE:
+					;
+					deathMessage = "%s" + ChatColor.RED + " burnt to death.";
+					break;
+				default:
+					deathMessage = "%s" + ChatColor.RED + " died.";
+					break;
 			}
 		}
 		deathMessage = String.format(deathMessage, ChatColor.AQUA + player.getName() + ChatColor.RESET, ChatColor.RESET + "" + ChatColor.AQUA + (killer != null ? killer.getName() : "") + ChatColor.RESET);
@@ -1185,8 +1278,32 @@ public class Bedwars extends MapGame implements Listener {
 		}
 	}
 
+	public EnderDragon spawnEndGameDragon(double speed) {
+		World nmsWorld = ((CraftWorld) getActiveMap().getWorld()).getHandle();
+		BedwarsDragon bwd = new BedwarsDragon(getActiveMap().getSpectatorLocation(), config.getDragonRadius());
+		bwd.setSpeed(speed);
+		bwd.spawn();
+		EnderDragon dragon = (EnderDragon) bwd.getBukkitEntity();
+		dragon.setRemoveWhenFarAway(false);
+		return dragon;
+	}
+
 	public void startEndGame() {
-		// TODO: FINISH ENDGAME
+		if (endGameEnabled) {
+			Log.warn("Bedwars", "EndGame is already enabled.");
+			return;
+		}
+		endGameEnabled = true;
+		for (int i = 0; i < 5; i++) {
+			BedwarsDragon bwd = new BedwarsDragon(config.getMapCenter().toBukkitLocation(world), config.getDragonRadius());
+			bwd.setSpeed(1);
+			bwd.spawn();
+			dragons.add(bwd.getBukkitEntity());
+		}
+	}
+
+	public boolean allDragonsDead() {
+		return !dragons.isEmpty() && dragons.stream().allMatch(Entity::isDead);
 	}
 
 	public void dropItems(Player player) {
@@ -1271,17 +1388,38 @@ public class Bedwars extends MapGame implements Listener {
 			killer = ((Projectile) e.getKiller()).getShooter() instanceof Player ? (Player) ((Projectile) e.getKiller()).getShooter() : null;
 		} else if (e.getKiller() instanceof TNTPrimed) {
 			killer = ((TNTPrimed) e.getKiller()).getSource() instanceof Player ? (Player) ((TNTPrimed) e.getKiller()).getSource() : null;
-		} else {
+		} else if (e.getKiller() instanceof Player) {
 			killer = (Player) e.getKiller();
+		} else {
+			killer = null;
 		}
 		deathHandle(e.getPlayer(), killer, e.getDeathType());
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onBlockPlace(BlockPlaceEvent e) {
-		if (started) {
+		if (started && !ended) {
+
+			if (safeLocations.contains(e.getBlock().getLocation())) {
+				e.setCancelled(true);
+				e.getPlayer().sendMessage(ChatColor.RED + "You cant place blocks here. (important place protection)");
+				return;
+			}
 			if (!allowBreak.contains(e.getBlock().getLocation())) {
 				allowBreak.add(e.getBlock().getLocation());
+			}
+
+			if (e.getBlock().getLocation().getBlockY() > config.getBuildMax() || e.getBlock().getLocation().getBlockY() < config.getBuildMin()) {
+				e.setCancelled(true);
+				e.getPlayer().sendMessage(ChatColor.RED + "You cant place blocks here. (reached build limit)");
+				return;
+			}
+			Vector bottom = new Vector(-(config.getBorderRadius()/2d) + config.getMapCenter().getX(), 0, -(config.getBorderRadius()/2d) + config.getMapCenter().getZ());
+			Vector top = new Vector((config.getBorderRadius()/2d) + config.getMapCenter().getX(), 256, (config.getBorderRadius()/2d) + config.getMapCenter().getZ());
+
+			if (!e.getBlock().getLocation().toVector().isInAABB(bottom, top)) {
+				e.setCancelled(true);
+				e.getPlayer().sendMessage(ChatColor.RED + "You cant place blocks here. (reached border)");
 			}
 		}
 	}
@@ -1299,16 +1437,16 @@ public class Bedwars extends MapGame implements Listener {
 				public void run() {
 					player.closeInventory();
 					switch (clickedNPC.getType()) {
-					case ITEMS:
-						itemShop.display(player);
-						break;
+						case ITEMS:
+							itemShop.display(player);
+							break;
 
-					case UPGRADES:
-						upgradeShop.display(player);
-						break;
+						case UPGRADES:
+							upgradeShop.display(player);
+							break;
 
-					default:
-						break;
+						default:
+							break;
 					}
 				}
 			}.runTaskLater(getPlugin(), 1L));
@@ -1335,6 +1473,14 @@ public class Bedwars extends MapGame implements Listener {
 					e.getPlayer().playEffect(EntityEffect.HURT);
 					Bukkit.getPluginManager().callEvent(new PlayerKilledEvent(e.getPlayer(), lastDamager.get(e.getPlayer()), dt));
 				}
+				return;
+			}
+			Vector bottom = new Vector(-(config.getBorderRadius()/2d) + config.getMapCenter().getX(), 0, -(config.getBorderRadius()/2d) + config.getMapCenter().getZ());
+			Vector top = new Vector((config.getBorderRadius()/2d) + config.getMapCenter().getX(), 256, (config.getBorderRadius()/2d) + config.getMapCenter().getZ());
+			if (!e.getTo().toVector().isInAABB(bottom, top)) {
+				e.setCancelled(true);
+				e.getPlayer().sendMessage(ChatColor.RED + "Reached world border.");
+				return;
 			}
 		}
 	}
@@ -1410,7 +1556,6 @@ public class Bedwars extends MapGame implements Listener {
 				} else if (allowBreak.contains(block.getLocation())) {
 					allow = true;
 				}
-
 				if (!allow) {
 					e.setCancelled(true);
 					player.sendMessage(ChatColor.RED + "You can only break blocks placed by players");
@@ -1427,23 +1572,31 @@ public class Bedwars extends MapGame implements Listener {
 				ItemStack item = VersionIndependentUtils.get().getItemInMainHand(player);
 				if (item != null && item.getItemMeta() != null) {
 					if (item.getType() == Material.FIREBALL) {
-						e.setCancelled(true);
+						if (!CooldownManager.get().isActive(player, FIREBALL_COOLDOWN_ID) || CooldownManager.get().getTimeLeft(player, FIREBALL_COOLDOWN_ID) <= 0) {
+							e.setCancelled(true);
 
-						ItemUtils.removeOneFromHand(player);
-						Vector dir = player.getEyeLocation().clone().getDirection().multiply(10);
+							ItemUtils.removeOneFromHand(player);
+							Vector dir = player.getEyeLocation().clone().getDirection().multiply(10);
 
-						CustomFireball cf = new CustomFireball(((CraftWorld) player.getWorld()).getHandle(), ((CraftPlayer) player).getHandle(), dir.getX(), dir.getY(), dir.getZ());
-						cf.setPositionRotation(player.getEyeLocation().getX(), player.getEyeLocation().getY(), player.getEyeLocation().getZ(), player.getEyeLocation().getYaw(), player.getEyeLocation().getPitch());
-						cf.projectileSource = player;
-						((CraftWorld) player.getWorld()).getHandle().addEntity(cf);
-						final Fireball fireball = (Fireball) cf.getBukkitEntity();
-						fireball.setVelocity(player.getLocation().getDirection().multiply(1.5));
-						fireball.setBounce(false);
-						fireball.setYield(Bedwars.FIREBALL_YIELD);
-						fireball.setIsIncendiary(false);
-						fireball.setCustomName(ChatColor.GOLD + "Fireball");
-						fireball.setCustomNameVisible(false);
-						fireball.setShooter(player);
+							CustomFireball cf = new CustomFireball(((CraftWorld) player.getWorld()).getHandle(), ((CraftPlayer) player).getHandle(), dir.getX(), dir.getY(), dir.getZ());
+							cf.setPositionRotation(player.getEyeLocation().getX(), player.getEyeLocation().getY(), player.getEyeLocation().getZ(), player.getEyeLocation().getYaw(), player.getEyeLocation().getPitch());
+							cf.projectileSource = player;
+							((CraftWorld) player.getWorld()).getHandle().addEntity(cf);
+							final Fireball fireball = (Fireball) cf.getBukkitEntity();
+							fireball.setVelocity(player.getLocation().getDirection().multiply(1.5));
+							fireball.setBounce(false);
+							fireball.setYield(Bedwars.FIREBALL_YIELD);
+							fireball.setIsIncendiary(false);
+							fireball.setCustomName(ChatColor.GOLD + "Fireball");
+							fireball.setCustomNameVisible(false);
+							fireball.setShooter(player);
+							CooldownManager.get().set(player, FIREBALL_COOLDOWN_ID, 15);
+						} else {
+
+							double timeLeft = Math.round((CooldownManager.get().getTimeLeft(player, FIREBALL_COOLDOWN_ID)/20d) * 10d)/10d;
+
+							player.sendMessage(ChatColor.RED + "Wait " + timeLeft + " seconds.");
+						}
 					} else if (item.getType() == Material.TNT && e.getAction() == Action.RIGHT_CLICK_BLOCK) {
 						e.setCancelled(true);
 
@@ -1466,6 +1619,12 @@ public class Bedwars extends MapGame implements Listener {
 				}
 			}
 		}
+	}
+
+	public void setUpPlayer(Player player) {
+		getAllPlayersAxeTier().putIfAbsent(player, 0);
+		getAllPlayersArmor().putIfAbsent(player, ArmorType.NO_ARMOR);
+		getAllPlayersPickaxeTier().putIfAbsent(player, 0);
 	}
 
 	public void updatePlayerItems(Player player) {
@@ -1498,24 +1657,24 @@ public class Bedwars extends MapGame implements Listener {
 		}
 
 		switch (armorType) {
-		case GOLD:
-			player.getInventory().setLeggings(new ItemBuilder(Material.GOLD_LEGGINGS).setUnbreakable(true).build());
-			player.getInventory().setBoots(new ItemBuilder(Material.GOLD_BOOTS).setUnbreakable(true).build());
-			break;
-		case CHAINMAIL:
-			player.getInventory().setLeggings(new ItemBuilder(Material.CHAINMAIL_LEGGINGS).setUnbreakable(true).build());
-			player.getInventory().setBoots(new ItemBuilder(Material.CHAINMAIL_BOOTS).setUnbreakable(true).build());
-			break;
-		case IRON:
-			player.getInventory().setLeggings(new ItemBuilder(Material.IRON_LEGGINGS).setUnbreakable(true).build());
-			player.getInventory().setBoots(new ItemBuilder(Material.IRON_BOOTS).setUnbreakable(true).build());
-			break;
-		case DIAMOND:
-			player.getInventory().setLeggings(new ItemBuilder(Material.DIAMOND_LEGGINGS).setUnbreakable(true).build());
-			player.getInventory().setBoots(new ItemBuilder(Material.DIAMOND_BOOTS).setUnbreakable(true).build());
-			break;
-		default:
-			break;
+			case GOLD:
+				player.getInventory().setLeggings(new ItemBuilder(Material.GOLD_LEGGINGS).setUnbreakable(true).build());
+				player.getInventory().setBoots(new ItemBuilder(Material.GOLD_BOOTS).setUnbreakable(true).build());
+				break;
+			case CHAINMAIL:
+				player.getInventory().setLeggings(new ItemBuilder(Material.CHAINMAIL_LEGGINGS).setUnbreakable(true).build());
+				player.getInventory().setBoots(new ItemBuilder(Material.CHAINMAIL_BOOTS).setUnbreakable(true).build());
+				break;
+			case IRON:
+				player.getInventory().setLeggings(new ItemBuilder(Material.IRON_LEGGINGS).setUnbreakable(true).build());
+				player.getInventory().setBoots(new ItemBuilder(Material.IRON_BOOTS).setUnbreakable(true).build());
+				break;
+			case DIAMOND:
+				player.getInventory().setLeggings(new ItemBuilder(Material.DIAMOND_LEGGINGS).setUnbreakable(true).build());
+				player.getInventory().setBoots(new ItemBuilder(Material.DIAMOND_BOOTS).setUnbreakable(true).build());
+				break;
+			default:
+				break;
 		}
 
 		removeExcessItems(player);
@@ -1544,24 +1703,24 @@ public class Bedwars extends MapGame implements Listener {
 
 		// Cry about it
 		switch (tier) {
-		case 1:
+			case 1:
 
-		case 2:
-			generators.stream().filter(g -> g.isOwnedBy(team)).filter(g -> g.getType() == GeneratorType.IRON).forEach(g -> g.decreaseDefaultTime(1));
-			generators.stream().filter(g -> g.isOwnedBy(team)).filter(g -> g.getType() == GeneratorType.GOLD).forEach(g -> g.decreaseDefaultTime(2));
-			break;
+			case 2:
+				generators.stream().filter(g -> g.isOwnedBy(team)).filter(g -> g.getType() == GeneratorType.IRON).forEach(g -> g.decreaseDefaultTime(1));
+				generators.stream().filter(g -> g.isOwnedBy(team)).filter(g -> g.getType() == GeneratorType.GOLD).forEach(g -> g.decreaseDefaultTime(2));
+				break;
 
-		case 3:
-			generators.stream().filter(g -> g.isOwnedBy(team)).filter(g -> g.getType() == GeneratorType.GOLD).forEach(g -> g.decreaseDefaultTime(2));
-			break;
+			case 3:
+				generators.stream().filter(g -> g.isOwnedBy(team)).filter(g -> g.getType() == GeneratorType.GOLD).forEach(g -> g.decreaseDefaultTime(2));
+				break;
 
-		case 4:
-			generators.add(new ItemGenerator(base.getSpawnLocation(), GeneratorType.EMERALD, config.getEmeraldForgeTime(), false, true, team));
-			break;
+			case 4:
+				generators.add(new ItemGenerator(base.getSpawnLocation(), GeneratorType.EMERALD, config.getEmeraldForgeTime(), false, true, team));
+				break;
 
-		default:
-			Log.warn("Bedwars", "Invalid forge upgrade tier " + tier);
-			break;
+			default:
+				Log.warn("Bedwars", "Invalid forge upgrade tier " + tier);
+				break;
 		}
 	}
 
@@ -1571,18 +1730,16 @@ public class Bedwars extends MapGame implements Listener {
 		tryCancelRespawn(player);
 	}
 
-	private List<XYZLocation> safeLocations = new ArrayList<>();
+	private List<Location> safeLocations = new ArrayList<>();
 
-	public List<XYZLocation> getSafeLocations() {
+	public List<Location> getSafeLocations() {
 		return safeLocations;
 	}
 
 	@EventHandler(priority = EventPriority.NORMAL)
 	public void onBlockPlaced(BlockPlaceEvent e) {
-		XYZLocation location = XYZLocation.fromVector(e.getBlock().getLocation());
-
-		for (XYZLocation loc : safeLocations) {
-			if (loc.getX() == location.getX() && loc.getY() == location.getY() && loc.getZ() == location.getZ()) {
+		for (Location loc : safeLocations) {
+			if (loc.getBlockX() == e.getBlock().getX() && loc.getBlockY() == e.getBlock().getX() && loc.getBlockZ() == e.getBlock().getX()) {
 				e.setCancelled(true);
 				e.getPlayer().sendMessage(ChatColor.RED + "You cannot place blocks here");
 				return;
@@ -1780,18 +1937,17 @@ public class Bedwars extends MapGame implements Listener {
 		PlayerUtils.clearPlayerInventory(e.getPlayer());
 	}
 
+
 	@EventHandler(priority = EventPriority.NORMAL)
 	public void onPlayerJoin(PlayerJoinEvent e) {
 		Player player = e.getPlayer();
 
-		getAllPlayersAxeTier().putIfAbsent(player, 0);
-		getAllPlayersArmor().putIfAbsent(player, ArmorType.NO_ARMOR);
-		getAllPlayersPickaxeTier().putIfAbsent(player, 0);
+		setUpPlayer(player);
 
 		if (started && !ended) {
 			Team team = TeamManager.getTeamManager().getPlayerTeam(e.getPlayer());
 			BaseData base = bases.stream().filter(b -> b.getOwner().equals(team)).findFirst().orElse(null);
-			if (team == null || !base.hasBed()) {
+			if (team == null || base == null || !base.hasBed() || eliminatedPlayers.contains(player.getUniqueId())) {
 				setEliminatedSpectator(e.getPlayer());
 			} else {
 				handlePlayerRespawnOrJoin(player);
@@ -1873,6 +2029,11 @@ public class Bedwars extends MapGame implements Listener {
 
 			}
 		}
+	}
+
+	@EventHandler
+	public void onEliminate(PlayerEliminatedEvent e) {
+		eliminatedPlayers.add(e.getPlayer().getUniqueId());
 	}
 
 	public void setLastDamager(Player player, Entity damager) {

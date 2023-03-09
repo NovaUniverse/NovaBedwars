@@ -102,7 +102,6 @@ public enum Trap {
 	}
 
 	public ItemStack asShopItem(Team team) {
-
 		ItemStack item = stack.clone();
 		List<String> lore = new ArrayList<>();
 		BaseData data = NovaBedwars.getInstance().getGame().getBases().stream().filter(bd -> bd.getOwner().equals(team)).findFirst().orElse(null);

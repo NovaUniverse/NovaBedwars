@@ -6,6 +6,7 @@ import net.novauniverse.bedwars.game.enums.Reason;
 import net.novauniverse.bedwars.game.events.AttemptItemBuyEvent;
 import net.novauniverse.bedwars.utils.InventoryUtils;
 import net.zeeraa.novacore.commons.utils.Callback;
+import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependentSound;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -217,7 +218,7 @@ public class Price {
 				callback.execute();
 			}
 			NovaBedwars.getInstance().getGame().updatePlayerItems(player);
-			player.playSound(player.getLocation(), Sound.ORB_PICKUP, 0.75f, 2);
+			VersionIndependentSound.ORB_PICKUP.play(player, player.getLocation(), 0.75f, 2);
 			if (itemEnum.isTiered()) {
 				player.sendMessage(ChatColor.GREEN + "Bought " + ChatColor.BOLD + (tieredItemBuy.getItemMeta().getDisplayName() != null ? tieredItemBuy.getItemMeta().getDisplayName() : getMaterialName(tieredItemBuy.getType())));
 			} else if (itemEnum.isArmor()) {

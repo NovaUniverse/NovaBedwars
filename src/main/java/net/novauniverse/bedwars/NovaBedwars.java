@@ -1,22 +1,26 @@
 package net.novauniverse.bedwars;
 
+import net.minecraft.server.v1_8_R3.EntityEnderDragon;
+import net.minecraft.server.v1_8_R3.EntityPlayer;
+import net.minecraft.server.v1_8_R3.PathfinderGoalSelector;
 import net.novauniverse.bedwars.game.Bedwars;
 import net.novauniverse.bedwars.game.commands.ImportBedwarsPreferences;
 import net.novauniverse.bedwars.game.config.BedwarsConfig;
+import net.novauniverse.bedwars.game.debug.BedWarsDebugCommands;
 import net.novauniverse.bedwars.game.debug.CommandFromMessage;
 import net.novauniverse.bedwars.game.debug.GivePotion;
 import net.novauniverse.bedwars.game.debug.HashMapDebugger;
-import net.novauniverse.bedwars.game.debug.BedWarsDebugCommands;
 import net.novauniverse.bedwars.game.debug.ShopItemMetasDebugger;
 import net.novauniverse.bedwars.game.debug.ShopOpenDebug;
 import net.novauniverse.bedwars.game.debug.UUIDGetter;
 import net.novauniverse.bedwars.game.debug.UpgradeShopOpenDebug;
-import net.novauniverse.bedwars.game.enums.ArmorType;
+import net.novauniverse.bedwars.game.entity.dragon.BedwarsDragon;
 import net.novauniverse.bedwars.utils.HypixelAPI;
 import net.novauniverse.bedwars.utils.preferences.api.PreferenceAPI;
 import net.novauniverse.bedwars.utils.preferences.api.PreferenceAPISettings;
 import net.zeeraa.novacore.commons.log.Log;
 import net.zeeraa.novacore.commons.utils.JSONFileUtils;
+import net.zeeraa.novacore.commons.utils.ReflectUtils;
 import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
 import net.zeeraa.novacore.spigot.command.AllowedSenders;
 import net.zeeraa.novacore.spigot.command.CommandRegistry;
@@ -32,7 +36,12 @@ import net.zeeraa.novacore.spigot.module.ModuleManager;
 import net.zeeraa.novacore.spigot.module.modules.cooldown.CooldownManager;
 import org.apache.commons.io.FileUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
+import org.bukkit.craftbukkit.v1_8_R3.entity.CraftEnderDragon;
+import org.bukkit.craftbukkit.v1_8_R3.entity.CraftEntity;
+import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
+import org.bukkit.entity.EnderDragon;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TNTPrimed;
@@ -41,12 +50,14 @@ import org.bukkit.event.Listener;
 import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 public final class NovaBedwars extends JavaPlugin implements Listener {
 	private static NovaBedwars instance;
@@ -91,7 +102,6 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 	}
 
 	// TODO: ender dragon end game
-	// TODO: add netherboard info (next event, like gen upgrade)
 	@Override
 	public void onEnable() {
 		NovaBedwars.instance = this;
@@ -174,6 +184,7 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 		Bukkit.getPluginManager().registerEvents(this, this);
 
 		this.game = new Bedwars();
+
 		GameManager.getInstance().loadGame(game);
 
 		if (!disableNovaCoreGameLobby) {
@@ -197,21 +208,29 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 		UpgradeShopOpenDebug.register();
 		CommandRegistry.registerCommand(new ImportBedwarsPreferences());
 
-		Bukkit.getOnlinePlayers().forEach(player -> {
-			getGame().getAllPlayersPickaxeTier().putIfAbsent(player, 0);
-			getGame().getAllPlayersAxeTier().putIfAbsent(player, 0);
-			getGame().getAllPlayersArmor().putIfAbsent(player, ArmorType.NO_ARMOR);
-		});
+		Bukkit.getOnlinePlayers().forEach(player -> getGame().setUpPlayer(player));
 
+		VersionIndependentUtils.get().registerCustomEntityWithEntityId(BedwarsDragon.class, "bedwars_dragon", 63);
+		registerDebugs();
+
+	}
+
+	@Override
+	public void onDisable() {
+		Bukkit.getScheduler().cancelTasks(this);
+		HandlerList.unregisterAll((Plugin) this);
+	}
+
+	public void registerDebugs() {
 		DebugCommandRegistrator.getInstance().addDebugTrigger(new DebugTrigger() {
 			@Override
 			public String getName() {
-				return "damageTest";
+				return "DragonTest";
 			}
 
 			@Override
 			public String getPermission() {
-				return "damageTest";
+				return "bedwars_lmao";
 			}
 
 			@Override
@@ -226,7 +245,10 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 
 			@Override
 			public void onExecute(CommandSender commandSender, String s, String[] strings) {
-				((Player) commandSender).damage(2);
+				Player player = (Player) commandSender;
+				BedwarsDragon bwd = new BedwarsDragon(player.getLocation(), 50);
+				bwd.setSpeed(1);
+				bwd.spawn();
 			}
 		});
 
@@ -259,13 +281,183 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 				Bukkit.getScheduler().runTaskLater(instance, () -> game.explode(tnt, 4, 4, 5, false, true, Bukkit.getOnlinePlayers(), null), 40L);
 			}
 		});
+		DebugCommandRegistrator.getInstance().addDebugTrigger(new DebugTrigger() {
+			@Override
+			public String getName() {
+				return "checkTargets";
+			}
+
+			@Override
+			public String getPermission() {
+				return "aosoakf";
+			}
+
+			@Override
+			public AllowedSenders getAllowedSenders() {
+				return AllowedSenders.PLAYERS;
+			}
+
+			@Override
+			public PermissionDefault getPermissionDefault() {
+				return PermissionDefault.OP;
+			}
+
+			@Override
+			public void onExecute(CommandSender commandSender, String s, String[] strings) {
+				Player player = (Player) commandSender;
+				player.getWorld().getEntities().forEach(entity -> {
+					if (((CraftEntity)entity).getHandle() instanceof BedwarsDragon) {
+						BedwarsDragon dragon = (BedwarsDragon) ((CraftEntity) entity).getHandle();
+
+						List goalB = (List) ReflectUtils.getPrivateField("b", PathfinderGoalSelector.class, dragon.goalSelector);
+						List goalC = (List)ReflectUtils.getPrivateField("c", PathfinderGoalSelector.class, dragon.goalSelector);
+
+						List targetB = (List)ReflectUtils.getPrivateField("b", PathfinderGoalSelector.class, dragon.targetSelector);
+						List targetC = (List)ReflectUtils.getPrivateField("c", PathfinderGoalSelector.class, dragon.targetSelector);
+
+						Log.debug("" + goalB);
+						Log.debug("" + goalC);
+						Log.debug("" + targetB);
+						Log.debug("" + targetC);
+					}
+				});
+
+			}
+		});
+
+		DebugCommandRegistrator.getInstance().addDebugTrigger(new DebugTrigger() {
+			@Override
+			public String getName() {
+				return "CheckDragon";
+			}
+
+			@Override
+			public String getPermission() {
+				return "null";
+			}
+
+			@Override
+			public AllowedSenders getAllowedSenders() {
+				return AllowedSenders.PLAYERS;
+			}
+
+			@Override
+			public PermissionDefault getPermissionDefault() {
+				return PermissionDefault.OP;
+			}
+
+			@Override
+			public void onExecute(CommandSender commandSender, String s, String[] strings) {
+				Player player = (Player) commandSender;
+
+				EnderDragon ed = (EnderDragon) player.getWorld().spawnEntity(player.getLocation(), EntityType.ENDER_DRAGON);
+
+
+				EntityEnderDragon dragon = ((CraftEnderDragon) ed).getHandle();
+
+				List goalB = (List) ReflectUtils.getPrivateField("b", PathfinderGoalSelector.class, dragon.goalSelector);
+				List goalC = (List)ReflectUtils.getPrivateField("c", PathfinderGoalSelector.class, dragon.goalSelector);
+
+				List targetB = (List)ReflectUtils.getPrivateField("b", PathfinderGoalSelector.class, dragon.targetSelector);
+				List targetC = (List)ReflectUtils.getPrivateField("c", PathfinderGoalSelector.class, dragon.targetSelector);
+
+				Log.debug("" + goalB);
+				Log.debug("" + goalC);
+				Log.debug("" + targetB);
+				Log.debug("" + targetC);
+			}
+		});
+		DebugCommandRegistrator.getInstance().addDebugTrigger(new DebugTrigger() {
+			@Override
+			public String getName() {
+				return "boundingboxtest";
+			}
+
+			@Override
+			public String getPermission() {
+				return "boundingboxtest";
+			}
+
+			@Override
+			public AllowedSenders getAllowedSenders() {
+				return AllowedSenders.PLAYERS;
+			}
+
+			@Override
+			public PermissionDefault getPermissionDefault() {
+				return PermissionDefault.OP;
+			}
+
+			@Override
+			public void onExecute(CommandSender commandSender, String s, String[] strings) {
+				Player player = (Player) commandSender;
+				EntityPlayer ep = ((CraftPlayer) player).getHandle();
+				System.out.println(ep.getBoundingBox().a);
+				System.out.println(ep.getBoundingBox().b);
+				System.out.println(ep.getBoundingBox().c);
+				System.out.println(ep.getBoundingBox().d);
+				System.out.println(ep.getBoundingBox().e);
+				System.out.println(ep.getBoundingBox().f);
+			}
+		});
+		DebugCommandRegistrator.getInstance().addDebugTrigger(new DebugTrigger() {
+			@Override
+			public String getName() {
+				return "turntest";
+			}
+
+			@Override
+			public String getPermission() {
+				return "turntest";
+			}
+
+			@Override
+			public AllowedSenders getAllowedSenders() {
+				return AllowedSenders.PLAYERS;
+			}
+
+			@Override
+			public PermissionDefault getPermissionDefault() {
+				return PermissionDefault.OP;
+			}
+
+			@Override
+			public void onExecute(CommandSender commandSender, String s, String[] strings) {
+				EnderDragon ed = (EnderDragon) ((Player) commandSender).getWorld().spawnEntity(((Player) commandSender).getLocation(), EntityType.ENDER_DRAGON);
+				Location initialLoc = ed.getLocation().clone();
+				float[] fl = new float[]{-690};
+				new BukkitRunnable() {
+					@Override
+					public void run() {
+						Location loc = ed.getLocation().clone();
+						loc.setX(initialLoc.getX());
+						loc.setY(initialLoc.getY());
+						loc.setZ(initialLoc.getZ());
+
+						if (fl[0] == -690) {
+							fl[0] = loc.getYaw() + 5f;
+						} else {
+							fl[0] += 5f;
+						}
+						loc.setYaw(correct180Degree(fl[0]));
+						ed.teleport(loc);
+						System.out.println(ed.getLocation().getYaw());
+					}
+				}.runTaskTimer(NovaBedwars.this, 0, 1);
+			}
+		});
 	}
 
-	@Override
-	public void onDisable() {
-		Bukkit.getScheduler().cancelTasks(this);
-		HandlerList.unregisterAll((Plugin) this);
+	public float correct180Degree(float degree) {
+		if (degree > 180) {
+			return correct180Degree(degree - 360);
+		} else if (degree < -180) {
+			return correct180Degree(degree + 360);
+		} else {
+			return degree;
+		}
 	}
+
 }
 
 // UwU, Daddy
