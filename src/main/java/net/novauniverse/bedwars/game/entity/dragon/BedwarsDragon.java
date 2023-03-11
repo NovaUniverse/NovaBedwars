@@ -5,7 +5,6 @@ import net.minecraft.server.v1_8_R3.Block;
 import net.minecraft.server.v1_8_R3.BlockPosition;
 import net.minecraft.server.v1_8_R3.DamageSource;
 import net.minecraft.server.v1_8_R3.Entity;
-import net.minecraft.server.v1_8_R3.EntityComplexPart;
 import net.minecraft.server.v1_8_R3.EntityHuman;
 import net.minecraft.server.v1_8_R3.EntityLiving;
 import net.minecraft.server.v1_8_R3.EntityWolf;
@@ -23,11 +22,9 @@ import net.novauniverse.bedwars.game.Bedwars;
 import net.zeeraa.novacore.commons.utils.ReflectUtils;
 import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
 import net.zeeraa.novacore.spigot.abstraction.manager.CustomSpectatorManager;
-import org.bukkit.Chunk;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.craftbukkit.v1_8_R3.CraftChunk;
 import org.bukkit.craftbukkit.v1_8_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_8_R3.SpigotTimings;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftZombie;
@@ -336,8 +333,6 @@ public class BedwarsDragon extends EntityZombie {
 
 
     public void turnTo(Location location) {
-
-
         Location toLook = DragonMath.directionFromLocations(getLocation(), location);
         DragonMath.invertDirection(toLook);
 
@@ -346,9 +341,9 @@ public class BedwarsDragon extends EntityZombie {
 
         int turn;
         if (Math.abs(yawDistance) >= Math.abs(pitchDistance)) {
-            turn = (int) Math.abs(Math.ceil(yawDistance/turnMod));
+            turn = (int) Math.abs(Math.ceil(yawDistance/(turnMod*speed)));
         } else {
-            turn = (int) Math.abs(Math.ceil(pitchDistance/turnMod));
+            turn = (int) Math.abs(Math.ceil(pitchDistance/(turnMod*speed)));
         }
 
         float yawMod = DragonMath.asRealNumber(yawDistance / turn);
@@ -472,7 +467,6 @@ public class BedwarsDragon extends EntityZombie {
     @Override
     public void t_() {
         super.t_();
-        System.out.println(getUniqueID());
         this.persistent = true;
         this.valid = true;
         if (!isCharging()) {

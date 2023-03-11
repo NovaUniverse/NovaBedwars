@@ -15,8 +15,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BedwarsConfig extends MapModule {
-	private int upgradeTime;
-	private int generatorSpeed;
 
 	private XYZLocation mapCenter;
 
@@ -28,6 +26,7 @@ public class BedwarsConfig extends MapModule {
 	private int buildMax;
 
 	private int borderRadius;
+	private double healPoolRadius;
 
 	private int initialIronTime;
 	private int initialGoldTime;
@@ -49,9 +48,7 @@ public class BedwarsConfig extends MapModule {
 		this.buildMin = json.getInt("build_min");
 
 		this.borderRadius = json.getInt("border_radius");
-
-		this.upgradeTime = json.getInt("upgrade_time");
-		this.generatorSpeed = json.getInt("generator_speed");
+		this.healPoolRadius = json.getDouble("heal_pool_radius");
 
 		this.events = new ArrayList<>();
 
@@ -117,16 +114,12 @@ public class BedwarsConfig extends MapModule {
 		return events;
 	}
 
-	public int getUpgradeTime() {
-		return upgradeTime;
-	}
-
-	public int getGeneratorSpeed() {
-		return generatorSpeed;
-	}
-
 	public List<ConfiguredBaseData> getBases() {
 		return bases;
+	}
+
+	public double getHealPoolRadius() {
+		return healPoolRadius;
 	}
 
 	public List<XYZLocation> getDiamondGenerators() {

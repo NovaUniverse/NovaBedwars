@@ -5,8 +5,11 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
+import net.novauniverse.bedwars.NovaBedwars;
+import net.novauniverse.bedwars.game.config.BedwarsConfig;
 import net.novauniverse.bedwars.game.enums.Trap;
 import net.novauniverse.bedwars.game.enums.Upgrades;
+import net.novauniverse.bedwars.game.generator.BaseGenerator;
 import org.bukkit.Location;
 
 import net.zeeraa.novacore.spigot.teams.Team;
@@ -29,15 +32,22 @@ public class BaseData {
 	private Location itemShopLocation;
 	private Location upgradeShopLocation;
 
+	private Location forgeLocation;
+
+	private BaseGenerator baseGenerator;
+
 	private List<Trap> traps;
 
-	public BaseData(Team owner, Location spawnLocation, Location bedLocation, Location itemShopLocation, Location upgradeShopLocation) {
+	public BaseData(Team owner, Location spawnLocation, Location bedLocation, Location forgeLocation, Location itemShopLocation, Location upgradeShopLocation) {
 		this.owner = owner;
 		this.spawnLocation = spawnLocation;
+		this.forgeLocation = forgeLocation;
 		this.bedLocation = bedLocation;
 		this.itemShopLocation = itemShopLocation;
 		this.upgradeShopLocation = upgradeShopLocation;
 		this.traps = new ArrayList<>();
+		BedwarsConfig config = NovaBedwars.getInstance().getGame().getConfig();
+		this.baseGenerator = new BaseGenerator(this, config.getInitialIronTime(), config.getInitialGoldTime(), config.getEmeraldForgeTime());
 	}
 
 	@Nullable
@@ -71,6 +81,10 @@ public class BaseData {
 
 	public Location getSpawnLocation() {
 		return spawnLocation;
+	}
+
+	public Location getForgeLocation() {
+		return forgeLocation;
 	}
 
 	public Location getBedLocation() {
@@ -136,5 +150,9 @@ public class BaseData {
 
 	public List<Trap> getTraps() {
 		return traps;
+	}
+
+	public BaseGenerator getBaseGenerator() {
+		return baseGenerator;
 	}
 }

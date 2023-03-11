@@ -1,5 +1,6 @@
 package net.novauniverse.bedwars;
 
+import net.minecraft.server.v1_8_R3.Block;
 import net.minecraft.server.v1_8_R3.EntityEnderDragon;
 import net.minecraft.server.v1_8_R3.EntityPlayer;
 import net.minecraft.server.v1_8_R3.PathfinderGoalSelector;
@@ -37,10 +38,12 @@ import net.zeeraa.novacore.spigot.module.modules.cooldown.CooldownManager;
 import org.apache.commons.io.FileUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftEnderDragon;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_8_R3.util.CraftMagicNumbers;
 import org.bukkit.entity.EnderDragon;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -57,6 +60,7 @@ import org.json.JSONObject;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.List;
 
 public final class NovaBedwars extends JavaPlugin implements Listener {
@@ -100,8 +104,6 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 	public boolean hasPreferenceAPI() {
 		return preferenceAPI != null;
 	}
-
-	// TODO: ender dragon end game
 	@Override
 	public void onEnable() {
 		NovaBedwars.instance = this;
@@ -222,6 +224,8 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 	}
 
 	public void registerDebugs() {
+
+
 		DebugCommandRegistrator.getInstance().addDebugTrigger(new DebugTrigger() {
 			@Override
 			public String getName() {
@@ -278,7 +282,7 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 				Player player = (Player) commandSender;
 				TNTPrimed tnt = (TNTPrimed) player.getWorld().spawnEntity(player.getLocation(), EntityType.PRIMED_TNT);
 				VersionIndependentUtils.get().setSource(tnt, player);
-				Bukkit.getScheduler().runTaskLater(instance, () -> game.explode(tnt, 4, 4, 5, false, true, Bukkit.getOnlinePlayers(), null), 40L);
+				Bukkit.getScheduler().runTaskLater(instance, () -> game.explode(tnt, 4, 4, 5, false, true, Bukkit.getOnlinePlayers(), null, 1), 40L);
 			}
 		});
 		DebugCommandRegistrator.getInstance().addDebugTrigger(new DebugTrigger() {

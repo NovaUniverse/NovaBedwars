@@ -11,7 +11,7 @@ public enum ArmorType {
         this.tier = tier;
     }
     ArmorType() {
-        this.shopName = "hehe balls :)";
+        this.shopName = "no armor, if you see this report as a bug and how you did it";
         this.tier = 0;
     }
 

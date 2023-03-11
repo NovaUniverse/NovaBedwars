@@ -46,7 +46,6 @@ public class PathfinderGoalDragonCharge extends PathfinderGoal {
 
     @Override
     public void e() {
-        System.out.println("charge !!");
         if (target == null) {
             int random = RandomGenerator.generate(0,3);
             if (random == 0) {

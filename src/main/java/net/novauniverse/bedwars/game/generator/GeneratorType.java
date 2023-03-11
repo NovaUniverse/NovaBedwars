@@ -4,7 +4,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 
 public enum GeneratorType {
-	IRON(Material.IRON_INGOT, ChatColor.WHITE, "Iron", 32), GOLD(Material.GOLD_INGOT, ChatColor.GOLD, "Gold", 16), DIAMOND(Material.DIAMOND, ChatColor.AQUA, "Diamond", 4), EMERALD(Material.EMERALD, ChatColor.GREEN, "Emerald", 2);
+	IRON(Material.IRON_INGOT, ChatColor.WHITE, "Iron", 48), GOLD(Material.GOLD_INGOT, ChatColor.GOLD, "Gold", 8), DIAMOND(Material.DIAMOND, ChatColor.AQUA, "Diamond", 4), EMERALD(Material.EMERALD, ChatColor.GREEN, "Emerald", 2);
 
 	private Material material;
 	private ChatColor color;

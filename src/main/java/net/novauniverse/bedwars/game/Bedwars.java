@@ -37,15 +37,14 @@ import net.novauniverse.bedwars.utils.CountdownTaskManager;
 import net.novauniverse.bedwars.utils.InventoryUtils;
 import net.zeeraa.novacore.commons.log.Log;
 import net.zeeraa.novacore.commons.tasks.Task;
+import net.zeeraa.novacore.commons.utils.DelayedRunner;
 import net.zeeraa.novacore.commons.utils.RandomGenerator;
 import net.zeeraa.novacore.commons.utils.TextUtils;
-import net.zeeraa.novacore.spigot.abstraction.ChunkLoader;
 import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
 import net.zeeraa.novacore.spigot.abstraction.enums.DeathType;
 import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependentMaterial;
 import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependentSound;
 import net.zeeraa.novacore.spigot.abstraction.manager.CustomSpectatorManager;
-import net.zeeraa.novacore.spigot.abstraction.particle.NovaParticleProvider;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.GameEndReason;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.MapGame;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.elimination.PlayerEliminationReason;
@@ -56,7 +55,6 @@ import net.zeeraa.novacore.spigot.gameengine.module.modules.game.triggers.Trigge
 import net.zeeraa.novacore.spigot.module.ModuleManager;
 import net.zeeraa.novacore.spigot.module.modules.compass.CompassTracker;
 import net.zeeraa.novacore.spigot.module.modules.cooldown.CooldownManager;
-import net.zeeraa.novacore.spigot.module.modules.multiverse.MultiverseManager;
 import net.zeeraa.novacore.spigot.tasks.SimpleTask;
 import net.zeeraa.novacore.spigot.teams.Team;
 import net.zeeraa.novacore.spigot.teams.TeamManager;
@@ -68,7 +66,6 @@ import net.zeeraa.novacore.spigot.utils.PlayerUtils;
 import net.zeeraa.novacore.spigot.utils.RandomFireworkEffect;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Chunk;
 import org.bukkit.Color;
 import org.bukkit.Difficulty;
 import org.bukkit.Effect;
@@ -162,8 +159,6 @@ public class Bedwars extends MapGame implements Listener {
 	public static final int INVENCIBILITY_TIME_SECONDS = 3;
 	public static final int KILL_CREDIT_TIMER_SECONDS = 30;
 
-	public static final double HEAL_POOL_DISTANCE = 20;
-
 	public static final int MAX_TRAP_AMOUNT = 3;
 	public static final ItemStack TELEPORT_COMPASS = new ItemBuilder(Material.COMPASS).setName(ChatColor.GOLD + "" + ChatColor.BOLD + "Teleport to player").build();
 
@@ -176,7 +171,7 @@ public class Bedwars extends MapGame implements Listener {
 
 	private BedwarsConfig config;
 
-	private Map<Player, ArmorType> hasArmor;
+	private Map<Player, ArmorType> armor;
 	private Map<Player, Integer> pickaxeTier;
 	private Map<Player, Integer> axeTier;
 	private Map<Player, Integer> invencibility;
@@ -202,6 +197,7 @@ public class Bedwars extends MapGame implements Listener {
 	private UpgradeShop upgradeShop;
 
 	private Task countdownTask;
+	private Task generatorTask;
 	private Task npcFixTask;
 	private Task particleTask;
 	private Task armorCheckTask;
@@ -214,7 +210,7 @@ public class Bedwars extends MapGame implements Listener {
 	private Task baseTask;
 
 	public Map<Player, ArmorType> getAllPlayersArmor() {
-		return hasArmor;
+		return armor;
 	}
 
 	public List<BaseData> getBases() {
@@ -222,7 +218,7 @@ public class Bedwars extends MapGame implements Listener {
 	}
 
 	public ArmorType getPlayerArmor(Player player) {
-		return hasArmor.get(player);
+		return armor.get(player);
 	}
 
 	public Map<Player, Integer> getAllPlayersPickaxeTier() {
@@ -255,7 +251,7 @@ public class Bedwars extends MapGame implements Listener {
 		allowBreak = new ArrayList<>();
 		npcs = new ArrayList<>();
 
-		hasArmor = new HashMap<>();
+		armor = new HashMap<>();
 		pickaxeTier = new HashMap<>();
 		axeTier = new HashMap<>();
 		invencibility = new HashMap<>();
@@ -352,9 +348,12 @@ public class Bedwars extends MapGame implements Listener {
 
 		*/
 
+		generatorTask = new SimpleTask(getPlugin(), () -> {
+			bases.forEach(baseData -> baseData.getBaseGenerator().tick());
+		}, 1L);
 		countdownTask = new SimpleTask(getPlugin(), () -> {
-			generators.forEach(ItemGenerator::countdown);
 			events.forEach(BedwarsEvent::decrement);
+			generators.forEach(ItemGenerator::countdown);
 			events.stream().filter(BedwarsEvent::isFinished).forEach(event -> {
 				VersionIndependentSound.NOTE_PLING.broadcast();
 				if (event instanceof GeneratorUpgrade) {
@@ -421,18 +420,35 @@ public class Bedwars extends MapGame implements Listener {
 					}
 				}
 			}
+			if (allDragonsDead()) {
+				if (!doingMonologue) {
+					doingMonologue = true;
+					Bukkit.broadcastMessage(ChatColor.RED + "wait hold on did you really kill all dragons?");
+
+					DelayedRunner.runDelayed(() -> {
+						Bukkit.broadcastMessage(ChatColor.DARK_RED + "well that was a mistake");
+						DelayedRunner.runDelayed(() -> {
+							Bukkit.broadcastMessage(ChatColor.DARK_RED + "" + ChatColor.BOLD + "well have fun with these dragons");
+							spawnDruggedDragons();
+						}, 80L);
+					}, 80L);
+				}
+
+			}
 		}, 20L);
 		baseTask = new SimpleTask(getPlugin(), () -> {
 			for (BaseData data : getBases()) {
 				if (data.hasHealPool()) {
 					for (int i = 0; i < 500; i++) {
-						Location location = data.getSpawnLocation().clone().add(RandomGenerator.generateDouble(-HEAL_POOL_DISTANCE, HEAL_POOL_DISTANCE), RandomGenerator.generateDouble(-HEAL_POOL_DISTANCE, HEAL_POOL_DISTANCE), RandomGenerator.generateDouble(-HEAL_POOL_DISTANCE, HEAL_POOL_DISTANCE));
+						Location location = data.getSpawnLocation().clone().add(RandomGenerator.generateDouble(-config.getHealPoolRadius(), config.getHealPoolRadius()), RandomGenerator.generateDouble(-config.getHealPoolRadius(), config.getHealPoolRadius()), RandomGenerator.generateDouble(-config.getHealPoolRadius(), config.getHealPoolRadius()));
 						data.getSpawnLocation().getWorld().playEffect(location, Effect.HAPPY_VILLAGER, 0);
 					}
 				}
 			}
 		}, 40);
 	}
+
+	private boolean doingMonologue = false;
 
 	public Map<Player, Integer> getAllPlayersInvencibility() {
 		return invencibility;
@@ -512,12 +528,18 @@ public class Bedwars extends MapGame implements Listener {
 
 		getWorld().getWorldBorder().reset();
 
-		GameTrigger trigger = new GameTrigger("startendgame", (gameTrigger, triggerFlag) -> {
+		GameTrigger endGameStart = new GameTrigger("startendgame", (gameTrigger, triggerFlag) -> {
 			startEndGame();
 		});
-		trigger.setDescription("Start the sudden death event.");
-		trigger.addFlag(TriggerFlag.RUN_ONLY_ONCE);
-		addTrigger(trigger);
+		endGameStart.setDescription("Start the sudden death event.");
+		endGameStart.addFlag(TriggerFlag.RUN_ONLY_ONCE);
+		addTrigger(endGameStart);
+
+		GameTrigger killDragons = new GameTrigger("killdragons", ((gameTrigger, triggerFlag) -> {
+			killAllDragons();
+		}));
+		killDragons.setDescription("Kill all dragons");
+		addTrigger(killDragons);
 
 
 		ModuleManager.disable(CompassTracker.class);
@@ -555,9 +577,6 @@ public class Bedwars extends MapGame implements Listener {
 
 
 			BaseData base = cfgBase.toBaseData(getWorld(), team);
-
-			generators.add(new ItemGenerator(base.getSpawnLocation(), GeneratorType.IRON, ironGeneratorTime, false, true, team));
-			generators.add(new ItemGenerator(base.getSpawnLocation(), GeneratorType.GOLD, goldGeneratorTime, false, true, team));
 
 			BedwarsNPC itemShopNPC = new BedwarsNPC(base.getItemShopLocation(), NPCType.ITEMS);
 			itemShopNPC.spawn();
@@ -597,6 +616,7 @@ public class Bedwars extends MapGame implements Listener {
 		Bukkit.getServer().getOnlinePlayers().stream().filter(p -> players.contains(p.getUniqueId())).forEach(this::tpToBase);
 		Bukkit.getServer().getOnlinePlayers().stream().filter(p -> !players.contains(p.getUniqueId())).forEach(this::setEliminatedSpectator);
 		Task.tryStartTask(countdownTask);
+		Task.tryStartTask(generatorTask);
 		Task.tryStartTask(npcFixTask);
 		Task.tryStartTask(particleTask);
 		Task.tryStartTask(armorCheckTask);
@@ -707,6 +727,7 @@ public class Bedwars extends MapGame implements Listener {
 		respawnTasks.clear();
 
 		Task.tryStopTask(countdownTask);
+		Task.tryStopTask(generatorTask);
 		Task.tryStopTask(npcFixTask);
 		Task.tryStopTask(particleTask);
 		Task.tryStopTask(armorCheckTask);
@@ -798,7 +819,7 @@ public class Bedwars extends MapGame implements Listener {
 				player.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, Integer.MAX_VALUE, baseData.getHasteLevel() - 1, false, false), true);
 			}
 			if (baseData.hasHealPool()) {
-				if (baseData.getSpawnLocation().distance(player.getLocation()) <= HEAL_POOL_DISTANCE) {
+				if (baseData.getSpawnLocation().distance(player.getLocation()) <= config.getHealPoolRadius()) {
 					player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, (5 * 20) + 2, 0, false, false), true);
 				}
 			}
@@ -1302,6 +1323,21 @@ public class Bedwars extends MapGame implements Listener {
 		}
 	}
 
+	public void killAllDragons() {
+		dragons.forEach(Entity::remove);
+	}
+
+	public void spawnDruggedDragons() {
+		dragons.clear();
+		for (int i = 0; i < 20; i++) {
+			BedwarsDragon bwd = new BedwarsDragon(config.getMapCenter().toBukkitLocation(world), config.getDragonRadius());
+			bwd.setSpeed(3);
+			bwd.setDamage(6);
+			bwd.spawn();
+			dragons.add(bwd.getBukkitEntity());
+		}
+	}
+
 	public boolean allDragonsDead() {
 		return !dragons.isEmpty() && dragons.stream().allMatch(Entity::isDead);
 	}
@@ -1399,11 +1435,14 @@ public class Bedwars extends MapGame implements Listener {
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onBlockPlace(BlockPlaceEvent e) {
 		if (started && !ended) {
+			if (e.getPlayer().getGameMode() == GameMode.CREATIVE) {
+				return;
+			}
 
 			if (safeLocations.contains(e.getBlock().getLocation())) {
-				e.setCancelled(true);
-				e.getPlayer().sendMessage(ChatColor.RED + "You cant place blocks here. (important place protection)");
-				return;
+					e.setCancelled(true);
+					e.getPlayer().sendMessage(ChatColor.RED + "You cant place blocks here. (important place protection)");
+					return;
 			}
 			if (!allowBreak.contains(e.getBlock().getLocation())) {
 				allowBreak.add(e.getBlock().getLocation());
@@ -1508,6 +1547,11 @@ public class Bedwars extends MapGame implements Listener {
 	public void onBlockBreak(BlockBreakEvent e) {
 		if (started) {
 			Player player = e.getPlayer();
+
+			if (player.getGameMode() == GameMode.CREATIVE && VersionIndependentUtils.get().isBed(e.getBlock())) {
+				e.setCancelled(true);
+				e.getPlayer().sendMessage(ChatColor.RED + "You cannot break others beds when in creative.");
+			}
 
 			if (player.getGameMode() != GameMode.CREATIVE) {
 				boolean allow = false;
@@ -1711,6 +1755,7 @@ public class Bedwars extends MapGame implements Listener {
 				break;
 
 			case 3:
+				generators.stream().filter(g -> g.isOwnedBy(team)).filter(g -> g.getType() == GeneratorType.IRON).forEach(g -> g.decreaseDefaultTime(1));
 				generators.stream().filter(g -> g.isOwnedBy(team)).filter(g -> g.getType() == GeneratorType.GOLD).forEach(g -> g.decreaseDefaultTime(2));
 				break;
 
@@ -1751,7 +1796,7 @@ public class Bedwars extends MapGame implements Listener {
 		return value >= 0 ? value : value * -1;
 	}
 
-	public void explode(Explosive explosive, int radius, double knockbackMultiplier, double damageMultiplier, boolean silent, boolean particle, Collection<? extends Entity> allowedUpdate, Collection<Block> allowedBreak) {
+	public void explode(Explosive explosive, int radius, double knockbackMultiplier, double damageMultiplier, boolean silent, boolean particle, Collection<? extends Entity> allowedUpdate, Collection<Block> allowedBreak, int explosionPower) {
 		for (Entity entity : explosive.getWorld().getEntities().stream().filter(entity -> explosive.getLocation().distance(entity.getLocation()) <= radius).collect(Collectors.toList())) {
 			if (!entity.getUniqueId().equals(explosive.getUniqueId())) {
 				if (allowedUpdate.stream().anyMatch(ent -> ent.getUniqueId().equals(entity.getUniqueId()))) {
@@ -1861,10 +1906,40 @@ public class Bedwars extends MapGame implements Listener {
 					if (explosive.getLocation().distance(block.getLocation()) >= 3) {
 						double value = Math.random();
 						if (value >= 0.6 - (0.15 * (explosive.getLocation().distance(block.getLocation())) - 2)) {
-							block.breakNaturally();
+							boolean doTheThing = false;
+							if (explosionPower >= VersionIndependentUtils.getInstance().getBlockBlastResistance(block)) {
+								double mod = (explosionPower - VersionIndependentUtils.getInstance().getBlockBlastResistance(block)) + 1;
+								double random = Math.random();
+								if (0.75 * mod >= random) {
+									doTheThing = true;
+								}
+							}
+							if (doTheThing) {
+								boolean drop = Math.random() < 0.5;
+								if (drop) {
+									block.breakNaturally();
+								} else {
+									block.setType(Material.AIR);
+								}
+							}
 						}
 					} else {
-						block.breakNaturally();
+						boolean doTheThing = false;
+						if (explosionPower >= VersionIndependentUtils.getInstance().getBlockBlastResistance(block)) {
+							double mod = (explosionPower - VersionIndependentUtils.getInstance().getBlockBlastResistance(block)) + 1;
+							double random = Math.random();
+							if (0.75 * mod >= random) {
+								doTheThing = true;
+							}
+						}
+						if (doTheThing) {
+							boolean drop = Math.random() < 0.5;
+							if (drop) {
+								block.breakNaturally();
+							} else {
+								block.setType(Material.AIR);
+							}
+						}
 					}
 				}
 			}
@@ -1873,15 +1948,43 @@ public class Bedwars extends MapGame implements Listener {
 				if (explosive.getLocation().distance(block.getLocation()) >= 3) {
 					double value = Math.random();
 					if (value >= 0.6 - (0.15 * (explosive.getLocation().distance(block.getLocation())) - 2)) {
-						block.breakNaturally();
+						boolean doTheThing = false;
+						if (explosionPower >= VersionIndependentUtils.getInstance().getBlockBlastResistance(block)) {
+							double mod = (explosionPower - VersionIndependentUtils.getInstance().getBlockBlastResistance(block)) + 1;
+							double random = Math.random();
+							if (0.75 * mod >= random) {
+								doTheThing = true;
+							}
+						}
+						if (doTheThing) {
+							boolean drop = Math.random() < 0.5;
+							if (drop) {
+								block.breakNaturally();
+							} else {
+								block.setType(Material.AIR);
+							}
+						}
 					}
 				} else {
-					block.breakNaturally();
+					boolean doTheThing = false;
+					if (explosionPower >= VersionIndependentUtils.getInstance().getBlockBlastResistance(block)) {
+						double mod = (explosionPower - VersionIndependentUtils.getInstance().getBlockBlastResistance(block)) + 1;
+						double random = Math.random();
+						if (0.75 * mod >= random) {
+							doTheThing = true;
+						}
+					}
+					if (doTheThing) {
+						boolean drop = Math.random() < 0.5;
+						if (drop) {
+							block.breakNaturally();
+						} else {
+							block.setType(Material.AIR);
+						}
+					}
 				}
-
 			}
 		}
-
 	}
 
 	@EventHandler
@@ -1908,9 +2011,9 @@ public class Bedwars extends MapGame implements Listener {
 				blocks.add(loc.getBlock());
 
 			if (e.getEntityType() == EntityType.FIREBALL) {
-				explode((Fireball) e.getEntity(), 4, 4, 3, false, true, playersAllowed, blocks);
+				explode((Fireball) e.getEntity(), 4, 4, 3, false, true, playersAllowed, blocks,2);
 			} else if (e.getEntityType() == EntityType.PRIMED_TNT) {
-				explode((TNTPrimed) e.getEntity(), 5, 4, 5, false, true, playersAllowed, blocks);
+				explode((TNTPrimed) e.getEntity(), 5, 4, 5, false, true, playersAllowed, blocks,4);
 			}
 		}
 	}
