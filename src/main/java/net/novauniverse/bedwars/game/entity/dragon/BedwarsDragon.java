@@ -1,5 +1,6 @@
 package net.novauniverse.bedwars.game.entity.dragon;
 
+import com.mojang.authlib.GameProfile;
 import net.minecraft.server.v1_8_R3.AxisAlignedBB;
 import net.minecraft.server.v1_8_R3.Block;
 import net.minecraft.server.v1_8_R3.BlockPosition;
@@ -7,6 +8,7 @@ import net.minecraft.server.v1_8_R3.DamageSource;
 import net.minecraft.server.v1_8_R3.Entity;
 import net.minecraft.server.v1_8_R3.EntityHuman;
 import net.minecraft.server.v1_8_R3.EntityLiving;
+import net.minecraft.server.v1_8_R3.EntityPlayer;
 import net.minecraft.server.v1_8_R3.EntityWolf;
 import net.minecraft.server.v1_8_R3.EntityZombie;
 import net.minecraft.server.v1_8_R3.GenericAttributes;
@@ -14,27 +16,35 @@ import net.minecraft.server.v1_8_R3.MathHelper;
 import net.minecraft.server.v1_8_R3.MinecraftServer;
 import net.minecraft.server.v1_8_R3.MobEffectList;
 import net.minecraft.server.v1_8_R3.Navigation;
+import net.minecraft.server.v1_8_R3.PacketPlayOutEntityDestroy;
+import net.minecraft.server.v1_8_R3.PacketPlayOutPlayerInfo;
 import net.minecraft.server.v1_8_R3.PathfinderGoal;
 import net.minecraft.server.v1_8_R3.PathfinderGoalSelector;
+import net.minecraft.server.v1_8_R3.PlayerInteractManager;
 import net.minecraft.server.v1_8_R3.World;
+import net.minecraft.server.v1_8_R3.WorldServer;
 import net.novauniverse.bedwars.NovaBedwars;
 import net.novauniverse.bedwars.game.Bedwars;
 import net.zeeraa.novacore.commons.utils.ReflectUtils;
 import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
 import net.zeeraa.novacore.spigot.abstraction.manager.CustomSpectatorManager;
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_8_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_8_R3.SpigotTimings;
+import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftZombie;
 import org.bukkit.entity.Player;
+import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class BedwarsDragon extends EntityZombie {
 
@@ -91,12 +101,71 @@ public class BedwarsDragon extends EntityZombie {
         nav.a(true);
 
 
-
+        this.attachedToPlayer = true;
         this.persistent = true;
         this.valid = true;
         this.fireProof = true;
         this.noclip = true;
+    }
 
+    public void tick() {
+        super.t_();
+        this.persistent = true;
+        this.valid = true;
+        this.attachedToPlayer = true;
+
+        if (!isCharging()) {
+            this.decreaseCharge();
+            if (!isPositive(this.getChargeTime())) {
+                if (Math.random() < (-this.getChargeTime() / ((float) BedwarsDragon.chargeModInTicks / this.getSpeed()))) {
+                    this.setCharging(true);
+                }
+            }
+        }
+
+
+        try {
+            Field f = Entity.class.getDeclaredField("boundingBox");
+            f.setAccessible(true);
+            f.set(this, new AxisAlignedBB(locX - (width / 2), locY, locZ - (width / 2),locX + (width / 2), locY + height, locZ + (width / 2)));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        AxisAlignedBB aabb = getBoundingBox();
+
+
+
+        List<Location> locations = new ArrayList<>();
+
+        for (double x = aabb.a; x <= aabb.d; x++) {
+            for (double y = aabb.b; y <= aabb.e; y++) {
+                for (double z = aabb.c; z <= aabb.f; z++) {
+                    locations.add(new Location(world.getWorld(), x,y,z,0,0));
+                }
+            }
+        }
+
+        Vector bottom = new Vector(aabb.a, aabb.b, aabb.c);
+        Vector top = new Vector(aabb.d, aabb.e, aabb.f);
+
+        Vector direction = getLocation().clone().getDirection();
+
+        for (Player player : game.getOnlinePlayers()) {
+            if (!CustomSpectatorManager.isSpectator(player)) {
+                if (player.getNoDamageTicks() <= 0) {
+                    if (player.getLocation().toVector().isInAABB(bottom, top)) {
+                        if (player.getGameMode() != GameMode.CREATIVE && !CustomSpectatorManager.isSpectator(player)) {
+                            player.damage(damage, this.getBukkitEntity());
+                            player.setVelocity(player.getVelocity().clone().add(new Vector(direction.getX(),2,direction.getZ())));
+                        }
+                    }
+                }
+            }
+        }
+        // fuck safe locations, all my homies hate safe locations
+        // (it slowed down the dragon to 1 TPS when i tried to check safe locations)
+        locations.forEach(loc -> loc.getBlock().setType(Material.AIR));
     }
 
     @Override
@@ -194,8 +263,9 @@ public class BedwarsDragon extends EntityZombie {
     }
 
 
+
     public void spawn() {
-        World nmsWorld = ((CraftWorld) location.getWorld()).getHandle();
+        WorldServer nmsWorld = ((CraftWorld) location.getWorld()).getHandle();
         chargeTime = (int) (Bedwars.CHARGE_TIME_TICKS/speed);
         this.prepare(nmsWorld.E(new BlockPosition(this)), null);
         VersionIndependentUtils.get().spawnCustomEntity(this,location);
@@ -466,61 +536,7 @@ public class BedwarsDragon extends EntityZombie {
 
     @Override
     public void t_() {
-        super.t_();
-        this.persistent = true;
-        this.valid = true;
-        if (!isCharging()) {
-            this.decreaseCharge();
-            if (!isPositive(this.getChargeTime())) {
-                if (Math.random() < (-this.getChargeTime() / ((float) BedwarsDragon.chargeModInTicks / this.getSpeed()))) {
-                    this.setCharging(true);
-                }
-            }
-        }
 
-
-        try {
-            Field f = Entity.class.getDeclaredField("boundingBox");
-            f.setAccessible(true);
-            f.set(this, new AxisAlignedBB(locX - (width / 2), locY, locZ - (width / 2),locX + (width / 2), locY + height, locZ + (width / 2)));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        AxisAlignedBB aabb = getBoundingBox();
-
-
-
-        List<Location> locations = new ArrayList<>();
-
-        for (double x = aabb.a; x <= aabb.d; x++) {
-            for (double y = aabb.b; y <= aabb.e; y++) {
-                for (double z = aabb.c; z <= aabb.f; z++) {
-                    locations.add(new Location(world.getWorld(), x,y,z,0,0));
-                }
-            }
-        }
-
-        Vector bottom = new Vector(aabb.a, aabb.b, aabb.c);
-        Vector top = new Vector(aabb.d, aabb.e, aabb.f);
-
-        Vector direction = getLocation().clone().getDirection();
-
-        for (Player player : game.getOnlinePlayers()) {
-            if (!CustomSpectatorManager.isSpectator(player)) {
-                if (player.getNoDamageTicks() <= 0) {
-                    if (player.getLocation().toVector().isInAABB(bottom, top)) {
-                        if (player.getGameMode() != GameMode.CREATIVE && !CustomSpectatorManager.isSpectator(player)) {
-                            player.damage(damage, this.getBukkitEntity());
-                            player.setVelocity(player.getVelocity().clone().add(new Vector(direction.getX(),2,direction.getZ())));
-                        }
-                    }
-                }
-            }
-        }
-        // fuck safe locations, all my homies hate safe locations
-        // (it slowed down the dragon to 1 TPS when i tried to check safe locations)
-        locations.forEach(loc -> loc.getBlock().setType(Material.AIR));
     }
 
 

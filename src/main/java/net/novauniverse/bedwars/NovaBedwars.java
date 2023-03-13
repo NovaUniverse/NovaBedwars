@@ -45,15 +45,19 @@ import org.bukkit.craftbukkit.v1_8_R3.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_8_R3.util.CraftMagicNumbers;
 import org.bukkit.entity.EnderDragon;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TNTPrimed;
+import org.bukkit.entity.Villager;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.Vector;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -62,6 +66,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public final class NovaBedwars extends JavaPlugin implements Listener {
 	private static NovaBedwars instance;
@@ -225,6 +230,69 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 
 	public void registerDebugs() {
 
+		DebugCommandRegistrator.getInstance().addDebugTrigger(new DebugTrigger() {
+			@Override
+			public String getName() {
+				return "spawnlookingentity";
+			}
+
+			@Override
+			public String getPermission() {
+				return "spawnlookingentity";
+			}
+
+			@Override
+			public AllowedSenders getAllowedSenders() {
+				return AllowedSenders.PLAYERS;
+			}
+
+			@Override
+			public PermissionDefault getPermissionDefault() {
+				return PermissionDefault.OP;
+			}
+
+			@Override
+			public void onExecute(CommandSender commandSender, String s, String[] strings) {
+				Player player = (Player) commandSender;
+				Villager villager = (Villager) player.getWorld().spawnEntity(player.getLocation(), EntityType.VILLAGER);
+				VersionIndependentUtils.get().setAI(villager, false);
+				new BukkitRunnable() {
+					@Override
+					public void run() {
+						lookAtPlayer(villager);
+					}
+				}.runTaskTimer(NovaBedwars.this, 0,1);
+			}
+			public void lookAtPlayer(LivingEntity entity) {
+				List<Entity> entities = entity.getWorld().getNearbyEntities(entity.getLocation(), 3, 3, 3).stream().filter(e -> e.getType() == EntityType.PLAYER).collect(Collectors.toList());
+				Entity closest = getClosest(entities, entity.getLocation());
+				if (closest != null) {
+					Player player = (Player) closest;
+					Vector vec = player.getEyeLocation().toVector().subtract(entity.getEyeLocation().toVector()).normalize();
+					Location loc = entity.getEyeLocation().clone();
+					loc.setDirection(vec);
+					loc.setX(entity.getLocation().getX());
+					loc.setY(entity.getLocation().getY());
+					loc.setZ(entity.getLocation().getZ());
+					entity.teleport(loc);
+				}
+
+			}
+
+			private Entity getClosest(List<Entity> list, Location toGo) {
+				final Entity[] closest = {null};
+				list.forEach(entity -> {
+					if (closest[0] == null) {
+						closest[0] = entity;
+					} else {
+						if (toGo.distanceSquared(entity.getLocation()) < toGo.distanceSquared(closest[0].getLocation())) {
+							closest[0] = entity;
+						}
+					}
+				});
+				return closest[0];
+			}
+		});
 
 		DebugCommandRegistrator.getInstance().addDebugTrigger(new DebugTrigger() {
 			@Override

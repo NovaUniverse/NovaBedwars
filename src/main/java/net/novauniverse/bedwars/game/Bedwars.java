@@ -128,6 +128,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.material.Bed;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -196,6 +197,7 @@ public class Bedwars extends MapGame implements Listener {
 	private ItemShop itemShop;
 	private UpgradeShop upgradeShop;
 
+	private Task tickTask;
 	private Task countdownTask;
 	private Task generatorTask;
 	private Task npcFixTask;
@@ -274,7 +276,17 @@ public class Bedwars extends MapGame implements Listener {
 		itemShop = new ItemShop();
 		upgradeShop = new UpgradeShop();
 
+		tickTask = new SimpleTask(getPlugin(), () -> {
+			npcs.forEach(BedwarsNPC::lookAtPlayer);
+			dragons.forEach(entity -> {
+				if (((CraftEntity) entity).getHandle() instanceof BedwarsDragon) {
+					BedwarsDragon bwd = (BedwarsDragon) ((CraftEntity) entity).getHandle();
+					bwd.tick();
+				}
+			});
+		}, 1L);
 		npcFixTask = new SimpleTask(getPlugin(), () -> npcs.forEach(BedwarsNPC::checkVillager), 20L);
+
 		tntParticleTask = new SimpleTask(getPlugin(), () -> Bukkit.getServer().getOnlinePlayers().stream().filter(p -> p.getInventory().contains(Material.TNT)).forEach(player -> ParticleEffect.REDSTONE.display(player.getLocation().clone().add(0D, 2D, 0D))), 3L);
 		particleTask = new SimpleTask(getPlugin(), () -> Bukkit.getServer().getOnlinePlayers().stream().filter(p -> p.hasPotionEffect(PotionEffectType.INVISIBILITY) && !CustomSpectatorManager.isSpectator(p) && p.isOnGround()).forEach(p -> ParticleEffect.FOOTSTEP.display(p.getLocation().clone().add(0D, 0.05D, 0D))), 5L);
 
@@ -554,9 +566,6 @@ public class Bedwars extends MapGame implements Listener {
 		this.config = config;
 
 		events = new ArrayList<>(config.getEvents());
-
-		int ironGeneratorTime = config.getInitialIronTime();
-		int goldGeneratorTime = config.getInitialGoldTime();
 		int diamondGeneratorTime = config.getInitialDiamondTime();
 		int emeraldGeneratorTime = config.getInitialEmeraldTime();
 
@@ -617,6 +626,7 @@ public class Bedwars extends MapGame implements Listener {
 		Bukkit.getServer().getOnlinePlayers().stream().filter(p -> !players.contains(p.getUniqueId())).forEach(this::setEliminatedSpectator);
 		Task.tryStartTask(countdownTask);
 		Task.tryStartTask(generatorTask);
+		Task.tryStartTask(tickTask);
 		Task.tryStartTask(npcFixTask);
 		Task.tryStartTask(particleTask);
 		Task.tryStartTask(armorCheckTask);
@@ -728,6 +738,7 @@ public class Bedwars extends MapGame implements Listener {
 
 		Task.tryStopTask(countdownTask);
 		Task.tryStopTask(generatorTask);
+		Task.tryStartTask(tickTask);
 		Task.tryStopTask(npcFixTask);
 		Task.tryStopTask(particleTask);
 		Task.tryStopTask(armorCheckTask);
@@ -1543,32 +1554,47 @@ public class Bedwars extends MapGame implements Listener {
 
 	}
 
-	@EventHandler(priority = EventPriority.NORMAL)
-	public void onBlockBreak(BlockBreakEvent e) {
-		if (started) {
-			Player player = e.getPlayer();
-
-			if (player.getGameMode() == GameMode.CREATIVE && VersionIndependentUtils.get().isBed(e.getBlock())) {
-				e.setCancelled(true);
-				e.getPlayer().sendMessage(ChatColor.RED + "You cannot break others beds when in creative.");
+	private boolean isBed(Location loc, BaseData base) {
+		if (VersionIndependentUtils.get().isBed(loc.getBlock()) && VersionIndependentUtils.get().isBed(base.getBedLocation().getBlock())) {
+			if (loc.getBlock().getLocation().equals(base.getBedLocation().getBlock().getLocation())) {
+				return true;
+			}
+			Bed bed = (Bed) loc.getBlock().getState().getData();
+			Bed baseBed = (Bed) base.getBedLocation().getBlock().getState().getData();
+			if (isSameType(bed, baseBed)) {
+				return false;
 			}
 
+			Block relative = loc.getBlock().getRelative(bed.getFacing().getOppositeFace());
+			return VersionIndependentUtils.get().isBed(relative) && locationEquals(relative, base.getBedLocation().getBlock());
+		}
+		return false;
+	}
+
+	private boolean isSameType(Bed bed, Bed other) {
+		return (bed.isHeadOfBed() && other.isHeadOfBed()) || (!bed.isHeadOfBed() && !other.isHeadOfBed());
+	}
+
+	private boolean locationEquals(Block block, Block other) {
+		return (block.getX() == other.getX()) && (block.getY() == other.getY()) && (block.getZ() == other.getZ());
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL)
+	public void onBlockBreak(BlockBreakEvent e) {
+		if (started && !ended) {
+			Player player = e.getPlayer();
+			Block block = e.getBlock();
+			if (player.getGameMode() == GameMode.CREATIVE && VersionIndependentUtils.get().isBed(block)) {
+				BaseData ownerBase = bases.stream().filter(base -> isBed(block.getLocation(), base)).findFirst().orElse(null);
+				if (ownerBase != null) {
+					e.setCancelled(true);
+					e.getPlayer().sendMessage(ChatColor.RED + "You cannot break others beds when in creative.");
+				}
+			}
 			if (player.getGameMode() != GameMode.CREATIVE) {
 				boolean allow = false;
-				Block block = e.getBlock();
 				if (VersionIndependentUtils.get().isBed(block)) {
-					BaseData ownerBase = bases.stream().filter(base -> LocationUtils.isSameBlock(base.getBedLocation(), block.getLocation())).findFirst().orElse(null);
-					if (ownerBase == null) {
-						for (BlockFace face : BlockFace.values()) {
-							Location location2 = LocationUtils.addFaceMod(block.getLocation().clone(), face);
-
-							ownerBase = bases.stream().filter(base -> LocationUtils.isSameBlock(base.getBedLocation(), location2)).findFirst().orElse(null);
-							if (ownerBase != null) {
-								break;
-							}
-						}
-					}
-
+					BaseData ownerBase = bases.stream().filter(base -> isBed(block.getLocation(), base)).findFirst().orElse(null);
 					if (ownerBase != null) {
 						Team team = TeamManager.getTeamManager().getPlayerTeam(player);
 						if (team != null) {

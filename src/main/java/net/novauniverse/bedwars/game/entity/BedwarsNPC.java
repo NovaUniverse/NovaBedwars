@@ -1,16 +1,19 @@
 package net.novauniverse.bedwars.game.entity;
 
-import net.novauniverse.bedwars.NovaBedwars;
-import net.zeeraa.novacore.commons.tasks.Task;
-import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
-import net.zeeraa.novacore.spigot.tasks.SimpleTask;
-
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Villager;
 import com.gmail.filoghost.holographicdisplays.api.Hologram;
 import com.gmail.filoghost.holographicdisplays.api.HologramsAPI;
+import net.novauniverse.bedwars.NovaBedwars;
+import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
+import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.Villager;
+import org.bukkit.util.Vector;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class BedwarsNPC {
 	public static final double HOLOGRAM_OFFSET = 2.5D;
@@ -26,14 +29,10 @@ public class BedwarsNPC {
 
 	private boolean spawned;
 
-	private Task task;
-
 	public BedwarsNPC(Location location, NPCType type) {
 		this.location = location;
 		this.type = type;
 		this.spawned = false;
-
-		this.task = new SimpleTask(NovaBedwars.getInstance(), this::lookAtPlayer, 1L);
 	}
 
 	public void spawn() {
@@ -46,7 +45,6 @@ public class BedwarsNPC {
 
 		spawnVillager();
 
-		Task.tryStartTask(task);
 	}
 
 	private void spawnVillager() {
@@ -61,7 +59,9 @@ public class BedwarsNPC {
 
 		villager.setRemoveWhenFarAway(false);
 
-		VersionIndependentUtils.get().setAI(villager, false);
+		// AI fucks up head rotations
+		//VersionIndependentUtils.get().setAI(villager, false);
+
 		VersionIndependentUtils.get().setSilent(villager, true);
 	}
 
@@ -69,7 +69,6 @@ public class BedwarsNPC {
 		if (!spawned) {
 			return;
 		}
-		Task.tryStopTask(task);
 		hologram.delete();
 		villager.remove();
 	}
@@ -98,18 +97,33 @@ public class BedwarsNPC {
 	}
 
 	public void lookAtPlayer() {
-		/*
-		 * villager.getWorld().getNearbyEntities(villager.getLocation(), 3, 3,
-		 * 3).stream().filter(e -> e.getType() ==
-		 * EntityType.PLAYER).findFirst().ifPresent(entity -> { if (entity instanceof
-		 * Player) { Player player = (Player) entity; Vector vec =
-		 * player.getLocation().toVector().subtract(villager.getLocation().toVector());
-		 * Location location = villager.getLocation().clone();
-		 * location.setDirection(vec); location.setX(villager.getLocation().getX());
-		 * location.setY(villager.getLocation().getY());
-		 * location.setZ(villager.getLocation().getZ()); villager.teleport(location); }
-		 * });
-		 */
+		villager.teleport(location);
+		List<Entity> entities = villager.getWorld().getNearbyEntities(villager.getLocation(), 3, 3, 3).stream().filter(e -> e.getType() == EntityType.PLAYER).collect(Collectors.toList());
+		Entity entity = getClosest(entities, villager.getLocation());
+		if (entity != null) {
+			Player player = (Player) entity;
+			Vector vec = player.getEyeLocation().toVector().subtract(villager.getEyeLocation().toVector()).normalize();
+			location.setDirection(vec);
+			location.setX(villager.getLocation().getX());
+			location.setY(villager.getLocation().getY());
+			location.setZ(villager.getLocation().getZ());
+			villager.teleport(location);
+		}
+
+	}
+
+	private Entity getClosest(List<Entity> list, Location toGo) {
+		final Entity[] closest = {null};
+		list.forEach(entity -> {
+			if (closest[0] == null) {
+				closest[0] = entity;
+			} else {
+				if (toGo.distanceSquared(entity.getLocation()) < toGo.distanceSquared(closest[0].getLocation())) {
+					closest[0] = entity;
+				}
+			}
+		});
+		return closest[0];
 	}
 
 	public boolean isSpawned() {
