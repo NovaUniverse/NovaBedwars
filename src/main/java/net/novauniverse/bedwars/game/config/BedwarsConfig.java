@@ -26,7 +26,6 @@ public class BedwarsConfig extends MapModule {
 	private int buildMax;
 
 	private int borderRadius;
-	private int chunkLoadRadius;
 	private double healPoolRadius;
 
 	private int initialIronTime;
@@ -49,7 +48,6 @@ public class BedwarsConfig extends MapModule {
 		this.buildMin = json.getInt("build_min");
 
 		this.borderRadius = json.getInt("border_radius");
-		this.chunkLoadRadius = json.getInt("chunk_load_radius");
 		this.healPoolRadius = json.getDouble("heal_pool_radius");
 
 		this.events = new ArrayList<>();
@@ -122,10 +120,6 @@ public class BedwarsConfig extends MapModule {
 
 	public double getHealPoolRadius() {
 		return healPoolRadius;
-	}
-
-	public int getChunkLoadRadius() {
-		return chunkLoadRadius;
 	}
 
 	public List<XYZLocation> getDiamondGenerators() {
