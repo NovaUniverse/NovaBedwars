@@ -736,6 +736,8 @@ public class Bedwars extends MapGame implements Listener {
 		respawnTasks.values().forEach(BukkitTask::cancel);
 		respawnTasks.clear();
 
+		killAllDragons();
+
 		Task.tryStopTask(countdownTask);
 		Task.tryStopTask(generatorTask);
 		Task.tryStartTask(tickTask);
@@ -1134,6 +1136,9 @@ public class Bedwars extends MapGame implements Listener {
 				}
 			}
 			if (e.getEntity() instanceof Player) {
+				if (e.getCause() == EntityDamageEvent.DamageCause.VOID) {
+					e.setCancelled(true);
+				}
 				Entity lastDamager;
 				if (e instanceof EntityDamageByEntityEvent)
 					lastDamager = ((EntityDamageByEntityEvent) e).getDamager();
@@ -1335,7 +1340,11 @@ public class Bedwars extends MapGame implements Listener {
 	}
 
 	public void killAllDragons() {
-		dragons.forEach(Entity::remove);
+		dragons.forEach(entity -> {
+			if (!entity.isDead()) {
+				entity.remove();
+			}
+		});
 	}
 
 	public void spawnDruggedDragons() {
