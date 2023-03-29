@@ -7,7 +7,6 @@ import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.minecraft.server.v1_8_R3.PacketPlayOutEntityEquipment;
-import net.minecraft.server.v1_8_R3.World;
 import net.novauniverse.bedwars.NovaBedwars;
 import net.novauniverse.bedwars.game.commands.ImportBedwarsPreferences;
 import net.novauniverse.bedwars.game.config.BedwarsConfig;
@@ -135,8 +134,6 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
-import xyz.xenondevs.particle.ParticleBuilder;
-import xyz.xenondevs.particle.ParticleEffect;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -1303,7 +1300,6 @@ public class Bedwars extends MapGame implements Listener {
 	}
 
 	public EnderDragon spawnEndGameDragon(double speed) {
-		World nmsWorld = ((CraftWorld) getActiveMap().getWorld()).getHandle();
 		BedwarsDragon bwd = new BedwarsDragon(getActiveMap().getSpectatorLocation(), config.getDragonRadius());
 		bwd.setSpeed(speed);
 		bwd.spawn();
