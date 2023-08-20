@@ -1450,12 +1450,6 @@ public class Bedwars extends MapGame implements Listener {
 			if (!allowBreak.contains(e.getBlock().getLocation())) {
 				allowBreak.add(e.getBlock().getLocation());
 			}
-
-			if (e.getBlock().getLocation().getBlockY() > config.getBuildMax() || e.getBlock().getLocation().getBlockY() < config.getBuildMin()) {
-				e.setCancelled(true);
-				e.getPlayer().sendMessage(ChatColor.RED + "You cant place blocks here. (reached build limit)");
-				return;
-			}
 			Vector bottom = new Vector(-(config.getBorderRadius() / 2d) + config.getMapCenter().getX(), 0, -(config.getBorderRadius() / 2d) + config.getMapCenter().getZ());
 			Vector top = new Vector((config.getBorderRadius() / 2d) + config.getMapCenter().getX(), 256, (config.getBorderRadius() / 2d) + config.getMapCenter().getZ());
 
@@ -1522,7 +1516,6 @@ public class Bedwars extends MapGame implements Listener {
 			if (!e.getTo().toVector().isInAABB(bottom, top)) {
 				e.setCancelled(true);
 				e.getPlayer().sendMessage(ChatColor.RED + "Reached world border.");
-				return;
 			}
 		}
 	}

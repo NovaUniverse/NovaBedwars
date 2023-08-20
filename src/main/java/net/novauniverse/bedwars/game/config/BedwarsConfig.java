@@ -22,9 +22,6 @@ public class BedwarsConfig extends MapModule {
 	private List<XYZLocation> diamondGenerators;
 	private List<XYZLocation> emeraldGenerators;
 
-	private int buildMin;
-	private int buildMax;
-
 	private int borderRadius;
 	private double healPoolRadius;
 
@@ -43,9 +40,6 @@ public class BedwarsConfig extends MapModule {
 		super(json);
 
 		this.mapCenter = XYZLocation.fromJSON(json.getJSONObject("center"));
-
-		this.buildMax = json.getInt("build_max");
-		this.buildMin = json.getInt("build_min");
 
 		this.borderRadius = json.getInt("border_radius");
 		this.healPoolRadius = json.getDouble("heal_pool_radius");
@@ -92,14 +86,6 @@ public class BedwarsConfig extends MapModule {
 			}
 
 		}
-	}
-
-	public int getBuildMax() {
-		return buildMax;
-	}
-
-	public int getBuildMin() {
-		return buildMin;
 	}
 
 	public int getBorderRadius() {
