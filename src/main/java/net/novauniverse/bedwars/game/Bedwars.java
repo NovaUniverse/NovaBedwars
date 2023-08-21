@@ -634,7 +634,9 @@ public class Bedwars extends MapGame implements Listener {
 		Task.tryStartTask(worldUpdateTask);
 		Task.tryStartTask(baseTask);
 
-		sendStartMessage();
+		if (NovaBedwars.getInstance().hasHypixelAPI()) {
+			sendStartMessage();
+		}
 
 		getWorld().setDifficulty(Difficulty.HARD);
 		VersionIndependentUtils.get().setGameRule(getWorld(), "doMobSpawning", "false");
