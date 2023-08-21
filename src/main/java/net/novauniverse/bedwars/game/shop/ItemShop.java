@@ -110,7 +110,7 @@ public class ItemShop {
 						} else {
 							ShopItem replacing = ShopItem.toItemEnum(e.getCurrentItem());
 							ReplaceHolder rh = new ReplaceHolder();
-							Inventory replace = Bukkit.createInventory(rh, 27, ChatColor.YELLOW + "Which slot? + (" + replacing.asDisplayItem().getItemMeta().getDisplayName() + ")");
+							Inventory replace = Bukkit.createInventory(rh, 27, ChatColor.YELLOW + "Which slot?");
 							replace.setItem(0, bg);
 							replace.setItem(8, bg);
 							replace.setItem(9, bg);
