@@ -5,6 +5,7 @@ import net.zeeraa.novacore.spigot.command.AllowedSenders;
 import net.zeeraa.novacore.spigot.debug.DebugCommandRegistrator;
 import net.zeeraa.novacore.spigot.debug.DebugTrigger;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.bukkit.permissions.PermissionDefault;
 
 import java.util.Arrays;
@@ -34,11 +35,12 @@ public class ShopItemMetasDebugger {
 
 			@Override
 			public void onExecute(CommandSender commandSender, String s, String[] strings) {
-				Arrays.stream(ShopItem.values()).forEach(items -> commandSender.sendMessage("ITEM META: " + (items.asShopItem().getItemMeta())));
+				Player player = (Player) commandSender;
+				Arrays.stream(ShopItem.values()).forEach(items -> commandSender.sendMessage("ITEM META: " + (items.asShopItem(player, false).getItemMeta())));
 				commandSender.sendMessage("------------------------------");
 				commandSender.sendMessage("");
 				commandSender.sendMessage("------------------------------");
-				Arrays.stream(ShopItem.values()).forEach(items -> commandSender.sendMessage("ITEM: " + (items.asShopItem())));
+				Arrays.stream(ShopItem.values()).forEach(items -> commandSender.sendMessage("ITEM: " + (items.asShopItem(player, false))));
 			}
 		});
 	}

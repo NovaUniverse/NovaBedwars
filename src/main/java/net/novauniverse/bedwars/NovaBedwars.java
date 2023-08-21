@@ -65,7 +65,9 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public final class NovaBedwars extends JavaPlugin implements Listener {
@@ -76,6 +78,33 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 
 	private HypixelAPI hypixelAPI;
 	private PreferenceAPI preferenceAPI;
+
+	// Map<inventory_location, list_location>
+	public static final Map<Integer, Integer> locationsMap = new HashMap<>();
+
+	static {
+		locationsMap.put(1,0);
+		locationsMap.put(2,1);
+		locationsMap.put(3,2);
+		locationsMap.put(4,3);
+		locationsMap.put(5,4);
+		locationsMap.put(6,5);
+		locationsMap.put(7,6);
+		locationsMap.put(10,7);
+		locationsMap.put(11,8);
+		locationsMap.put(12,9);
+		locationsMap.put(13,10);
+		locationsMap.put(14,11);
+		locationsMap.put(15,12);
+		locationsMap.put(16,13);
+		locationsMap.put(19,14);
+		locationsMap.put(20,15);
+		locationsMap.put(21,16);
+		locationsMap.put(22,17);
+		locationsMap.put(23,18);
+		locationsMap.put(24,19);
+		locationsMap.put(25,20);
+	}
 
 	public static NovaBedwars getInstance() {
 		return instance;

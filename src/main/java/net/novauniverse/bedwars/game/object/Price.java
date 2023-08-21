@@ -7,12 +7,14 @@ import net.novauniverse.bedwars.game.events.AttemptItemBuyEvent;
 import net.novauniverse.bedwars.utils.InventoryUtils;
 import net.zeeraa.novacore.commons.utils.Callback;
 import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependentSound;
+import net.zeeraa.novacore.spigot.utils.ItemBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
@@ -69,7 +71,7 @@ public class Price {
 		Reason reason;
 		Callback callback = null;
 		if (canBuy(player, itemEnum)) {
-			if (InventoryUtils.slotsWith(inventory, (Collection<Material>) null).size() == 0) {
+			if (InventoryUtils.slotsWith(inventory, (Collection<Material>) null).isEmpty()) {
 				player.sendMessage(ChatColor.RED + "You dont have enough space in your inventory to buy that");
 				bought = false;
 				reason = Reason.NOT_ENOUGH_SPACE;
@@ -125,63 +127,8 @@ public class Price {
 
 					}
 				}
-			} else if (itemEnum.isSword()) {
-				if (InventoryUtils.slotsWith(player.getInventory(), Material.WOOD_SWORD).isEmpty()) {
-					callback = () -> {
-						if (ct == ClickType.NUMBER_KEY) {
-							ItemStack itemToAdd = inventory.getItem(hotbar);
-							inventory.setItem(hotbar, itemEnum.asNormalItem());
-							if (itemToAdd != null && itemToAdd.getType() != Material.AIR) {
-								inventory.addItem(itemToAdd);
-							}
-						} else {
-							inventory.addItem(itemEnum.asNormalItem());
-						}
-					};
-				} else {
-					callback = () -> {
-						List<Integer> values = InventoryUtils.slotsWith(player.getInventory(), Material.WOOD_SWORD);
-						Collections.sort(values);
-						int toReplace = values.get(0);
-						if (ct == ClickType.NUMBER_KEY) {
-							inventory.setItem(toReplace, new ItemStack(Material.AIR));
-							ItemStack itemToAdd = inventory.getItem(hotbar);
-							inventory.setItem(hotbar, itemEnum.asNormalItem());
-							if (itemToAdd != null && itemToAdd.getType() != Material.AIR) {
-								inventory.addItem(itemToAdd);
-							}
-						} else {
-							inventory.setItem(toReplace, itemEnum.asNormalItem());
-						}
-					};
-				}
-
-			} else if (itemEnum.isColored()) {
-				callback = () -> {
-					if (ct == ClickType.NUMBER_KEY) {
-						ItemStack itemToAdd = inventory.getItem(hotbar);
-						inventory.setItem(hotbar, itemEnum.asColoredNormalItem(player));
-						if (itemToAdd != null && itemToAdd.getType() != Material.AIR) {
-							inventory.addItem(itemToAdd);
-						}
-					} else {
-						inventory.addItem(itemEnum.asColoredNormalItem(player));
-					}
-				};
-
 			} else {
-				callback = () -> {
-					if (ct == ClickType.NUMBER_KEY) {
-						ItemStack itemToAdd = inventory.getItem(hotbar);
-						inventory.setItem(hotbar, itemEnum.asNormalItem());
-						if (itemToAdd != null && itemToAdd.getType() != Material.AIR) {
-							inventory.addItem(itemToAdd);
-						}
-					} else {
-						inventory.addItem(itemEnum.asNormalItem());
-					}
-				};
-
+				callback = () -> addItemWithPriority(player, inventory, hotbar, itemEnum);
 			}
 			reason = Reason.NORMAL_ITEM_BOUGHT;
 		} else {
@@ -246,6 +193,96 @@ public class Price {
 			}
 		}
 		return build;
+	}
+
+	private static void addItemWithPriority(Player player, Inventory inventory, int hotbar, ShopItem item) {
+		// if it isnt a hotbar action
+		if (hotbar == -1) {
+			// if its a sword
+			if (item.isSword()) {
+				if (InventoryUtils.slotsWith(player.getInventory(), Material.WOOD_SWORD).isEmpty()) {
+					inventory.addItem(item.asNormalItem());
+				} else {
+					List<Integer> values = InventoryUtils.slotsWith(player.getInventory(), Material.WOOD_SWORD);
+					Collections.sort(values);
+					int toReplace = values.get(0);
+					inventory.setItem(toReplace, item.asNormalItem());
+				}
+				// if its colored
+			} else if (item.isColored()) {
+				inventory.addItem(item.asColoredNormalItem(player));
+			} else {
+				inventory.addItem(item.asNormalItem());
+			}
+			return;
+		}
+
+
+		ItemStack toAdd = inventory.getItem(hotbar);
+		if (item.isSword()) {
+            if (!InventoryUtils.slotsWith(player.getInventory(), Material.WOOD_SWORD).isEmpty()) {
+                List<Integer> values = InventoryUtils.slotsWith(player.getInventory(), Material.WOOD_SWORD);
+                Collections.sort(values);
+                int toReplace = values.get(0);
+                inventory.setItem(toReplace, new ItemStack(Material.AIR));
+            }
+            inventory.setItem(hotbar, item.asNormalItem());
+            if (toAdd != null && toAdd.getType() != Material.AIR) {
+                inventory.addItem(toAdd);
+            }
+        } else {
+			if (item.asNormalItem().getMaxStackSize() > 1) {
+				if (toAdd != null && toAdd.getType() != Material.AIR) {
+					if (toAdd.getType() == item.asNormalItem().getType()) {
+						int add = item.asNormalItem().getMaxStackSize() - item.getAmount();
+						int leftovers = toAdd.getAmount() - add;
+						if (item.isColored()) {
+							if (toAdd.getData().equals(item.asColoredNormalItem(player).getData())) {
+								if (leftovers <= 0) {
+									toAdd.setAmount(toAdd.getAmount() + item.getAmount());
+								} else {
+									toAdd.setAmount(toAdd.getMaxStackSize());
+									inventory.addItem(new ItemBuilder(item.asColoredNormalItem(player).clone()).setAmount(leftovers).build());
+								}
+							} else {
+								inventory.setItem(hotbar, item.asColoredNormalItem(player));
+								inventory.addItem(toAdd);
+							}
+						} else {
+							if (leftovers <= 0) {
+								toAdd.setAmount(toAdd.getAmount() + item.getAmount());
+							} else {
+								toAdd.setAmount(toAdd.getMaxStackSize());
+								inventory.addItem(new ItemBuilder(item.asNormalItem().clone()).setAmount(leftovers).build());
+							}
+						}
+					} else {
+						if (item.isColored()) {
+							inventory.setItem(hotbar, item.asColoredNormalItem(player));
+						} else {
+							inventory.setItem(hotbar, item.asNormalItem());
+						}
+
+						inventory.addItem(toAdd);
+					}
+				} else {
+					if (item.isColored()) {
+						inventory.setItem(hotbar, item.asColoredNormalItem(player));
+					} else {
+						inventory.setItem(hotbar, item.asNormalItem());
+					}
+				}
+			} else {
+				if (item.isColored()) {
+					inventory.setItem(hotbar, item.asColoredNormalItem(player));
+				} else {
+					inventory.setItem(hotbar, item.asNormalItem());
+				}
+				if (toAdd != null && toAdd.getType() != Material.AIR) {
+					inventory.addItem(toAdd);
+				}
+			}
+		}
 	}
 
 	public static void buyUpgrade(Player player, Price price) {

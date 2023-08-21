@@ -2,6 +2,8 @@ package net.novauniverse.bedwars.game.enums;
 
 import io.github.bananapuncher714.nbteditor.NBTEditor;
 import net.brunogamer.novacore.spigot.utils.ColorUtils;
+import net.novauniverse.bedwars.NovaBedwars;
+import net.novauniverse.bedwars.game.Bedwars;
 import net.novauniverse.bedwars.game.object.Price;
 import net.novauniverse.bedwars.game.object.TieredItem;
 import net.novauniverse.bedwars.utils.PotionItemBuilder;
@@ -114,6 +116,7 @@ public enum ShopItem {
         ItemMeta meta = shopItem.getItemMeta();
         meta.setDisplayName(ChatColor.RED + "No item");
         shopItem.setItemMeta(meta);
+        shopItem = NBTEditor.set(shopItem, 1, "bedwars", "isnoitem");
         this.shopItem = shopItem;
         this.tieredItems = null;
     }
@@ -130,7 +133,6 @@ public enum ShopItem {
         this.shopItem = toShopItem();
         this.tieredItems = null;
         this.armorType = ArmorType.NO_ARMOR;
-
     }
 
     ShopItem(Material material, int amount, ItemCategory category, Price price, boolean sword, String hypixelCounterpart) {
@@ -185,6 +187,17 @@ public enum ShopItem {
 
     public static boolean isItemShopItem(ItemStack item) {
         return NBTEditor.contains(item, "bedwars", "isshopitem");
+    }
+
+    public static boolean isNoItem(ItemStack item) {
+        return NBTEditor.contains(item, "bedwars", "isnoitem");
+    }
+    public static boolean isDisplayItem(ItemStack item) {
+        return NBTEditor.contains(item, "bedwars", "isdisplayitem");
+    }
+
+    public static boolean isVendableShopItem(ItemStack item) {
+        return isItemShopItem(item) && !isNoItem(item);
     }
 
     public static ShopItem toItemEnum(ItemStack item) {
@@ -294,21 +307,34 @@ public enum ShopItem {
         }
     }
 
-    public ItemStack asColoredShopItem(Player player) {
+    public ItemStack asColoredShopItem(Player player, boolean quickbuy) {
         ItemStack colored = asColoredBlock(player).clone();
         ItemMeta meta = colored.getItemMeta();
-        meta.setLore(toShopItem().getItemMeta().getLore());
+        meta.setLore(asShopItem(player, quickbuy).clone().getItemMeta().getLore());
         colored.setItemMeta(meta);
         colored = NBTEditor.set(colored, 1, "bedwars", "isshopitem");
         colored = NBTEditor.set(colored, name(), "bedwars", "shopenumname");
         return colored;
     }
-    public ItemStack asColoredNormalItem(Player player) {
-        return asColoredBlock(player).clone();
+
+    public ItemStack asDisplayItem() {
+        if (this == NO_ITEM) {
+            return shopItem.clone();
+        }
+        ItemStack item;
+        if (!this.isTiered()) {
+            item = shopItem.clone();
+        } else {
+            item = this.getTieredItems().get(0).getItemStack().clone();
+        }
+        item = NBTEditor.set(item, 1, "bedwars", "isdisplayitem");
+        return item;
+
     }
 
-    public ItemStack asShopItem() {
-        return shopItem;
+
+    public ItemStack asColoredNormalItem(Player player) {
+        return asColoredBlock(player).clone();
     }
 
     private ItemStack toShopItem() {
@@ -327,14 +353,69 @@ public enum ShopItem {
         item = NBTEditor.set(item, name(), "bedwars", "shopenumname");
         return item;
     }
+    public ItemStack asShopItem(Player player, boolean quickbuy) {
+        if (this == NO_ITEM) {
+            return shopItem;
+        }
+        ItemStack item = shopItem.clone();
+        ItemMeta meta = item.getItemMeta();
+        List<String> lore = meta.getLore();
+        lore.add("");
+        if (!quickbuy) {
+            lore.add(ChatColor.AQUA + "Shift-Click to add to Quick Buy.");
+        } else {
+            lore.add(ChatColor.AQUA + "Shift-Click to remove from Quick Buy.");
+        }
+        if (this.isArmor()) {
+            if (NovaBedwars.getInstance().getGame().getPlayerArmor(player).tierIsEqualOrBigger(this.armorType)) {
+                lore.add(ChatColor.RED + "You already have a tier higher or equal of armor.");
+            } else {
+                if (Price.canBuy(player, this)) {
+                    lore.add(ChatColor.YELLOW + "Click to buy.");
+                } else {
+                    lore.add(ChatColor.RED + "You dont have enough materials to buy this.");
+                }
+            }
+        } else {
+            if (Price.canBuy(player, this)) {
+                lore.add(ChatColor.YELLOW + "Click to buy.");
+            } else {
+                lore.add(ChatColor.RED + "You dont have enough materials to buy this.");
+            }
+        }
 
-    public ItemStack asShopItem(int tier) {
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+        return item;
+    }
+    public ItemStack asShopItem(int tier, Player player, boolean quickbuy) {
+        ItemStack item;
         if (this.isTiered()) {
             if (getItemTier(tier) != null) {
-                return getItemTier(tier).getShopItem();
+                item = getItemTier(tier).getShopItem().clone();
             } else {
-                return new ItemStack(Material.AIR, 1);
+                item = new ItemStack(Material.AIR, 1);
             }
+        } else {
+            item = null;
+        }
+        if (item != null) {
+            ItemMeta meta = item.getItemMeta();
+            List<String> lore = meta.getLore();
+            lore.add("");
+            if (!quickbuy) {
+                lore.add(ChatColor.AQUA + "Shift-Click to add to Quick Buy.");
+            } else {
+                lore.add(ChatColor.AQUA + "Shift-Click to remove from Quick Buy.");
+            }
+            if (Price.canBuy(player, this)) {
+                lore.add(ChatColor.YELLOW + "Click to buy.");
+            } else {
+                lore.add(ChatColor.RED + "You dont have enough materials to buy this.");
+            }
+            meta.setLore(lore);
+            item.setItemMeta(meta);
+            return item;
         } else {
             return null;
         }

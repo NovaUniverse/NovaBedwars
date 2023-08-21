@@ -28,12 +28,15 @@ import net.novauniverse.bedwars.game.events.PlayerKilledEvent;
 import net.novauniverse.bedwars.game.generator.GeneratorType;
 import net.novauniverse.bedwars.game.generator.ItemGenerator;
 import net.novauniverse.bedwars.game.holder.SpectatorHolder;
+import net.novauniverse.bedwars.game.modules.preferences.BedwarsPreferenceManager;
+import net.novauniverse.bedwars.game.modules.preferences.PreferenceAPIRequestCallback;
 import net.novauniverse.bedwars.game.object.base.BaseData;
 import net.novauniverse.bedwars.game.shop.ItemShop;
 import net.novauniverse.bedwars.game.shop.UpgradeShop;
 import net.novauniverse.bedwars.utils.CountdownTask;
 import net.novauniverse.bedwars.utils.CountdownTaskManager;
 import net.novauniverse.bedwars.utils.InventoryUtils;
+import net.zeeraa.novacore.commons.async.AsyncManager;
 import net.zeeraa.novacore.commons.log.Log;
 import net.zeeraa.novacore.commons.tasks.Task;
 import net.zeeraa.novacore.commons.utils.DelayedRunner;
@@ -134,6 +137,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -205,6 +209,8 @@ public class Bedwars extends MapGame implements Listener {
 	private Task tntParticleTask;
 	private Task playerUpdateTask;
 	private Task spectatorUpdateTask;
+
+	private Task updatePreferencesTask;
 
 	private Task worldUpdateTask;
 	private Task baseTask;
@@ -445,6 +451,11 @@ public class Bedwars extends MapGame implements Listener {
 				}
 			}
 		}, 40);
+		updatePreferencesTask = new SimpleTask(getPlugin(), () -> {
+			for (UUID id : getPlayers()) {
+				updateSynced(id);
+			}
+		}, 20*60L);
 	}
 
 	private boolean doingMonologue = false;
@@ -619,6 +630,7 @@ public class Bedwars extends MapGame implements Listener {
 		Task.tryStartTask(tntParticleTask);
 		Task.tryStartTask(playerUpdateTask);
 		Task.tryStartTask(spectatorUpdateTask);
+		Task.tryStartTask(updatePreferencesTask);
 		Task.tryStartTask(worldUpdateTask);
 		Task.tryStartTask(baseTask);
 
@@ -725,7 +737,7 @@ public class Bedwars extends MapGame implements Listener {
 
 		Task.tryStopTask(countdownTask);
 		Task.tryStopTask(generatorTask);
-		Task.tryStartTask(tickTask);
+		Task.tryStopTask(tickTask);
 		Task.tryStopTask(npcFixTask);
 		Task.tryStopTask(particleTask);
 		Task.tryStopTask(armorCheckTask);
@@ -733,6 +745,7 @@ public class Bedwars extends MapGame implements Listener {
 		Task.tryStopTask(tntParticleTask);
 		Task.tryStopTask(playerUpdateTask);
 		Task.tryStopTask(spectatorUpdateTask);
+		Task.tryStopTask(updatePreferencesTask);
 		Task.tryStopTask(worldUpdateTask);
 		Task.tryStopTask(baseTask);
 
@@ -762,12 +775,20 @@ public class Bedwars extends MapGame implements Listener {
 				VersionIndependentUtils.get().playSound(player, player.getLocation(), VersionIndependentSound.WITHER_DEATH, 1F, 1F);
 			}
 		});
-
+		for (UUID id : getPlayers()) {
+			updateSynced(id);
+		}
 		itemShop.destroy();
 
 		allowBreak.clear();
 
 		ended = true;
+	}
+
+	private void updateSynced(UUID id) {
+		AsyncManager.runSync(() -> BedwarsPreferenceManager.getInstance().savePreferences(Bukkit.getPlayer(id), (success, exception) -> {
+			// TODO: you do th is shit anton
+		}));
 	}
 
 	public void tpToBase(Player player) {

@@ -15,6 +15,18 @@ public enum ArmorType {
         this.tier = 0;
     }
 
+    public boolean tierIsEqual(ArmorType armor) {
+        return armor.getTier() == tier;
+    }
+
+    public boolean tierIsEqualOrSmallerTo(ArmorType armor) {
+        return tier <= armor.getTier();
+    }
+
+    public boolean tierIsEqualOrBigger(ArmorType armor) {
+        return tier >= armor.getTier();
+    }
+
     public int getTier() {
         return tier;
     }

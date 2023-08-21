@@ -2,8 +2,11 @@ package net.novauniverse.bedwars.game.modules.preferences;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.UUID;
 
+import net.novauniverse.bedwars.NovaBedwars;
+import org.bukkit.inventory.Inventory;
 import org.json.JSONArray;
 
 import net.novauniverse.bedwars.game.enums.ShopItem;
@@ -15,7 +18,14 @@ public class BedwarsPreferences {
 
 	public BedwarsPreferences(UUID uuid, List<ShopItem> items) {
 		this.uuid = uuid;
+		fill(items);
 		this.items = items;
+	}
+
+	public static void fill(List<ShopItem> list) {
+		while (!(list.size() >= 21)) {
+			list.add(ShopItem.NO_ITEM);
+		}
 	}
 
 	public UUID getUuid() {
@@ -28,6 +38,27 @@ public class BedwarsPreferences {
 
 	public void setItems(List<ShopItem> items) {
 		this.items = items;
+	}
+
+	public void removeItem(ShopItem item) {
+		if (item == ShopItem.NO_ITEM) {
+			return;
+		}
+		while (items.contains(item)) {
+			items.set(items.indexOf(item), ShopItem.NO_ITEM);
+		}
+
+	}
+
+	public void replace(int clickedSlot, ShopItem other) {
+
+		if (other != ShopItem.NO_ITEM) {
+			while (items.contains(other)) {
+				items.set(items.indexOf(other), ShopItem.NO_ITEM);
+			}
+		}
+		int location = NovaBedwars.locationsMap.get(clickedSlot);
+		items.set(location, other);
 	}
 
 	public JSONArray toJSON() {
@@ -58,6 +89,7 @@ public class BedwarsPreferences {
 
 	public static BedwarsPreferences fromJSON(UUID uuid, JSONArray jsonArray) {
 		List<ShopItem> items = BedwarsPreferences.parseItems(jsonArray);
+		fill(items);
 		return new BedwarsPreferences(uuid, items);
 	}
 
