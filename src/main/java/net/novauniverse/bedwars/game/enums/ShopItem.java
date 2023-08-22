@@ -218,11 +218,7 @@ public enum ShopItem {
         return value;
     }
 
-    public void maxValueLore(TieredItem item) {
-        List<String> lore = item.getShopItem().getItemMeta().getLore();
-        lore.add(ChatColor.RED + "Max tier reached");
-        item.getShopItem().getItemMeta().setLore(lore);
-    }
+
     private ItemStack asColoredBlock(Player player) {
         Team team = TeamManager.getTeamManager().getPlayerTeam(player.getUniqueId());
         DyeColor color = ColorUtils.getDyeColorByChatColor(team.getTeamColor());
@@ -376,6 +372,38 @@ public enum ShopItem {
                     lore.add(ChatColor.RED + "You dont have enough materials to buy this.");
                 }
             }
+        } else if (this.isTiered()) {
+            if (this == WOOD_PICKAXE) {
+                if (NovaBedwars.getInstance().getGame().getPlayerPickaxeTier(player) >= WOOD_PICKAXE.getTieredItems().size()) {
+                    lore.add(ChatColor.RED + "You already have the highest tier of pickaxe.");
+                } else {
+                    if (Price.canBuy(player, this)) {
+                        lore.add(ChatColor.YELLOW + "Click to buy.");
+                    } else {
+                        lore.add(ChatColor.RED + "You dont have enough materials to buy this.");
+                    }
+                }
+            } else if (this == WOOD_AXE) {
+                if (NovaBedwars.getInstance().getGame().getPlayerAxeTier(player) >= WOOD_AXE.getTieredItems().size()) {
+                    lore.add(ChatColor.RED + "You already have the highest tier of axe.");
+                } else {
+                    if (Price.canBuy(player, this)) {
+                        lore.add(ChatColor.YELLOW + "Click to buy.");
+                    } else {
+                        lore.add(ChatColor.RED + "You dont have enough materials to buy this.");
+                    }
+                }
+            }
+        } else if (this == SHEARS) {
+            if (NovaBedwars.getInstance().getGame().hasShears(player)) {
+                lore.add(ChatColor.RED + "You already have shears.");
+            } else {
+                if (Price.canBuy(player, this)) {
+                    lore.add(ChatColor.YELLOW + "Click to buy.");
+                } else {
+                    lore.add(ChatColor.RED + "You dont have enough materials to buy this.");
+                }
+            }
         } else {
             if (Price.canBuy(player, this)) {
                 lore.add(ChatColor.YELLOW + "Click to buy.");
@@ -408,17 +436,43 @@ public enum ShopItem {
             } else {
                 lore.add(ChatColor.AQUA + "Shift-Click to remove from Quick Buy.");
             }
-            if (Price.canBuy(player, this)) {
-                lore.add(ChatColor.YELLOW + "Click to buy.");
-            } else {
-                lore.add(ChatColor.RED + "You dont have enough materials to buy this.");
+
+            if (this == WOOD_PICKAXE) {
+                if (NovaBedwars.getInstance().getGame().getPlayerPickaxeTier(player) >= WOOD_PICKAXE.getTieredItems().size()) {
+                    lore.add(ChatColor.RED + "You already have the highest tier of pickaxe.");
+                } else {
+                    if (Price.canBuy(player, this)) {
+                        lore.add(ChatColor.YELLOW + "Click to buy.");
+                    } else {
+                        lore.add(ChatColor.RED + "You dont have enough materials to buy this.");
+                    }
+                }
+            } else if (this == WOOD_AXE) {
+                if (NovaBedwars.getInstance().getGame().getPlayerAxeTier(player) >= WOOD_AXE.getTieredItems().size()) {
+                    lore.add(ChatColor.RED + "You already have the highest tier of axe.");
+                } else {
+                    if (Price.canBuy(player, this)) {
+                        lore.add(ChatColor.YELLOW + "Click to buy.");
+                    } else {
+                        lore.add(ChatColor.RED + "You dont have enough materials to buy this.");
+                    }
+                }
             }
+
             meta.setLore(lore);
             item.setItemMeta(meta);
             return item;
         } else {
             return null;
         }
+    }
+
+    public List<Material> tieredItemsToMaterial() {
+        List<Material> materials = new ArrayList<>();
+        for (TieredItem ti : getTieredItems()) {
+            materials.add(ti.getItemStack().getType());
+        }
+        return materials;
     }
 
     private List<String> addLore(Price price) {

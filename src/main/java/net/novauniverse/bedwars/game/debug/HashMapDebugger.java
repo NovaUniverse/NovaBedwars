@@ -4,6 +4,7 @@ import net.novauniverse.bedwars.NovaBedwars;
 import net.zeeraa.novacore.spigot.command.AllowedSenders;
 import net.zeeraa.novacore.spigot.debug.DebugCommandRegistrator;
 import net.zeeraa.novacore.spigot.debug.DebugTrigger;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.permissions.PermissionDefault;
 
@@ -32,9 +33,9 @@ public class HashMapDebugger {
 
 			@Override
 			public void onExecute(CommandSender commandSender, String s, String[] strings) {
-				NovaBedwars.getInstance().getGame().getAllPlayersArmor().forEach((player, armortype) -> commandSender.sendMessage(player.getName() + " : " + armortype));
-				NovaBedwars.getInstance().getGame().getAllPlayersPickaxeTier().forEach((player, integer) -> commandSender.sendMessage(player.getName() + " : " + integer));
-				NovaBedwars.getInstance().getGame().getAllPlayersAxeTier().forEach((player, integer) -> commandSender.sendMessage(player.getName() + " : " + integer));
+				NovaBedwars.getInstance().getGame().getAllPlayersArmor().forEach((player, armortype) -> commandSender.sendMessage(Bukkit.getPlayer(player).getName() + " : " + armortype));
+				NovaBedwars.getInstance().getGame().getAllPlayersPickaxeTier().forEach((player, integer) -> commandSender.sendMessage(Bukkit.getPlayer(player).getName() + " : " + integer));
+				NovaBedwars.getInstance().getGame().getAllPlayersAxeTier().forEach((player, integer) -> commandSender.sendMessage(Bukkit.getPlayer(player).getName() + " : " + integer));
 			}
 		});
 	}

@@ -1,6 +1,7 @@
 package net.novauniverse.bedwars.game.object;
 
 import net.novauniverse.bedwars.NovaBedwars;
+import net.novauniverse.bedwars.game.Bedwars;
 import net.novauniverse.bedwars.game.enums.ShopItem;
 import net.novauniverse.bedwars.game.enums.Reason;
 import net.novauniverse.bedwars.game.events.AttemptItemBuyEvent;
@@ -54,8 +55,14 @@ public class Price {
 		}
 		Price price = item.getPrice();
 		if (item == ShopItem.WOOD_AXE) {
+			if (NovaBedwars.getInstance().getGame().getPlayerAxeTier(player) + 1 >= item.getTieredItems().size()) {
+				return true; // returns true since the check will come afterwards
+			}
 			price = item.getItemTier(NovaBedwars.getInstance().getGame().getPlayerAxeTier(player) + 1).getPrice();
 		} else if (item == ShopItem.WOOD_PICKAXE) {
+			if (NovaBedwars.getInstance().getGame().getPlayerPickaxeTier(player) + 1 >= item.getTieredItems().size()) {
+				return true; // returns true since the check will come afterwards
+			}
 			price = item.getItemTier(NovaBedwars.getInstance().getGame().getPlayerPickaxeTier(player) + 1).getPrice();
 		}
 		int amountLeft = price.getValue();
@@ -66,7 +73,7 @@ public class Price {
 		return amountLeft <= 0;
 	}
 
-	public static void buyItem(ShopItem itemEnum, PlayerInventory inventory, ItemStack item, Player player, ClickType ct, int hotbar) {
+	public static void buyItem(ShopItem itemEnum, PlayerInventory inventory, Player player, int hotbar) {
 		boolean bought = true;
 		Reason reason;
 		Callback callback = null;
@@ -84,52 +91,29 @@ public class Price {
 					player.sendMessage(ChatColor.RED + "You already have a better tier of armor.");
 					bought = false;
 					reason = Reason.ALREADY_HAS_HIGHER_TIER_ARMOR;
-				} else {
-					callback = () -> {
-						NovaBedwars.getInstance().getGame().getAllPlayersArmor().putIfAbsent(player, itemEnum.getArmorType());
-						NovaBedwars.getInstance().getGame().getAllPlayersArmor().put(player, itemEnum.getArmorType());
-					};
-					reason = Reason.ARMOR_BOUGHT;
 				}
 
 			} else if (itemEnum.isTiered()) {
 				if (itemEnum == ShopItem.WOOD_PICKAXE) {
-					for (int i = 0; i < itemEnum.getTieredItems().size(); i++) {
-						if (itemEnum.getTieredItems().size() == NovaBedwars.getInstance().getGame().getPlayerPickaxeTier(player) - 1) {
-							player.sendMessage(ChatColor.RED + "You already have the max tier for the Pickaxe.");
-							bought = false;
-							reason = Reason.ALREADY_HAS_PICKAXE_MAX_TIER;
-							break;
-						} else {
-							if (item.equals(itemEnum.getTieredItems().get(i).getShopItem())) {
-								int finalI = i;
-								callback = () -> NovaBedwars.getInstance().getGame().getAllPlayersPickaxeTier().put(player, finalI + 1);
-								reason = Reason.PICKAXE_UPGRADE;
-							}
-						}
-
+					if (NovaBedwars.getInstance().getGame().getPlayerPickaxeTier(player) >= itemEnum.getTieredItems().size()) {
+						player.sendMessage(ChatColor.RED + "You already have the max tier for the Pickaxe.");
+						bought = false;
+						reason = Reason.ALREADY_HAS_PICKAXE_MAX_TIER;
 					}
 				} else if (itemEnum == ShopItem.WOOD_AXE) {
-					for (int i = 0; i < itemEnum.getTieredItems().size(); i++) {
-						if (itemEnum.getTieredItems().size() == NovaBedwars.getInstance().getGame().getPlayerAxeTier(player) - 1) {
-							player.sendMessage(ChatColor.RED + "You already have the max tier for the Axe.");
-							bought = false;
-							reason = Reason.ALREADY_HAS_AXE_MAX_TIER;
-							break;
-						} else {
-							if (item.equals(itemEnum.getTieredItems().get(i).getShopItem())) {
-								int finalI = i;
-								callback = () -> NovaBedwars.getInstance().getGame().getAllPlayersAxeTier().put(player, finalI + 1);
-
-								reason = Reason.AXE_UPGRADE;
-							}
-						}
-
+					if (NovaBedwars.getInstance().getGame().getPlayerAxeTier(player) >= itemEnum.getTieredItems().size()) {
+						player.sendMessage(ChatColor.RED + "You already have the max tier for the Axe.");
+						bought = false;
+						reason = Reason.ALREADY_HAS_AXE_MAX_TIER;
 					}
 				}
-			} else {
-				callback = () -> addItemWithPriority(player, inventory, hotbar, itemEnum);
+			} else if (itemEnum == ShopItem.SHEARS) {
+				if (NovaBedwars.getInstance().getGame().hasShears(player)) {
+					player.sendMessage(ChatColor.RED + "You already have Shears.");
+					bought = false;
+				}
 			}
+			callback = () -> addItemWithPriority(player, inventory, hotbar, itemEnum);
 			reason = Reason.NORMAL_ITEM_BOUGHT;
 		} else {
 			bought = false;
@@ -139,11 +123,11 @@ public class Price {
 			Price price = itemEnum.getPrice();
 			ItemStack tieredItemBuy = new ItemStack(Material.AIR);
 			if (itemEnum == ShopItem.WOOD_AXE) {
-				price = itemEnum.getItemTier(NovaBedwars.getInstance().getGame().getPlayerAxeTier(player)).getPrice();
-				tieredItemBuy = itemEnum.getItemTier(NovaBedwars.getInstance().getGame().getPlayerAxeTier(player)).getItemStack();
+				price = itemEnum.getItemTier(NovaBedwars.getInstance().getGame().getPlayerAxeTier(player) + 1).getPrice();
+				tieredItemBuy = itemEnum.getItemTier(NovaBedwars.getInstance().getGame().getPlayerAxeTier(player) + 1).getItemStack();
 			} else if (itemEnum == ShopItem.WOOD_PICKAXE) {
-				price = itemEnum.getItemTier(NovaBedwars.getInstance().getGame().getPlayerPickaxeTier(player)).getPrice();
-				tieredItemBuy = itemEnum.getItemTier(NovaBedwars.getInstance().getGame().getPlayerPickaxeTier(player)).getItemStack();
+				price = itemEnum.getItemTier(NovaBedwars.getInstance().getGame().getPlayerPickaxeTier(player) + 1).getPrice();
+				tieredItemBuy = itemEnum.getItemTier(NovaBedwars.getInstance().getGame().getPlayerPickaxeTier(player) + 1).getItemStack();
 			}
 			int amountLeft = price.getValue();
 
@@ -197,9 +181,38 @@ public class Price {
 
 	private static void addItemWithPriority(Player player, Inventory inventory, int hotbar, ShopItem item) {
 		// if it isnt a hotbar action
+		if (item.isArmor()) {
+			NovaBedwars.getInstance().getGame().getAllPlayersArmor().putIfAbsent(player.getUniqueId(), item.getArmorType());
+			NovaBedwars.getInstance().getGame().getAllPlayersArmor().put(player.getUniqueId(), item.getArmorType());
+			return;
+		}
 		if (hotbar == -1) {
-			// if its a sword
-			if (item.isSword()) {
+			// if its tiered
+			if (item.isTiered()) {
+				Bedwars game = NovaBedwars.getInstance().getGame();
+				if (item == ShopItem.WOOD_PICKAXE) {
+					if (game.getPlayerPickaxeTier(player) == 0) {
+						inventory.addItem(item.getItemTier(1).getItemStack());
+					} else {
+						List<Integer> slots = InventoryUtils.slotsWith(inventory, item.tieredItemsToMaterial());
+						if (!slots.isEmpty()) {
+							inventory.setItem(slots.get(0), item.getItemTier(game.getPlayerPickaxeTier(player) + 1).getItemStack());
+						}
+					}
+					game.getAllPlayersPickaxeTier().put(player.getUniqueId(), game.getPlayerPickaxeTier(player) + 1);
+				} else if (item == ShopItem.WOOD_AXE) {
+					if (game.getPlayerAxeTier(player) == 0) {
+						inventory.addItem(item.getItemTier(1).getItemStack());
+					} else {
+						List<Integer> slots = InventoryUtils.slotsWith(inventory, item.tieredItemsToMaterial());
+						if (!slots.isEmpty()) {
+							inventory.setItem(slots.get(0), item.getItemTier(game.getPlayerAxeTier(player) + 1).getItemStack());
+						}
+					}
+					game.getAllPlayersAxeTier().put(player.getUniqueId(), game.getPlayerAxeTier(player) + 1);
+				}
+				// if its a sword
+			} else if (item.isSword()) {
 				if (InventoryUtils.slotsWith(player.getInventory(), Material.WOOD_SWORD).isEmpty()) {
 					inventory.addItem(item.asNormalItem());
 				} else {
@@ -212,6 +225,9 @@ public class Price {
 			} else if (item.isColored()) {
 				inventory.addItem(item.asColoredNormalItem(player));
 			} else {
+				if (item == ShopItem.SHEARS) {
+					NovaBedwars.getInstance().getGame().addShears(player);
+				}
 				inventory.addItem(item.asNormalItem());
 			}
 			return;
@@ -219,7 +235,44 @@ public class Price {
 
 
 		ItemStack toAdd = inventory.getItem(hotbar);
-		if (item.isSword()) {
+		if (item.isTiered()) {
+			Bedwars game = NovaBedwars.getInstance().getGame();
+			if (item == ShopItem.WOOD_PICKAXE) {
+				if (game.getPlayerPickaxeTier(player) == 0) {
+					inventory.setItem(hotbar, item.getItemTier(1).getItemStack());
+					if (toAdd != null && toAdd.getType() != Material.AIR) {
+						inventory.addItem(toAdd);
+					}
+				} else {
+					List<Integer> slots = InventoryUtils.slotsWith(inventory, item.tieredItemsToMaterial());
+					if (!slots.isEmpty()) {
+						inventory.setItem(slots.get(0), new ItemStack(Material.AIR));
+						inventory.setItem(hotbar, item.getItemTier(game.getPlayerPickaxeTier(player) + 1).getItemStack());
+						if (toAdd != null && toAdd.getType() != Material.AIR) {
+							inventory.addItem(toAdd);
+						}
+					}
+				}
+				game.getAllPlayersPickaxeTier().put(player.getUniqueId(), game.getPlayerPickaxeTier(player) + 1);
+			} else if (item == ShopItem.WOOD_AXE) {
+				if (game.getPlayerAxeTier(player) == 0) {
+					inventory.setItem(hotbar, item.getItemTier(1).getItemStack());
+					if (toAdd != null && toAdd.getType() != Material.AIR) {
+						inventory.addItem(toAdd);
+					}
+				} else {
+					List<Integer> slots = InventoryUtils.slotsWith(inventory, item.tieredItemsToMaterial());
+					if (!slots.isEmpty()) {
+						inventory.setItem(slots.get(0), new ItemStack(Material.AIR));
+						inventory.setItem(hotbar, item.getItemTier(game.getPlayerAxeTier(player) + 1).getItemStack());
+						if (toAdd != null && toAdd.getType() != Material.AIR) {
+							inventory.addItem(toAdd);
+						}
+					}
+				}
+				game.getAllPlayersAxeTier().put(player.getUniqueId(), game.getPlayerAxeTier(player) + 1);
+			}
+		} else if (item.isSword()) {
             if (!InventoryUtils.slotsWith(player.getInventory(), Material.WOOD_SWORD).isEmpty()) {
                 List<Integer> values = InventoryUtils.slotsWith(player.getInventory(), Material.WOOD_SWORD);
                 Collections.sort(values);
@@ -276,6 +329,9 @@ public class Price {
 				if (item.isColored()) {
 					inventory.setItem(hotbar, item.asColoredNormalItem(player));
 				} else {
+					if (item == ShopItem.SHEARS) {
+						NovaBedwars.getInstance().getGame().addShears(player);
+					}
 					inventory.setItem(hotbar, item.asNormalItem());
 				}
 				if (toAdd != null && toAdd.getType() != Material.AIR) {

@@ -159,7 +159,7 @@ public class ItemShop {
 					if (item == ShopItem.NO_ITEM) {
 						return GUIAction.CANCEL_INTERACTION;
 					}
-					Price.buyItem(item, e.getWhoClicked().getInventory(), e.getCurrentItem(), p, e.getClick(), e.getHotbarButton());
+					Price.buyItem(item, e.getWhoClicked().getInventory(), p, e.getHotbarButton());
 					this.display(category, player);
 				}
 			}
@@ -180,7 +180,6 @@ public class ItemShop {
 								if (NovaBedwars.getInstance().getGame().getPlayerPickaxeTier(player) == items.getTieredItems().size()) {
 									item = items.asShopItem(NovaBedwars.getInstance().getGame().getPlayerPickaxeTier(player), player, true).clone();
 									ItemMeta itemMeta = item.getItemMeta();
-									addMaxTierLore(itemMeta);
 									item.setItemMeta(itemMeta);
 								} else {
 									item = items.asShopItem(NovaBedwars.getInstance().getGame().getPlayerPickaxeTier(player) + 1, player, true).clone();
@@ -189,7 +188,7 @@ public class ItemShop {
 								if (NovaBedwars.getInstance().getGame().getPlayerAxeTier(player) == items.getTieredItems().size()) {
 									item = items.asShopItem(NovaBedwars.getInstance().getGame().getPlayerAxeTier(player), player, true).clone();
 									ItemMeta itemMeta = item.getItemMeta();
-									addMaxTierLore(itemMeta);
+
 									item.setItemMeta(itemMeta);
 								} else {
 									item = items.asShopItem(NovaBedwars.getInstance().getGame().getPlayerAxeTier(player) + 1, player, true).clone();
@@ -291,7 +290,6 @@ public class ItemShop {
 							if (NovaBedwars.getInstance().getGame().getPlayerPickaxeTier(player) == items.getTieredItems().size()) {
 								item = items.asShopItem(NovaBedwars.getInstance().getGame().getPlayerPickaxeTier(player), player, false).clone();
 								ItemMeta itemMeta = item.getItemMeta();
-								addMaxTierLore(itemMeta);
 								item.setItemMeta(itemMeta);
 							} else {
 								item = items.asShopItem(NovaBedwars.getInstance().getGame().getPlayerPickaxeTier(player) + 1, player, false).clone();
@@ -301,7 +299,6 @@ public class ItemShop {
 							if (NovaBedwars.getInstance().getGame().getPlayerAxeTier(player) == items.getTieredItems().size()) {
 								item = items.asShopItem(NovaBedwars.getInstance().getGame().getPlayerAxeTier(player), player, false).clone();
 								ItemMeta itemMeta = item.getItemMeta();
-								addMaxTierLore(itemMeta);
 								item.setItemMeta(itemMeta);
 							} else {
 								item = items.asShopItem(NovaBedwars.getInstance().getGame().getPlayerAxeTier(player) + 1, player, false).clone();
@@ -316,17 +313,8 @@ public class ItemShop {
 				}
 			});
 		}
-
-
-
 		updateHypixelAPIButton(player);
 		player.openInventory(inventory);
-	}
-
-	private void addMaxTierLore(ItemMeta meta) {
-		List<String> lore = meta.getLore();
-		lore.add(ChatColor.RED + "Max tier reached");
-		meta.setLore(lore);
 	}
 
 	private void placeRemainingOnes(Inventory inventory, ItemStack defaultItem) {
