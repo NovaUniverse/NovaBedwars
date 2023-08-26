@@ -543,6 +543,13 @@ public class Bedwars extends MapGame implements Listener {
 
 	@Override
 	public boolean canAttack(LivingEntity attacker, LivingEntity target) {
+		if (attacker instanceof Player && target instanceof Player) {
+			Player playerAttacker = (Player) attacker;
+			Player playerTarget = (Player) target;
+			if (TeamManager.getTeamManager().isInSameTeam(playerAttacker, playerTarget)) {
+				return false;
+			}
+		}
 		return true;
 	}
 
@@ -569,7 +576,7 @@ public class Bedwars extends MapGame implements Listener {
 
 		ModuleManager.disable(CompassTracker.class);
 
-		BedwarsConfig config = (BedwarsConfig) getActiveMap().getMapData().getMapModule(BedwarsConfig.class);
+		BedwarsConfig config = getActiveMap().getMapData().getMapModule(BedwarsConfig.class);
 		if (config == null) {
 			Log.fatal("NovaBedwars", "Map " + this.getActiveMap().getMapData().getMapName() + " has no config");
 			Bukkit.broadcastMessage(ChatColor.RED + "" + ChatColor.BOLD + "Bedwars has gone into an error and has to be stopped");
@@ -1664,6 +1671,13 @@ public class Bedwars extends MapGame implements Listener {
 				if (ownerBase != null) {
 					e.setCancelled(true);
 					e.getPlayer().sendMessage(ChatColor.RED + "You cannot break others beds when in creative.");
+				}
+			}
+			if ((CustomSpectatorManager.isSpectator(player) || player.getGameMode() == GameMode.SPECTATOR) && VersionIndependentUtils.get().isBed(block)) {
+				BaseData ownerBase = bases.stream().filter(base -> isBed(block.getLocation(), base)).findFirst().orElse(null);
+				if (ownerBase != null) {
+					e.setCancelled(true);
+					e.getPlayer().sendMessage(ChatColor.RED + "You cannot break others beds as a spectator.");
 				}
 			}
 			if (player.getGameMode() != GameMode.CREATIVE) {
