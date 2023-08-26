@@ -538,18 +538,11 @@ public class Bedwars extends MapGame implements Listener {
 
 	@Override
 	public boolean isFriendlyFireAllowed() {
-		return false;
+		return true;
 	}
 
 	@Override
 	public boolean canAttack(LivingEntity attacker, LivingEntity target) {
-		if (attacker instanceof Player && target instanceof Player) {
-			Player playerAttacker = (Player) attacker;
-			Player playerTarget = (Player) target;
-			if (TeamManager.getTeamManager().isInSameTeam(playerAttacker, playerTarget)) {
-				return false;
-			}
-		}
 		return true;
 	}
 
