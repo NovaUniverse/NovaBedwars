@@ -695,9 +695,6 @@ public class Bedwars extends MapGame implements Listener {
 				}
 			}
 		}
-	
-		getWorld().getWorldBorder().setCenter(config.getMapCenter().toBukkitLocation(world));
-		getWorld().getWorldBorder().setSize(config.getBorderRadius());
 
 		sendBeginEvent();
 	}
