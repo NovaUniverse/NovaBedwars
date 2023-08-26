@@ -25,6 +25,10 @@ public class BedwarsEvent {
 		}
 	}
 
+	public void finish() {
+		timeLeft = 0;
+	}
+
 	public String getName() {
 		return name;
 	}

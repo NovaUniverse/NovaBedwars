@@ -6,7 +6,8 @@ import net.minecraft.server.v1_8_R3.PathfinderGoalSelector;
 import net.novauniverse.bedwars.game.Bedwars;
 import net.novauniverse.bedwars.game.commands.ImportBedwarsPreferences;
 import net.novauniverse.bedwars.game.config.BedwarsConfig;
-import net.novauniverse.bedwars.game.debug.BedWarsDebugCommands;
+import net.novauniverse.bedwars.game.debug.AdvanceEvent;
+import net.novauniverse.bedwars.game.debug.SaveHypixelPreferences;
 import net.novauniverse.bedwars.game.debug.CommandFromMessage;
 import net.novauniverse.bedwars.game.debug.GivePotion;
 import net.novauniverse.bedwars.game.debug.HashMapDebugger;
@@ -231,7 +232,7 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 		Log.info(getName(), "Loading maps from " + mapFolder.getPath());
 		GameManager.getInstance().readMapsFromFolderDelayed(mapFolder, worldFolder);
 
-		BedWarsDebugCommands.register();
+		SaveHypixelPreferences.register();
 		HashMapDebugger.register();
 		ShopItemMetasDebugger.register();
 		UUIDGetter.register();
@@ -239,6 +240,7 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 		CommandFromMessage.register();
 		ShopOpenDebug.register();
 		UpgradeShopOpenDebug.register();
+		AdvanceEvent.register();
 		CommandRegistry.registerCommand(new ImportBedwarsPreferences());
 
 		Bukkit.getOnlinePlayers().forEach(player -> getGame().setUpPlayer(player));

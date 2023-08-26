@@ -11,7 +11,7 @@ import net.zeeraa.novacore.spigot.command.AllowedSenders;
 import net.zeeraa.novacore.spigot.debug.DebugCommandRegistrator;
 import net.zeeraa.novacore.spigot.debug.DebugTrigger;
 
-public class BedWarsDebugCommands {
+public class SaveHypixelPreferences {
 	public static final void register() {
 		DebugCommandRegistrator.getInstance().addDebugTrigger(new DebugTrigger() {
 			@Override
