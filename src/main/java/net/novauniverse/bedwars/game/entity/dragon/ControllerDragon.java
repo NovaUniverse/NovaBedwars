@@ -1,11 +1,9 @@
 package net.novauniverse.bedwars.game.entity.dragon;
 
-import net.minecraft.server.v1_8_R3.AxisAlignedBB;
 import net.minecraft.server.v1_8_R3.ControllerMove;
 import net.minecraft.server.v1_8_R3.MathHelper;
 
 public class ControllerDragon extends ControllerMove {
-
     private BedwarsDragon dragon;
 
     public ControllerDragon(BedwarsDragon bwd) {

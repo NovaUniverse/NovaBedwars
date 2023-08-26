@@ -1,6 +1,5 @@
 package net.novauniverse.bedwars;
 
-import net.minecraft.server.v1_8_R3.Block;
 import net.minecraft.server.v1_8_R3.EntityEnderDragon;
 import net.minecraft.server.v1_8_R3.EntityPlayer;
 import net.minecraft.server.v1_8_R3.PathfinderGoalSelector;
@@ -38,12 +37,10 @@ import net.zeeraa.novacore.spigot.module.modules.cooldown.CooldownManager;
 import org.apache.commons.io.FileUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftEnderDragon;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_8_R3.util.CraftMagicNumbers;
 import org.bukkit.entity.EnderDragon;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -64,7 +61,6 @@ import org.json.JSONObject;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -83,27 +79,27 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 	public static final Map<Integer, Integer> locationsMap = new HashMap<>();
 
 	static {
-		locationsMap.put(1,0);
-		locationsMap.put(2,1);
-		locationsMap.put(3,2);
-		locationsMap.put(4,3);
-		locationsMap.put(5,4);
-		locationsMap.put(6,5);
-		locationsMap.put(7,6);
-		locationsMap.put(10,7);
-		locationsMap.put(11,8);
-		locationsMap.put(12,9);
-		locationsMap.put(13,10);
-		locationsMap.put(14,11);
-		locationsMap.put(15,12);
-		locationsMap.put(16,13);
-		locationsMap.put(19,14);
-		locationsMap.put(20,15);
-		locationsMap.put(21,16);
-		locationsMap.put(22,17);
-		locationsMap.put(23,18);
-		locationsMap.put(24,19);
-		locationsMap.put(25,20);
+		locationsMap.put(1, 0);
+		locationsMap.put(2, 1);
+		locationsMap.put(3, 2);
+		locationsMap.put(4, 3);
+		locationsMap.put(5, 4);
+		locationsMap.put(6, 5);
+		locationsMap.put(7, 6);
+		locationsMap.put(10, 7);
+		locationsMap.put(11, 8);
+		locationsMap.put(12, 9);
+		locationsMap.put(13, 10);
+		locationsMap.put(14, 11);
+		locationsMap.put(15, 12);
+		locationsMap.put(16, 13);
+		locationsMap.put(19, 14);
+		locationsMap.put(20, 15);
+		locationsMap.put(21, 16);
+		locationsMap.put(22, 17);
+		locationsMap.put(23, 18);
+		locationsMap.put(24, 19);
+		locationsMap.put(25, 20);
 	}
 
 	public static NovaBedwars getInstance() {
@@ -138,6 +134,7 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 	public boolean hasPreferenceAPI() {
 		return preferenceAPI != null;
 	}
+
 	@Override
 	public void onEnable() {
 		NovaBedwars.instance = this;
@@ -290,8 +287,9 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 					public void run() {
 						lookAtPlayer(villager);
 					}
-				}.runTaskTimer(NovaBedwars.this, 0,1);
+				}.runTaskTimer(NovaBedwars.this, 0, 1);
 			}
+
 			public void lookAtPlayer(LivingEntity entity) {
 				List<Entity> entities = entity.getWorld().getNearbyEntities(entity.getLocation(), 3, 3, 3).stream().filter(e -> e.getType() == EntityType.PLAYER).collect(Collectors.toList());
 				Entity closest = getClosest(entities, entity.getLocation());
@@ -309,7 +307,7 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 			}
 
 			private Entity getClosest(List<Entity> list, Location toGo) {
-				final Entity[] closest = {null};
+				final Entity[] closest = { null };
 				list.forEach(entity -> {
 					if (closest[0] == null) {
 						closest[0] = entity;
@@ -403,18 +401,19 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 				return PermissionDefault.OP;
 			}
 
+			@SuppressWarnings("rawtypes")
 			@Override
 			public void onExecute(CommandSender commandSender, String s, String[] strings) {
 				Player player = (Player) commandSender;
 				player.getWorld().getEntities().forEach(entity -> {
-					if (((CraftEntity)entity).getHandle() instanceof BedwarsDragon) {
+					if (((CraftEntity) entity).getHandle() instanceof BedwarsDragon) {
 						BedwarsDragon dragon = (BedwarsDragon) ((CraftEntity) entity).getHandle();
 
 						List goalB = (List) ReflectUtils.getPrivateField("b", PathfinderGoalSelector.class, dragon.goalSelector);
-						List goalC = (List)ReflectUtils.getPrivateField("c", PathfinderGoalSelector.class, dragon.goalSelector);
+						List goalC = (List) ReflectUtils.getPrivateField("c", PathfinderGoalSelector.class, dragon.goalSelector);
 
-						List targetB = (List)ReflectUtils.getPrivateField("b", PathfinderGoalSelector.class, dragon.targetSelector);
-						List targetC = (List)ReflectUtils.getPrivateField("c", PathfinderGoalSelector.class, dragon.targetSelector);
+						List targetB = (List) ReflectUtils.getPrivateField("b", PathfinderGoalSelector.class, dragon.targetSelector);
+						List targetC = (List) ReflectUtils.getPrivateField("c", PathfinderGoalSelector.class, dragon.targetSelector);
 
 						Log.debug("" + goalB);
 						Log.debug("" + goalC);
@@ -447,20 +446,20 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 				return PermissionDefault.OP;
 			}
 
+			@SuppressWarnings("rawtypes")
 			@Override
 			public void onExecute(CommandSender commandSender, String s, String[] strings) {
 				Player player = (Player) commandSender;
 
 				EnderDragon ed = (EnderDragon) player.getWorld().spawnEntity(player.getLocation(), EntityType.ENDER_DRAGON);
 
-
 				EntityEnderDragon dragon = ((CraftEnderDragon) ed).getHandle();
 
 				List goalB = (List) ReflectUtils.getPrivateField("b", PathfinderGoalSelector.class, dragon.goalSelector);
-				List goalC = (List)ReflectUtils.getPrivateField("c", PathfinderGoalSelector.class, dragon.goalSelector);
+				List goalC = (List) ReflectUtils.getPrivateField("c", PathfinderGoalSelector.class, dragon.goalSelector);
 
-				List targetB = (List)ReflectUtils.getPrivateField("b", PathfinderGoalSelector.class, dragon.targetSelector);
-				List targetC = (List)ReflectUtils.getPrivateField("c", PathfinderGoalSelector.class, dragon.targetSelector);
+				List targetB = (List) ReflectUtils.getPrivateField("b", PathfinderGoalSelector.class, dragon.targetSelector);
+				List targetC = (List) ReflectUtils.getPrivateField("c", PathfinderGoalSelector.class, dragon.targetSelector);
 
 				Log.debug("" + goalB);
 				Log.debug("" + goalC);
@@ -526,7 +525,7 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 			public void onExecute(CommandSender commandSender, String s, String[] strings) {
 				EnderDragon ed = (EnderDragon) ((Player) commandSender).getWorld().spawnEntity(((Player) commandSender).getLocation(), EntityType.ENDER_DRAGON);
 				Location initialLoc = ed.getLocation().clone();
-				float[] fl = new float[]{-690};
+				float[] fl = new float[] { -690 };
 				new BukkitRunnable() {
 					@Override
 					public void run() {

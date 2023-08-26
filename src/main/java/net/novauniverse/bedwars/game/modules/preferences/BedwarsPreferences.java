@@ -2,11 +2,9 @@ package net.novauniverse.bedwars.game.modules.preferences;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.UUID;
 
 import net.novauniverse.bedwars.NovaBedwars;
-import org.bukkit.inventory.Inventory;
 import org.json.JSONArray;
 
 import net.novauniverse.bedwars.game.enums.ShopItem;

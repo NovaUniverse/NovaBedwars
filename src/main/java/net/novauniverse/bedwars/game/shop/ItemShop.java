@@ -1,6 +1,5 @@
 package net.novauniverse.bedwars.game.shop;
 
-import io.github.bananapuncher714.nbteditor.NBTEditor;
 import net.novauniverse.bedwars.NovaBedwars;
 import net.novauniverse.bedwars.game.entity.BedwarsNPC;
 import net.novauniverse.bedwars.game.enums.ItemCategory;
@@ -35,7 +34,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 public class ItemShop {
@@ -165,8 +163,6 @@ public class ItemShop {
 			}
 			return GUIAction.NONE;
 		});
-
-
 
 		// Quick Buy
 		if (category == ItemCategory.QUICK_BUY) {

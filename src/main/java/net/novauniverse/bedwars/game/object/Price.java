@@ -12,9 +12,7 @@ import net.zeeraa.novacore.spigot.utils.ItemBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.Sound;
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -233,7 +231,6 @@ public class Price {
 			return;
 		}
 
-
 		ItemStack toAdd = inventory.getItem(hotbar);
 		if (item.isTiered()) {
 			Bedwars game = NovaBedwars.getInstance().getGame();
@@ -273,17 +270,17 @@ public class Price {
 				game.getAllPlayersAxeTier().put(player.getUniqueId(), game.getPlayerAxeTier(player) + 1);
 			}
 		} else if (item.isSword()) {
-            if (!InventoryUtils.slotsWith(player.getInventory(), Material.WOOD_SWORD).isEmpty()) {
-                List<Integer> values = InventoryUtils.slotsWith(player.getInventory(), Material.WOOD_SWORD);
-                Collections.sort(values);
-                int toReplace = values.get(0);
-                inventory.setItem(toReplace, new ItemStack(Material.AIR));
-            }
-            inventory.setItem(hotbar, item.asNormalItem());
-            if (toAdd != null && toAdd.getType() != Material.AIR) {
-                inventory.addItem(toAdd);
-            }
-        } else {
+			if (!InventoryUtils.slotsWith(player.getInventory(), Material.WOOD_SWORD).isEmpty()) {
+				List<Integer> values = InventoryUtils.slotsWith(player.getInventory(), Material.WOOD_SWORD);
+				Collections.sort(values);
+				int toReplace = values.get(0);
+				inventory.setItem(toReplace, new ItemStack(Material.AIR));
+			}
+			inventory.setItem(hotbar, item.asNormalItem());
+			if (toAdd != null && toAdd.getType() != Material.AIR) {
+				inventory.addItem(toAdd);
+			}
+		} else {
 			if (item.asNormalItem().getMaxStackSize() > 1) {
 				if (toAdd != null && toAdd.getType() != Material.AIR) {
 					if (toAdd.getType() == item.asNormalItem().getType()) {

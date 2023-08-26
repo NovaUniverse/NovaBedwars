@@ -1,10 +1,8 @@
 package net.novauniverse.bedwars.game.generator;
 
-import net.novauniverse.bedwars.NovaBedwars;
-import net.novauniverse.bedwars.game.object.base.BaseData;
-import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependentMaterial;
-import net.zeeraa.novacore.spigot.utils.ItemBuilder;
-import net.zeeraa.novacore.spigot.utils.VectorUtils;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -12,8 +10,10 @@ import org.bukkit.entity.Item;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import net.novauniverse.bedwars.NovaBedwars;
+import net.novauniverse.bedwars.game.object.base.BaseData;
+import net.zeeraa.novacore.spigot.utils.ItemBuilder;
+import net.zeeraa.novacore.spigot.utils.VectorUtils;
 
 public class BaseGenerator {
 
@@ -124,6 +124,8 @@ public class BaseGenerator {
                     goldAmount += item.getItemStack().getAmount();
                 case EMERALD:
                     emeraldAmount += item.getItemStack().getAmount();
+			default:
+				break;
             }
         }
 

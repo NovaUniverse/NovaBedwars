@@ -28,8 +28,13 @@ public class ImportBedwarsPreferences extends NovaCommand {
 	@Override
 	public boolean execute(CommandSender commandSender, String s, String[] strings) {
 		Player player = (Player) commandSender;
+		
+		if(NovaBedwars.getInstance().getHypixelAPI() == null) {
+			player.sendMessage(ChatColor.RED + "Hypixel preferences are not enabled right now");
+			return true;
+		}
+		
 		if (BedwarsPreferenceManager.getInstance().isHypixelRequestCooldownActive(player)) {
-
 			player.sendMessage(ChatColor.RED + "Please wait " + BedwarsPreferenceManager.getInstance().getCooldown(player) + " seconds before trying to import preferences again");
 		} else {
 			if (!BedwarsPreferenceManager.getInstance().tryImportHypixelPreferences(player, (success, exception) -> {
