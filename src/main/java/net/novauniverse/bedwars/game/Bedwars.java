@@ -471,7 +471,7 @@ public class Bedwars extends MapGame implements Listener {
 			for (UUID id : getPlayers()) {
 				updateSynced(id);
 			}
-		}, 20*60L);
+		}, 20 * 60L);
 	}
 
 	private boolean doingMonologue = false;
@@ -827,7 +827,6 @@ public class Bedwars extends MapGame implements Listener {
 				player.setVelocity(new Vector(0, 0, 0));
 				player.teleport(base.getSpawnLocation());
 
-
 				giveArmorAndTools(player);
 				invencibility.put(player.getUniqueId(), INVENCIBILITY_TIME_SECONDS);
 				new BukkitRunnable() {
@@ -906,7 +905,6 @@ public class Bedwars extends MapGame implements Listener {
 				player.getInventory().setItem(shearsSlot, ShopItem.SHEARS.asNormalItem());
 			}
 		}
-
 
 		updatePlayerItems(player);
 	}
@@ -1279,7 +1277,7 @@ public class Bedwars extends MapGame implements Listener {
 				break;
 			case FIRE_NATURAL:
 			case FIRE_SOURCE:
-                deathMessage = "%s" + ChatColor.RED + " burnt to death.";
+				deathMessage = "%s" + ChatColor.RED + " burnt to death.";
 				break;
 			default:
 				deathMessage = "%s" + ChatColor.RED + " died.";
@@ -1351,22 +1349,20 @@ public class Bedwars extends MapGame implements Listener {
 		List<Integer> shearsSlot = InventoryUtils.slotsWith(player.getInventory(), Material.SHEARS);
 		List<Integer> compassSlot = InventoryUtils.slotsWith(player.getInventory(), Material.COMPASS);
 		if (!swordSlot.isEmpty()) {
-			swordLocation.put(player.getUniqueId(),swordSlot.get(0));
+			swordLocation.put(player.getUniqueId(), swordSlot.get(0));
 		}
 		if (!axeSlot.isEmpty()) {
 			axeLocation.put(player.getUniqueId(), axeSlot.get(0));
 		}
 		if (!pickaxeSlot.isEmpty()) {
-			pickaxeLocation.put(player.getUniqueId(),pickaxeSlot.get(0));
+			pickaxeLocation.put(player.getUniqueId(), pickaxeSlot.get(0));
 		}
 		if (!shearsSlot.isEmpty()) {
-			shearsLocation.put(player.getUniqueId(),shearsSlot.get(0));
+			shearsLocation.put(player.getUniqueId(), shearsSlot.get(0));
 		}
 		if (!compassSlot.isEmpty()) {
-			compassLocation.put(player.getUniqueId(),compassSlot.get(0));
+			compassLocation.put(player.getUniqueId(), compassSlot.get(0));
 		}
-
-
 
 		PlayerUtils.clearPlayerInventory(player);
 
@@ -1695,7 +1691,9 @@ public class Bedwars extends MapGame implements Listener {
 						});
 						for (UUID uuid : ownerBase.getOwner().getMembers()) {
 							Player damaged = Bukkit.getPlayer(uuid);
-							setLastDamager(damaged, e.getPlayer());
+							if (damaged != null) {
+								setLastDamager(damaged, e.getPlayer());
+							}
 						}
 						Bukkit.getServer().getPluginManager().callEvent(new BedDestructionEvent(ownerBase.getOwner(), team, player));
 
@@ -1769,17 +1767,20 @@ public class Bedwars extends MapGame implements Listener {
 			}
 		}
 	}
+
 	public void setUpPlayer(Player player) {
 		getAllPlayersAxeTier().putIfAbsent(player.getUniqueId(), 0);
 		getAllPlayersArmor().putIfAbsent(player.getUniqueId(), ArmorType.NO_ARMOR);
 		getAllPlayersPickaxeTier().putIfAbsent(player.getUniqueId(), 0);
 	}
+
 	// TODO: custom palyer keybinds :D
 	HashMap<UUID, Integer> swordLocation;
 	HashMap<UUID, Integer> pickaxeLocation;
 	HashMap<UUID, Integer> axeLocation;
 	HashMap<UUID, Integer> shearsLocation;
 	HashMap<UUID, Integer> compassLocation;
+
 	public void updatePlayerItems(Player player) {
 		Team team = TeamManager.getTeamManager().getPlayerTeam(player);
 		if (team == null) {
