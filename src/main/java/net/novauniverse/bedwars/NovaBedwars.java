@@ -563,3 +563,4 @@ public final class NovaBedwars extends JavaPlugin implements Listener {
 }
 
 // UwU, Daddy
+// ^^ blame goldy for this

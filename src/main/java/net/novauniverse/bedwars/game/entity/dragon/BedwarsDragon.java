@@ -16,9 +16,11 @@ import net.minecraft.server.v1_8_R3.MobEffectList;
 import net.minecraft.server.v1_8_R3.Navigation;
 import net.minecraft.server.v1_8_R3.PathfinderGoal;
 import net.minecraft.server.v1_8_R3.PathfinderGoalSelector;
+import net.minecraft.server.v1_8_R3.World;
 import net.minecraft.server.v1_8_R3.WorldServer;
 import net.novauniverse.bedwars.NovaBedwars;
 import net.novauniverse.bedwars.game.Bedwars;
+import net.novauniverse.bedwars.game.object.BoundingBox;
 import net.zeeraa.novacore.commons.utils.ReflectUtils;
 import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
 import net.zeeraa.novacore.spigot.abstraction.manager.CustomSpectatorManager;
@@ -29,6 +31,7 @@ import org.bukkit.craftbukkit.v1_8_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_8_R3.SpigotTimings;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftZombie;
 import org.bukkit.entity.Player;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
@@ -56,6 +59,46 @@ public class BedwarsDragon extends EntityZombie {
 
 	public CraftZombie getBukkitEntity() {
 		return (CraftZombie) super.getBukkitEntity();
+	}
+
+	// sometimes it returned null
+	@SuppressWarnings("rawtypes")
+	public BedwarsDragon(World world) {
+		super(world);
+
+		this.moveController = new ControllerDragon(this);
+		this.speed = 1;
+		resetCharge();
+		charging = false;
+
+		this.width = 16;
+		this.height = 8;
+		this.damage = 3;
+
+		game = NovaBedwars.getInstance().getGame();
+
+		List goalB = (List) ReflectUtils.getPrivateField("b", PathfinderGoalSelector.class, goalSelector);
+		goalB.clear();
+		List goalC = (List) ReflectUtils.getPrivateField("c", PathfinderGoalSelector.class, goalSelector);
+		goalC.clear();
+		List targetB = (List) ReflectUtils.getPrivateField("b", PathfinderGoalSelector.class, targetSelector);
+		targetB.clear();
+		List targetC = (List) ReflectUtils.getPrivateField("c", PathfinderGoalSelector.class, targetSelector);
+		targetC.clear();
+
+		goalSelector.a(0, new PathfinderGoalDragonIdle(location, this, radius));
+		goalSelector.a(1, new PathfinderGoalDragonCharge(this, null));
+
+		Navigation nav = (Navigation) this.getNavigation();
+		nav.a(true);
+
+		this.attachedToPlayer = true;
+		this.persistent = true;
+		this.valid = true;
+		this.fireProof = true;
+		this.noclip = true;
+		this.location = game.getActiveMap().getSpectatorLocation();
+		this.radius = game.getConfig().getDragonRadius();
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -121,42 +164,52 @@ public class BedwarsDragon extends EntityZombie {
 
 		AxisAlignedBB aabb = getBoundingBox();
 
-		List<Location> locations = new ArrayList<>();
-
-		for (double x = aabb.a; x <= aabb.d; x++) {
-			for (double y = aabb.b; y <= aabb.e; y++) {
-				for (double z = aabb.c; z <= aabb.f; z++) {
-					locations.add(new Location(world.getWorld(), x, y, z, 0, 0));
-				}
-			}
-		}
-
-		Vector bottom = new Vector(aabb.a, aabb.b, aabb.c);
-		Vector top = new Vector(aabb.d, aabb.e, aabb.f);
+		Vector bottom = new Vector(aabb.a-1, aabb.b-1, aabb.c-1);
+		Vector top = new Vector(aabb.d+1, aabb.e+1, aabb.f+1);
 
 		Vector direction = getLocation().clone().getDirection();
+
+
 
 		for (Player player : game.getOnlinePlayers()) {
 			if (!CustomSpectatorManager.isSpectator(player)) {
 				if (player.getNoDamageTicks() <= 0) {
 					if (player.getLocation().toVector().isInAABB(bottom, top)) {
-						if (player.getGameMode() != GameMode.CREATIVE && !CustomSpectatorManager.isSpectator(player)) {
+						if (player.getGameMode() != GameMode.CREATIVE && !CustomSpectatorManager.isSpectator(player) && player.getGameMode() != GameMode.SPECTATOR) {
 							player.damage(damage, this.getBukkitEntity());
-							player.setVelocity(player.getVelocity().clone().add(new Vector(direction.getX(), 2, direction.getZ())));
+							player.setVelocity(player.getVelocity().clone().add(new Vector(direction.getX(), 0.5, direction.getZ())));
 						}
 					}
 				}
 			}
 		}
-		// fuck safe locations, all my homies hate safe locations
-		// (it slowed down the dragon to 1 TPS when i tried to check safe locations)
-		locations.forEach(loc -> loc.getBlock().setType(Material.AIR));
+	}
+
+	public void destroyNearbyBlocks() {
+		AxisAlignedBB aabb = getBoundingBox();
+
+		List<Location> locations = new ArrayList<>();
+		for (double x = aabb.a; x <= aabb.d; x++) {
+			for (double y = aabb.b; y <= aabb.e; y++) {
+				for (double z = aabb.c; z <= aabb.f; z++) {
+					locations.add(new Location(world.getWorld(), x, y, z));
+				}
+			}
+		}
+
+		locations.forEach(this::removeBlock);
+	}
+
+	public void removeBlock(Location location) {
+		if (!BoundingBox.isInside(NovaBedwars.getInstance().getGame().getSafeLocationsWithBeds(), location)) {
+			location.getBlock().setType(Material.AIR);
+		}
 	}
 
 	@Override
 	protected void initAttributes() {
 		super.initAttributes();
-		this.getAttributeInstance(GenericAttributes.maxHealth).setValue(400);
+		this.getAttributeInstance(GenericAttributes.maxHealth).setValue(200);
 		this.setHealth(this.getMaxHealth());
 	}
 

@@ -29,6 +29,7 @@ import net.novauniverse.bedwars.game.generator.GeneratorType;
 import net.novauniverse.bedwars.game.generator.ItemGenerator;
 import net.novauniverse.bedwars.game.holder.SpectatorHolder;
 import net.novauniverse.bedwars.game.modules.preferences.BedwarsPreferenceManager;
+import net.novauniverse.bedwars.game.object.BoundingBox;
 import net.novauniverse.bedwars.game.object.base.BaseData;
 import net.novauniverse.bedwars.game.shop.ItemShop;
 import net.novauniverse.bedwars.game.shop.UpgradeShop;
@@ -41,6 +42,7 @@ import net.zeeraa.novacore.commons.tasks.Task;
 import net.zeeraa.novacore.commons.utils.DelayedRunner;
 import net.zeeraa.novacore.commons.utils.RandomGenerator;
 import net.zeeraa.novacore.commons.utils.TextUtils;
+import net.zeeraa.novacore.spigot.abstraction.ChunkLoader;
 import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
 import net.zeeraa.novacore.spigot.abstraction.enums.DeathType;
 import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependentMaterial;
@@ -68,6 +70,7 @@ import net.zeeraa.novacore.spigot.utils.PlayerUtils;
 import net.zeeraa.novacore.spigot.utils.RandomFireworkEffect;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Chunk;
 import org.bukkit.Color;
 import org.bukkit.Difficulty;
 import org.bukkit.Effect;
@@ -165,6 +168,8 @@ public class Bedwars extends MapGame implements Listener {
 
 	public static final String FIREBALL_COOLDOWN_ID = "fireball_cooldown";
 
+	private static final String TEXT_COOLDOWN_ID = "text_cooldown";
+
 	private boolean started;
 	private boolean ended;
 
@@ -195,6 +200,7 @@ public class Bedwars extends MapGame implements Listener {
 	private List<UUID> eliminatedPlayers;
 
 	private List<Entity> dragons;
+
 
 	private ItemShop itemShop;
 	private UpgradeShop upgradeShop;
@@ -301,6 +307,7 @@ public class Bedwars extends MapGame implements Listener {
 				if (((CraftEntity) entity).getHandle() instanceof BedwarsDragon) {
 					BedwarsDragon bwd = (BedwarsDragon) ((CraftEntity) entity).getHandle();
 					bwd.tick();
+					bwd.destroyNearbyBlocks();
 				}
 			});
 		}, 1L);
@@ -442,19 +449,20 @@ public class Bedwars extends MapGame implements Listener {
 				}
 			}
 			if (allDragonsDead()) {
-				if (!doingMonologue) {
-					doingMonologue = true;
-					Bukkit.broadcastMessage(ChatColor.RED + "wait hold on did you really kill all dragons?");
+				if (!hasEnded()) {
+					if (!doingMonologue) {
+						doingMonologue = true;
+						Bukkit.broadcastMessage(ChatColor.RED + "wait hold on did you really kill all dragons?");
 
-					DelayedRunner.runDelayed(() -> {
-						Bukkit.broadcastMessage(ChatColor.DARK_RED + "well that was a mistake");
 						DelayedRunner.runDelayed(() -> {
-							Bukkit.broadcastMessage(ChatColor.DARK_RED + "" + ChatColor.BOLD + "well have fun with these dragons");
-							spawnDruggedDragons();
+							Bukkit.broadcastMessage(ChatColor.DARK_RED + "well that was a mistake");
+							DelayedRunner.runDelayed(() -> {
+								Bukkit.broadcastMessage(ChatColor.DARK_RED + "" + ChatColor.BOLD + "well have fun with these dragons");
+								spawnDruggedDragons();
+							}, 80L);
 						}, 80L);
-					}, 80L);
+					}
 				}
-
 			}
 		}, 20L);
 		baseTask = new SimpleTask(getPlugin(), () -> {
@@ -538,7 +546,7 @@ public class Bedwars extends MapGame implements Listener {
 
 	@Override
 	public boolean isFriendlyFireAllowed() {
-		return true;
+		return false;
 	}
 
 	@Override
@@ -664,37 +672,33 @@ public class Bedwars extends MapGame implements Listener {
 		// set up locations that cannot be broken
 
 		for (BaseData data : getBases()) {
-			for (int x = data.getSpawnLocation().getBlockX() - SPAWN_PROTECTION_RADIUS; x <= data.getSpawnLocation().getBlockX() + SPAWN_PROTECTION_RADIUS; x++) {
-				for (int y = data.getSpawnLocation().getBlockY() - SPAWN_PROTECTION_RADIUS; y <= data.getSpawnLocation().getBlockY() + SPAWN_PROTECTION_RADIUS; y++) {
-					for (int z = data.getSpawnLocation().getBlockZ() - SPAWN_PROTECTION_RADIUS; z <= data.getSpawnLocation().getBlockZ() + SPAWN_PROTECTION_RADIUS; z++) {
-						safeLocations.add(world.getBlockAt(x, y, z).getLocation());
-					}
-				}
-			}
-			for (int x = data.getItemShopLocation().getBlockX() - SPAWN_PROTECTION_RADIUS; x <= data.getItemShopLocation().getBlockX() + SPAWN_PROTECTION_RADIUS; x++) {
-				for (int y = data.getItemShopLocation().getBlockY() - SPAWN_PROTECTION_RADIUS; y <= data.getItemShopLocation().getBlockY() + SPAWN_PROTECTION_RADIUS; y++) {
-					for (int z = data.getItemShopLocation().getBlockZ() - SPAWN_PROTECTION_RADIUS; z <= data.getItemShopLocation().getBlockZ() + SPAWN_PROTECTION_RADIUS; z++) {
-						safeLocations.add(world.getBlockAt(x, y, z).getLocation());
-					}
-				}
-			}
-			for (int x = data.getUpgradeShopLocation().getBlockX() - SPAWN_PROTECTION_RADIUS; x <= data.getUpgradeShopLocation().getBlockX() + SPAWN_PROTECTION_RADIUS; x++) {
-				for (int y = data.getUpgradeShopLocation().getBlockY() - SPAWN_PROTECTION_RADIUS; y <= data.getUpgradeShopLocation().getBlockY() + SPAWN_PROTECTION_RADIUS; y++) {
-					for (int z = data.getUpgradeShopLocation().getBlockZ() - SPAWN_PROTECTION_RADIUS; z <= data.getUpgradeShopLocation().getBlockZ() + SPAWN_PROTECTION_RADIUS; z++) {
-						safeLocations.add(world.getBlockAt(x, y, z).getLocation());
-					}
-				}
-			}
+			Location spawnMin = data.getSpawnLocation().clone().add(-SPAWN_PROTECTION_RADIUS, -SPAWN_PROTECTION_RADIUS, -SPAWN_PROTECTION_RADIUS);
+			Location spawnMax = data.getSpawnLocation().clone().add(SPAWN_PROTECTION_RADIUS, SPAWN_PROTECTION_RADIUS, SPAWN_PROTECTION_RADIUS);
+			safeLocations.add(new BoundingBox(spawnMin, spawnMax));
+			safeLocationsWithBeds.add(new BoundingBox(spawnMin, spawnMax));
+
+			Location itemShopMin = data.getItemShopLocation().clone().add(-SPAWN_PROTECTION_RADIUS, -SPAWN_PROTECTION_RADIUS, -SPAWN_PROTECTION_RADIUS);
+			Location itemShopMax = data.getItemShopLocation().clone().add(SPAWN_PROTECTION_RADIUS, SPAWN_PROTECTION_RADIUS, SPAWN_PROTECTION_RADIUS);
+			safeLocations.add(new BoundingBox(itemShopMin, itemShopMax));
+			safeLocationsWithBeds.add(new BoundingBox(itemShopMin, itemShopMax));
+
+			Location upgradeShopMin = data.getUpgradeShopLocation().clone().add(-SPAWN_PROTECTION_RADIUS, -SPAWN_PROTECTION_RADIUS, -SPAWN_PROTECTION_RADIUS);
+			Location upgradeShopMax = data.getUpgradeShopLocation().clone().add(SPAWN_PROTECTION_RADIUS, SPAWN_PROTECTION_RADIUS, SPAWN_PROTECTION_RADIUS);
+			safeLocations.add(new BoundingBox(upgradeShopMin, upgradeShopMax));
+			safeLocationsWithBeds.add(new BoundingBox(upgradeShopMin, upgradeShopMax));
+
+			Location bedMin = data.getBedLocation().clone().add(-SPAWN_PROTECTION_RADIUS, -SPAWN_PROTECTION_RADIUS, -SPAWN_PROTECTION_RADIUS);
+			Location bedMax = data.getBedLocation().clone().add(SPAWN_PROTECTION_RADIUS, SPAWN_PROTECTION_RADIUS, SPAWN_PROTECTION_RADIUS);
+			safeLocationsWithBeds.add(new BoundingBox(bedMin, bedMax));
 		}
 		for (ItemGenerator generator : generators) {
-			for (int x = generator.getLocation().getBlockX() - SPAWN_PROTECTION_RADIUS; x <= generator.getLocation().getBlockX() + SPAWN_PROTECTION_RADIUS; x++) {
-				for (int y = generator.getLocation().getBlockY() - SPAWN_PROTECTION_RADIUS; y <= generator.getLocation().getBlockY() + SPAWN_PROTECTION_RADIUS; y++) {
-					for (int z = generator.getLocation().getBlockZ() - SPAWN_PROTECTION_RADIUS; z <= generator.getLocation().getBlockZ() + SPAWN_PROTECTION_RADIUS; z++) {
-						safeLocations.add(world.getBlockAt(x, y, z).getLocation());
-					}
-				}
-			}
+			Location generatorMin = generator.getLocation().clone().add(-SPAWN_PROTECTION_RADIUS, -SPAWN_PROTECTION_RADIUS, -SPAWN_PROTECTION_RADIUS);
+			Location generatorMax = generator.getLocation().clone().add(SPAWN_PROTECTION_RADIUS, SPAWN_PROTECTION_RADIUS, SPAWN_PROTECTION_RADIUS);
+			safeLocations.add(new BoundingBox(generatorMin, generatorMax));
+			safeLocationsWithBeds.add(new BoundingBox(generatorMin, generatorMax));
 		}
+
+		getChunksInBorder().forEach(chunk -> ChunkLoader.getInstance().add(chunk));
 
 		sendBeginEvent();
 	}
@@ -733,9 +737,16 @@ public class Bedwars extends MapGame implements Listener {
 		Bukkit.getServer().getOnlinePlayers().stream().filter(this::isPlayerInGame).forEach(player -> player.spigot().sendMessage(prefix, here, suffix, command, suffix2));
 	}
 
+	public void sendMessageWithCooldown(Player player, String message) {
+		if (!CooldownManager.get().isActive(player, TEXT_COOLDOWN_ID) || CooldownManager.get().getTimeLeft(player, TEXT_COOLDOWN_ID) <= 0) {
+			player.sendMessage(message);
+			CooldownManager.get().set(player, TEXT_COOLDOWN_ID, 1*20);
+		}
+	}
+
+
 	@Override
 	public void tpToSpectator(Player player) {
-
 		PlayerUtils.clearPlayerInventory(player);
 		PlayerUtils.resetMaxHealth(player);
 		PlayerUtils.resetPlayerXP(player);
@@ -1034,6 +1045,19 @@ public class Bedwars extends MapGame implements Listener {
 		}
 	}
 
+	public List<Chunk> getChunksInBorder() {
+		List<Chunk> chunks = new ArrayList<>();
+		Vector bottom = new Vector(-(config.getBorderRadius() / 2d) + config.getMapCenter().getX(), 0, -(config.getBorderRadius() / 2d) + config.getMapCenter().getZ());
+		Vector top = new Vector((config.getBorderRadius() / 2d) + config.getMapCenter().getX(), 256, (config.getBorderRadius() / 2d) + config.getMapCenter().getZ());
+		for (int x = bottom.getBlockX(); x < top.getBlockX(); x+=16) {
+			for (int z = bottom.getBlockZ(); z < bottom.getBlockZ(); z+=16) {
+				Chunk chunk = new Location(getActiveMap().getWorld(), x, 0, z).getChunk();
+				chunks.add(chunk);
+			}
+		}
+		return chunks;
+	}
+
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onPlayerTeleport(PlayerTeleportEvent e) {
 		if (e.getCause() == TeleportCause.ENDER_PEARL) {
@@ -1177,8 +1201,29 @@ public class Bedwars extends MapGame implements Listener {
 		}
 	}
 
-	@EventHandler
+	@EventHandler (priority = EventPriority.LOW, ignoreCancelled = true)
 	public void onEntityDamage(EntityDamageEvent e) {
+		if (e instanceof EntityDamageByEntityEvent) {
+
+			EntityDamageByEntityEvent edbee = (EntityDamageByEntityEvent) e;
+			if (edbee.getDamager() instanceof Player && edbee.getEntity() instanceof Player) {
+				Player player = (Player) edbee.getEntity();
+				Player damager = (Player) edbee.getDamager();
+				if (CustomSpectatorManager.isSpectator(damager)) {
+					e.setCancelled(true);
+					return;
+				}
+				if (TeamManager.hasTeamManager()) {
+					if (TeamManager.getTeamManager().isInSameTeam(player.getUniqueId(), damager.getUniqueId())) {
+						if (!isFriendlyFireAllowed()) {
+							e.setCancelled(true);
+							return;
+						}
+					}
+				}
+			}
+
+		}
 		if (started && !ended) {
 			if (((CraftEntity) e.getEntity()).getHandle() instanceof BedwarsDragon) {
 				if (((Zombie) e.getEntity()).getHealth() - e.getFinalDamage() <= 0) {
@@ -1197,6 +1242,7 @@ public class Bedwars extends MapGame implements Listener {
 				else
 					lastDamager = this.lastDamager.get(e.getEntity().getUniqueId());
 				if (e instanceof EntityDamageByEntityEvent) {
+
 					EntityDamageByEntityEvent edbee = (EntityDamageByEntityEvent) e;
 
 					if (((CraftEntity) edbee.getDamager()).getHandle() instanceof CustomFireball) {
@@ -1528,24 +1574,25 @@ public class Bedwars extends MapGame implements Listener {
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onBlockPlace(BlockPlaceEvent e) {
 		if (started && !ended) {
-			if (e.getPlayer().getGameMode() == GameMode.CREATIVE) {
-				return;
-			}
-
 			if (safeLocations.contains(e.getBlock().getLocation())) {
-				e.setCancelled(true);
-				e.getPlayer().sendMessage(ChatColor.RED + "You cant place blocks here. (important place protection)");
-				return;
-			}
-			if (!allowBreak.contains(e.getBlock().getLocation())) {
-				allowBreak.add(e.getBlock().getLocation());
+				if (e.getPlayer().getGameMode() != GameMode.CREATIVE) {
+					e.setCancelled(true);
+					sendMessageWithCooldown(e.getPlayer(), ChatColor.RED + "You cant place blocks here. (important place protection)");
+					return;
+				}
+
 			}
 			Vector bottom = new Vector(-(config.getBorderRadius() / 2d) + config.getMapCenter().getX(), 0, -(config.getBorderRadius() / 2d) + config.getMapCenter().getZ());
 			Vector top = new Vector((config.getBorderRadius() / 2d) + config.getMapCenter().getX(), 256, (config.getBorderRadius() / 2d) + config.getMapCenter().getZ());
 
 			if (!e.getBlock().getLocation().toVector().isInAABB(bottom, top)) {
-				e.setCancelled(true);
-				e.getPlayer().sendMessage(ChatColor.RED + "You cant place blocks here. (reached border)");
+				if (e.getPlayer().getGameMode() != GameMode.CREATIVE) {
+					e.setCancelled(true);
+					sendMessageWithCooldown(e.getPlayer(), ChatColor.RED + "You cant place blocks here. (reached border)");
+				}
+			}
+			if (!allowBreak.contains(e.getBlock().getLocation())) {
+				allowBreak.add(e.getBlock().getLocation());
 			}
 		}
 	}
@@ -1605,7 +1652,12 @@ public class Bedwars extends MapGame implements Listener {
 			Vector top = new Vector((config.getBorderRadius() / 2d) + config.getMapCenter().getX(), 256, (config.getBorderRadius() / 2d) + config.getMapCenter().getZ());
 			if (!e.getTo().toVector().isInAABB(bottom, top)) {
 				e.setCancelled(true);
-				e.getPlayer().sendMessage(ChatColor.RED + "Reached world border.");
+				sendMessageWithCooldown(e.getPlayer(), ChatColor.RED + "Reached world border.");
+				Location from = e.getFrom();
+				Location to = e.getTo();
+				Vector vec = to.subtract(from).multiply(-1).toVector().setY(0).normalize().multiply(0.3);
+				e.setCancelled(true);
+				e.getPlayer().setVelocity(vec);
 			}
 		}
 	}
@@ -1619,7 +1671,7 @@ public class Bedwars extends MapGame implements Listener {
 		Material type = e.getItemDrop().getItemStack().getType();
 		if (type == Material.STONE_SWORD || type == Material.DIAMOND_SWORD || type == Material.IRON_SWORD) {
 			if (InventoryUtils.slotsWith(e.getPlayer().getInventory(), VersionIndependentMaterial.WOODEN_SWORD.toBukkitVersion()).isEmpty()) {
-				if (InventoryUtils.slotsWith(e.getPlayer().getInventory(), Material.DIAMOND_SWORD, Material.IRON_SWORD, Material.STONE_SWORD).size() == 0) {
+				if (InventoryUtils.slotsWith(e.getPlayer().getInventory(), Material.DIAMOND_SWORD, Material.IRON_SWORD, Material.STONE_SWORD).isEmpty()) {
 					int slot = InventoryUtils.slotsWith(e.getPlayer().getInventory(), Material.DIAMOND_SWORD).isEmpty() ? InventoryUtils.slotsWith(e.getPlayer().getInventory(), Material.IRON_SWORD).isEmpty() ? InventoryUtils.slotsWith(e.getPlayer().getInventory(), Material.STONE_SWORD).isEmpty() ? 0 : InventoryUtils.slotsWith(e.getPlayer().getInventory(), Material.STONE_SWORD).get(0) : InventoryUtils.slotsWith(e.getPlayer().getInventory(), Material.IRON_SWORD).get(0) : InventoryUtils.slotsWith(e.getPlayer().getInventory(), Material.DIAMOND_SWORD).get(0);
 					e.getPlayer().getInventory().setItem(slot, new ItemBuilder(VersionIndependentMaterial.WOODEN_SWORD).setUnbreakable(true).build());
 					updateEnchantment(e.getPlayer());
@@ -1663,17 +1715,12 @@ public class Bedwars extends MapGame implements Listener {
 				BaseData ownerBase = bases.stream().filter(base -> isBed(block.getLocation(), base)).findFirst().orElse(null);
 				if (ownerBase != null) {
 					e.setCancelled(true);
-					e.getPlayer().sendMessage(ChatColor.RED + "You cannot break others beds when in creative.");
+					sendMessageWithCooldown(e.getPlayer(), ChatColor.RED + "You cannot break others beds when in creative.");
 				}
-			}
-			if ((CustomSpectatorManager.isSpectator(player) || player.getGameMode() == GameMode.SPECTATOR) && VersionIndependentUtils.get().isBed(block)) {
-				BaseData ownerBase = bases.stream().filter(base -> isBed(block.getLocation(), base)).findFirst().orElse(null);
-				if (ownerBase != null) {
-					e.setCancelled(true);
-					e.getPlayer().sendMessage(ChatColor.RED + "You cannot break others beds as a spectator.");
-				}
-			}
-			if (player.getGameMode() != GameMode.CREATIVE) {
+			} else if (CustomSpectatorManager.isSpectator(player) || player.getGameMode() == GameMode.SPECTATOR) {
+				e.setCancelled(true);
+				sendMessageWithCooldown(e.getPlayer(), ChatColor.RED + "You cannot break blocks as a spectator");
+			} else {
 				boolean allow = false;
 				if (VersionIndependentUtils.get().isBed(block)) {
 					BaseData ownerBase = bases.stream().filter(base -> isBed(block.getLocation(), base)).findFirst().orElse(null);
@@ -1681,7 +1728,7 @@ public class Bedwars extends MapGame implements Listener {
 						Team team = TeamManager.getTeamManager().getPlayerTeam(player);
 						if (team != null) {
 							if (ownerBase.getOwner().equals(team)) {
-								player.sendMessage(ChatColor.RED + "You can't break your own bed");
+								sendMessageWithCooldown(player, ChatColor.RED + "You can't break your own bed");
 								e.setCancelled(true);
 								return;
 							}
@@ -1711,8 +1758,11 @@ public class Bedwars extends MapGame implements Listener {
 					allow = true;
 				}
 				if (!allow) {
-					e.setCancelled(true);
-					player.sendMessage(ChatColor.RED + "You can only break blocks placed by players");
+					if (e.getPlayer().getGameMode() != GameMode.CREATIVE) {
+						e.setCancelled(true);
+						sendMessageWithCooldown(player, ChatColor.RED + "You can only break blocks placed by players");
+					}
+
 				}
 			}
 		}
@@ -1871,18 +1921,22 @@ public class Bedwars extends MapGame implements Listener {
 		tryCancelRespawn(player);
 	}
 
-	private List<Location> safeLocations = new ArrayList<>();
+	private List<BoundingBox> safeLocations = new ArrayList<>();
 
-	public List<Location> getSafeLocations() {
+	public List<BoundingBox> getSafeLocations() {
 		return safeLocations;
+	}
+	private List<BoundingBox> safeLocationsWithBeds = new ArrayList<>();
+	public List<BoundingBox> getSafeLocationsWithBeds() {
+		return safeLocationsWithBeds;
 	}
 
 	@EventHandler(priority = EventPriority.NORMAL)
 	public void onBlockPlaced(BlockPlaceEvent e) {
-		for (Location loc : safeLocations) {
-			if (loc.getBlockX() == e.getBlock().getX() && loc.getBlockY() == e.getBlock().getX() && loc.getBlockZ() == e.getBlock().getX()) {
+		for (BoundingBox bb : safeLocations) {
+			if (bb.isInside(e.getBlock().getLocation())) {
 				e.setCancelled(true);
-				e.getPlayer().sendMessage(ChatColor.RED + "You cannot place blocks here");
+				sendMessageWithCooldown(e.getPlayer(), ChatColor.RED + "You cannot place blocks here");
 				return;
 			}
 		}

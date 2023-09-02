@@ -3,6 +3,8 @@ package net.novauniverse.bedwars.game.entity.dragon;
 import net.minecraft.server.v1_8_R3.PathfinderGoal;
 import net.novauniverse.bedwars.NovaBedwars;
 import net.zeeraa.novacore.commons.utils.RandomGenerator;
+import net.zeeraa.novacore.spigot.abstraction.manager.CustomSpectatorManager;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import java.util.ArrayList;
@@ -53,8 +55,10 @@ public class PathfinderGoalDragonCharge extends PathfinderGoal {
 			owner.resetCharge();
 			return;
 		}
+		if (!CustomSpectatorManager.isSpectator(target) && target.getGameMode() != GameMode.CREATIVE && target.getGameMode() != GameMode.SPECTATOR) {
+			owner.target(target.getLocation());
+		}
 
-		owner.target(target.getLocation());
 
 		Location toLook = DragonMath.directionFromLocations(owner.getLocation(), target.getLocation());
 		DragonMath.invertDirection(toLook);

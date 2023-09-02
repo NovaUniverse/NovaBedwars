@@ -137,6 +137,9 @@ public class BedwarsPreferenceManager extends NovaModule implements Listener {
 	}
 
 	public boolean savePreferences(Player player, @Nullable final PreferenceAPIRequestCallback callback) {
+		if (player == null) {
+			return false;
+		}
 		UUID uuid = player.getUniqueId();
 		if (!preferences.containsKey(uuid)) {
 			Log.trace("BedwarsPreferenceManager", "Cant save preferences since the player does not have any loaded data");
