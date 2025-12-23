@@ -18,12 +18,12 @@
 
 	<distributionManagement>
 		<snapshotRepository>
-			<id>novauniverse2</id>
-			<url>https://nexus2.novauniverse.net/repository/novauniverse/</url>
+			<id>novauniverse</id>
+			<url>https://nexus.novauniverse.net/repository/novauniverse/</url>
 		</snapshotRepository>
 		<repository>
-			<id>novauniverse2</id>
-			<url>https://nexus2.novauniverse.net/repository/novauniverse/</url>
+			<id>novauniverse</id>
+			<url>https://nexus.novauniverse.net/repository/novauniverse/</url>
 		</repository>
 	</distributionManagement>
 
@@ -71,8 +71,8 @@
 		</repository>
 
 		<repository>
-			<id>novauniverse2</id>
-			<url>https://nexus2.novauniverse.net/repository/novauniverse-group/</url>
+			<id>novauniverse</id>
+			<url>https://nexus.novauniverse.net/repository/novauniverse-group/</url>
 		</repository>
 		<repository>
 			<id>spigotmc-repo</id>
@@ -85,12 +85,29 @@
 	</repositories>
 
 	<dependencies>
+		<!--Spigot
+		API -->
 		<dependency>
 			<groupId>org.spigotmc</groupId>
 			<artifactId>spigot-api</artifactId>
 			<version>1.8.8-R0.1-SNAPSHOT</version>
 			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>net.md-5</groupId>
+					<artifactId>bungeecord-chat</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
+
+		<!-- BungeeCord Chat API -->
+		<dependency>
+			<groupId>net.md-5</groupId>
+			<artifactId>bungeecord-chat</artifactId>
+			<version>1.16-R0.4</version>
+			<scope>provided</scope>
+		</dependency>
+
 		<dependency>
 			<groupId>org.spigotmc</groupId>
 			<artifactId>spigot</artifactId>
